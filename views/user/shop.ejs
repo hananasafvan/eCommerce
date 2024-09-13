@@ -1,0 +1,107 @@
+<%-include("../../views/partials/user/header")%>
+
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+    <style>
+        /* Container for the entire product list */
+.products-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Space between products */
+  justify-content: center; /* Center the products */
+  padding: 20px;
+}
+
+/* Individual product item styling */
+.product-item {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  width: 250px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+/* Product title styling */
+.product-item h3 {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* Product image styling */
+.product-item img {
+  width: 100%; /* Make the image fill the container width */
+  height: 200px; /* Fix the height */
+  object-fit: cover; /* Ensure the image fits within the set height */
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+/* Product price styling */
+.product-item p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+/* View details link styling */
+.product-item a {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #007bff;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+/* Hover effects */
+.product-item:hover {
+  transform: translateY(-5px); /* Lift the product slightly */
+}
+
+.product-item a:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .product-item {
+    width: 45%;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-item {
+    width: 100%;
+  }
+}
+
+    </style>
+</head>
+<h1>Shop</h1>
+
+<div class="products-list">
+  <% products.forEach(product => { %>
+    <div class="product-item">
+      <h3><%= product.productName %></h3>
+
+      <% if (product.productImage && product.productImage.length > 0) { %>
+        <img src="/uploads/product-imgs/<%= product.productImage[0] %>"  alt="<%= product.productName %>">
+      <% } else { %>
+        <img src="/uploads/product-imgs/no-image.jpg" alt="No image available">
+      <% } %>
+
+      <p>Price: <%= product.regularPrice %></p>
+      <a href="/product/<%= product._id %>">View Details</a>
+    </div>
+  <% }) %>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  
+
+<%-include("../../views/partials/user/footer")%>

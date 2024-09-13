@@ -1,0 +1,139 @@
+
+  
+
+  <style>
+    /* Basic styling for product details page */
+.product-details {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.product-images {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.product-images img {
+  max-width: 100%;
+  height: auto;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  
+}
+
+.product-details p {
+  font-size: 1.2rem;
+  margin: 10px 0;
+}
+
+.product-details h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+/* Zoom effect styling */
+.zoom {
+  display: block;
+  width: 200px;
+  
+}
+
+.zoom:hover {
+  transform: scale(1.5);
+}
+p{
+  color: #040a5f;
+}
+
+.breadcrumbs {
+    font-size: 0.9rem;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.breadcrumbs a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumbs a:hover {
+    color: #0056b3;
+}
+
+.breadcrumbs a::after {
+    content: '>';
+    margin: 0 8px;
+    color: #6c757d;
+}
+
+.breadcrumbs a:last-child::after {
+    content: ''; /* Remove the arrow from the last element */
+}
+
+.breadcrumbs span {
+    color: #6c757d; /* Style for non-link text */
+}
+
+  </style>
+  
+  <div class="breadcrumbs">
+    <a href="/">Home</a> > <a href="/shop">Shop</a> >
+  
+    <% if (product) { %>
+      <a href="/category/<%= product.category %>"><%= product.categoryName %></a> > <%= product.productName %>
+    <% } else { %>
+      <span>Product not available</span>
+    <% } %>
+  </div>
+  
+  <% if (product) { %>
+    <!-- Render product details -->
+    <h1 style="text-align: center; color: rgb(204, 119, 7);"><%= product.productName %></h1>
+    
+    <div class="product-details">
+      <div class="product-images" style="margin-left: 340px;">
+        <% product.productImage.forEach(image => { %>
+          <img src="/uploads/product-imgs/<%= image %>" alt="<%= product.productName %>" class="zoom">
+        <% }) %>
+      </div>
+  
+      <div style="text-align: center;">
+        <p>Price: <%= product.regularPrice %></p>
+        <p>Description: <%= product.description %></p>
+        <p>Color: <%= product.color %></p>
+        <p>Status: 
+          <% if (product.quantity > 0) { %>
+            Available
+          <% } else { %>
+            Not Available
+          <% } %>
+        </p>
+           
+      </div>
+    </div>
+  <% } else { %>
+    <p>This product is currently unavailable.</p>
+  <% } %>
+  
+  <!-- Add scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  
+  <script>
+    // Simple zoom effect
+    document.querySelectorAll('.zoom').forEach(img => {
+      img.addEventListener('mouseover', () => {
+        img.style.transform = 'scale(1.5)';
+        img.style.transition = 'transform 0.5s ease';
+      });
+      img.addEventListener('mouseout', () => {
+        img.style.transform = 'scale(1)';
+      });
+    });
+  </script>
+  
