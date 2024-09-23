@@ -83,33 +83,6 @@
     </style>
 </head>
 <h1>Shop</h1>
-<form action="/shop" method="GET">
-  <input type="text" name="search" placeholder="Search products..." />
-  
-  <select name="sort">
-    <option value="popularity">Popularity</option>
-    <option value="priceLowToHigh">Price: Low to High</option>
-    <option value="priceHighToLow">Price: High to Low</option>
-    <option value="averageRatings">Average Ratings</option>
-    <option value="featured">Featured</option>
-    <option value="newArrivals">New Arrivals</option>
-    <option value="aToZ">A-Z</option>
-    <option value="zToA">Z-A</option>
-  </select>
-
-  <button type="submit">Apply</button>
-</form>
-
-<div class="products-list">
-  <% products.forEach(product => { %>
-    <div class="product-item">
-      <h3><%= product.productName %></h3>
-      <img src="/uploads/product-imgs/<%= product.productImage[0] %>" alt="<%= product.productName %>">
-      <p>Price: <%= product.regularPrice %> $</p>
-      <!-- Additional product details -->
-    </div>
-  <% }) %>
-</div>
 
 
 
