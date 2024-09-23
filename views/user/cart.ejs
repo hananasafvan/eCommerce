@@ -58,9 +58,10 @@
         method: 'GET',
         success: function(response) {
           Swal.fire('Removed!', response.message, 'success').then(() => {
-            productCard.remove(); // Remove the product card from the DOM
+            productCard.remove();
+            
             if ($(".cart-items .card").length === 0) {
-              // If no more items in the cart, show the "empty cart" message
+              
               $(".cart-items").html('<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>');
             }
           });

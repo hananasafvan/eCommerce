@@ -86,6 +86,25 @@
 
 
 
+<form action="/shop" method="GET">
+   
+
+  <select name="sortBy" onchange="this.form.submit()">
+    <option value="">Sort By</option>
+    <option value="popularity" <%= sortBy === 'popularity' ? 'selected' : '' %>>Popularity</option>
+    <option value="priceLowToHigh" <%= sortBy === 'priceLowToHigh' ? 'selected' : '' %>>Price: Low to High</option>
+    <option value="priceHighToLow" <%= sortBy === 'priceHighToLow' ? 'selected' : '' %>>Price: High to Low</option>
+    <option value="averageRatings" <%= sortBy === 'averageRatings' ? 'selected' : '' %>>Average Ratings</option>
+    <option value="featured" <%= sortBy === 'featured' ? 'selected' : '' %>>Featured</option>
+    <option value="newArrivals" <%= sortBy === 'newArrivals' ? 'selected' : '' %>>New Arrivals</option>
+    <option value="aToZ" <%= sortBy === 'aToZ' ? 'selected' : '' %>>A - Z</option>
+    <option value="zToA" <%= sortBy === 'zToA' ? 'selected' : '' %>>Z - A</option>
+  </select>
+  
+  
+  
+</form>
+<!-- new -->
 <div class="products-list">
   <% products.forEach(product => { %>
     <div class="product-item">
@@ -108,6 +127,24 @@
     </div>
   <% }) %>
 </div>
+
+<div class="pagination-container">
+  <% if (currentPage > 1) { %>
+    <a href="?page=<%= currentPage - 1 %>&sortBy=<%= sortBy %>">&laquo; Previous</a>
+  <% } %> 
+  
+  <% for (let i = 1; i <= totalPages; i++) { %> 
+    <% if (i === currentPage) { %>
+    <span class="current-page"><%= i %></span>
+    <% } else { %>
+    <a href="?page=<%= i %>&sortBy=<%= sortBy %>"><%= i %></a>
+    <% } %>
+  <% } %> 
+  
+  <% if (currentPage < totalPages) { %>
+    <a href="?page=<%= currentPage + 1 %>&sortBy=<%= sortBy %>">Next &raquo;</a>
+  <% } %>
+  </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   
@@ -135,6 +172,15 @@
           });
       });
   });
+//new
+
+  document.getElementById('sort').addEventListener('change', function() {
+    const sortValue = this.value;
+    window.location.href = `/shop?sort=${sortValue}`; // Redirect to shop route with the selected sort option
+  });
+
+//new
+
 </script>
 
 

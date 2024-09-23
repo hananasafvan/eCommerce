@@ -1,5 +1,6 @@
 const Cart = require("../../models/cartSchema");
 const Product = require("../../models/productShema");
+const session = require('express-session')
 
 const addToCart = async (req, res) => {
   try {
@@ -77,34 +78,7 @@ const getCart = async (req, res) => {
   }
 };
 
-// const removeFromCart = async (req, res) => {
-//   const userId = req.session.user; // Get user ID from the session
-//   const productId = req.params.productId; // Get product ID from the request parameters
 
-//   try {
-//     const cart = await Cart.findOne({ userId });
-
-//     if (!cart) {
-//       return res.status(404).send("Cart not found"); // Return to avoid further execution
-//     }
-
-//     const itemIndex = cart.items.findIndex(
-//       (item) => item.productId == productId
-//     );
-
-//     if (itemIndex > -1) {
-//       // Remove the item from the cart
-//       cart.items.splice(itemIndex, 1);
-//       await cart.save();
-//       return res.redirect("/userprofile"); // Return to avoid further execution
-//     } else {
-//       return res.status(404).send("Product not found in cart"); // Return to avoid further execution
-//     }
-//   } catch (error) {
-//     console.error("Error removing product from cart:", error);
-//     return res.status(500).send("Internal server error"); // Return to avoid further execution
-//   }
-// };
 
 const removeFromCart = async (req, res) => {
   const userId = req.session.user;

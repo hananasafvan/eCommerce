@@ -57,19 +57,64 @@ const securePassword = async(password)=>{
 
 
 // Get all products to list on Home and Shop pages
-const getProducts = async (req, res) => {
-  try {
-    const products = await Product.find({quantity:{$gt:0}});
-    const user = req.session.user || null;
-    res.render("shop", { products,user }); // Render the shop page with products data
-  
-  
-  
-  } catch (error) {
-    console.error("Error fetching products:", error);
-    res.status(500).send("Server Error");
-  }
+const getProducts = async (req, res) => {  
+    try {
+        const searchQuery = req.query.searchQuery || '';
+        const { sortBy } = req.query;
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 14;
+        const skip = (page - 1) * limit;
+
+        let searchCondition = { isBlocked: false };
+        if (searchQuery) {
+            const regex = new RegExp(searchQuery, 'i');
+            searchCondition.$or = [{ productName: regex }];
+        }
+
+        let sortCriteria = {};
+        switch (sortBy) {
+            case 'popularity': sortCriteria = { popularity: -1 }; break;
+            case 'priceLowToHigh': sortCriteria = {  regularPrice: 1 }; break;
+            case 'priceHighToLow': sortCriteria = {  regularPrice: -1 }; break;
+            case 'averageRatings': sortCriteria = { averageRating: -1 }; break;
+            case 'featured': sortCriteria = { isFeatured: -1 }; break;
+            case 'newArrivals': sortCriteria = { createdAt: -1 }; break;
+            case 'aToZ': sortCriteria = { productName: 1 }; break;
+            case 'zToA': sortCriteria = { productName: -1 }; break;
+            default: sortCriteria = {};
+        }
+
+        const products = await Product.find(searchCondition)
+            .populate('category')
+            .sort(sortCriteria)
+            .skip(skip)
+            .limit(limit)
+            .exec();
+
+        const totalProducts = await Product.countDocuments(searchCondition);
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        let userId = req.user || req.session.user;
+        let userData = userId ? await User.findById(userId) : null;
+        res.locals.user = userData;
+
+        return res.render("shop", { 
+            user: userData,
+            products: products,
+            sortBy: sortBy || '',
+            currentPage: page,
+            totalPages: totalPages,
+            totalProducts: totalProducts
+        });
+    } catch (error) {
+        console.log("shop page not found:", error);
+        next(error);
+    }
 };
+
+
+
 
 // Get product details by ID
 const getProductDetails = async (req, res) => {
@@ -106,6 +151,7 @@ else{
 };
 
 // Forgot Password
+
 
 
 

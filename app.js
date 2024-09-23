@@ -9,10 +9,9 @@ const userRouter = require("./routes/userRouter");
 const { log } = require("console");
 const adminRouter = require("./routes/adminRouter");
 const productRouter = require("./routes/productRouter");
-const orderRouter = require('./routes/orderRouter'); 
-const profile =require('./routes/profile');
-const shopRouter = require('./routes/shopRouter');
-const adminOrderRouter = require('./routes/adminOrderRouter')
+const orderRouter = require("./routes/orderRouter");
+const profile = require("./routes/profile");
+const adminOrderRouter = require("./routes/adminOrderRouter");
 db();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,7 +28,6 @@ app.use(
   })
 );
 
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -40,14 +38,12 @@ app.set("views", [
 ]);
 app.use(express.static(path.join(__dirname, "public")));
 
-
 app.use("/", userRouter);
 app.use("/admin", adminRouter);
 app.use("/", productRouter);
-app.use('/',profile)
-app.use('/order', orderRouter);
-app.use('/admin', adminOrderRouter); 
-app.use('/shop', shopRouter);
+app.use("/", profile);
+app.use("/order", orderRouter);
+app.use("/admin", adminOrderRouter);
 
 app.set("view cache", false);
 
@@ -56,3 +52,7 @@ app.listen(PORT, () => {
   console.log("server running");
   module.exports = app;
 });
+
+
+//git status
+//
