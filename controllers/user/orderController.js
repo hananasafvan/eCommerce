@@ -50,7 +50,6 @@ const placeOrder = async (req, res) => {
       await product.save();
     });
 
-    // Clear the cart after placing the order
     await Cart.findByIdAndDelete(cart._id);
     console.log("clear cart");
 
@@ -61,8 +60,6 @@ const placeOrder = async (req, res) => {
   }
 };
 
-
-
 const getOrderHistory = async (req, res) => {
   const userId = req.session.user;
 
@@ -71,10 +68,13 @@ const getOrderHistory = async (req, res) => {
       .populate("items.productId") // Fetch product details
       .exec();
 
-    const formattedOrders = orders.map(order => ({
+    const formattedOrders = orders.map((order) => ({
       ...order.toObject(),
-      createdAtFormatted: order.createdAt.toLocaleDateString("en-GB"), // Format date as DD/MM/YYYY
-      totalOrderPrice: order.items.reduce((acc, item) => acc + item.totalPrice, 0) // Precompute total price
+      createdAtFormatted: order.createdAt.toLocaleDateString("en-GB"),
+      totalOrderPrice: order.items.reduce(
+        (acc, item) => acc + item.totalPrice,
+        0
+      ),
     }));
 
     res.render("orderHistory", { orders: formattedOrders });
@@ -83,8 +83,6 @@ const getOrderHistory = async (req, res) => {
     res.status(500).send("Internal server error");
   }
 };
-
-
 
 const cancelOrder = async (req, res) => {
   const { orderId } = req.params;
@@ -97,28 +95,24 @@ const cancelOrder = async (req, res) => {
       return res.status(404).send("Order not found.");
     }
 
-    // Optional: Check if the order can be canceled (e.g., only if it's pending)
     if (order.status !== "Pending") {
       return res.status(400).send("Order cannot be canceled.");
     }
 
-    // Delete the order from the database
     await Order.deleteOne({ _id: orderId });
 
-    // Restore product quantities
     for (const item of order.items) {
       const product = await Product.findById(item.productId);
-      product.quantity += item.quantity; // Restore quantity
+      product.quantity += item.quantity;
       await product.save();
     }
 
-    res.redirect("/order/history"); // Redirect to order history page
+    res.redirect("/order/history");
   } catch (error) {
     console.error("Error canceling order:", error);
     res.status(500).send("Internal server error");
   }
 };
-
 
 module.exports = {
   getOrderPage,

@@ -54,5 +54,10 @@ app.listen(PORT, () => {
 });
 
 
+// admin@gmail.com
+//admin123
+
 //git status
-//
+//git add --all
+//git commit -m "message"
+//git push

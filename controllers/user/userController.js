@@ -70,17 +70,13 @@ const signup = async (req, res) => {
     if (error.code === 11000) {
       // Duplicate key error
       console.error("Duplicate key error", error.message);
-      res
-        .status(400)
-        .render("signup", {
-          message: "An account with this email already exists.",
-        });
+      res.status(400).render("signup", {
+        message: "An account with this email already exists.",
+      });
     } else {
       console.error("Signup error", error);
       res.redirect("/pageNotFound");
     }
-    // console.error("Signup error:", error);
-    // res.redirect("/pageNotFound");
   }
 };
 
@@ -111,7 +107,6 @@ const loadHomepage = async (req, res) => {
           res.redirect("/login");
         });
       }
-      
     } else {
       res.locals.user = null;
       return res.render("home");
@@ -165,7 +160,7 @@ const resendOtp = async (req, res) => {
         .status(400)
         .json({ success: false, message: "email not found" });
     }
-    
+
     const otp = generateOtp();
     req.session.userOtp = otp;
     const emailSent = await sentVerificationEmail(email, otp);
@@ -175,21 +170,17 @@ const resendOtp = async (req, res) => {
         .status(200)
         .json({ success: true, message: "otp resend successfuly" });
     } else {
-      res
-        .status(500)
-        .json({
-          success: false,
-          message: "faild to resend otp pleace try agan",
-        });
+      res.status(500).json({
+        success: false,
+        message: "faild to resend otp pleace try agan",
+      });
     }
   } catch (error) {
     console.error("error resending otp", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "internal server error.pleace try again",
-      });
+    res.status(500).json({
+      success: false,
+      message: "internal server error.pleace try again",
+    });
   }
 };
 
@@ -243,14 +234,10 @@ const logout = async (req, res) => {
   }
 };
 
-// Google OAuth callback logic
 const googleCallback = (req, res) => {
-  // Set the user session after successful authentication
-  req.session.user = req.user; // Store the user in the session
-  res.redirect("/"); // Redirect to the home page after login
+  req.session.user = req.user;
+  res.redirect("/");
 };
-
-
 
 module.exports = {
   loadHomepage,
@@ -263,6 +250,4 @@ module.exports = {
   login,
   logout,
   googleCallback,
-  
 };
-

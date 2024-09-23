@@ -1,5 +1,5 @@
 const User = require("../../models/userSchema");
-const session = require('express-session')
+const session = require("express-session");
 
 const getProfile = async (req, res) => {
   try {
@@ -20,7 +20,6 @@ const getProfile = async (req, res) => {
   }
 };
 
-
 const getEditUser = async (req, res) => {
   try {
     const id = req.query.id;
@@ -38,9 +37,6 @@ const getEditUser = async (req, res) => {
   }
 };
 
-
-
-
 const postEditUser = async (req, res) => {
   try {
     const id = req.params.id;
@@ -50,16 +46,15 @@ const postEditUser = async (req, res) => {
     if (!name || !email || !phone) {
       return res.render("editUser", {
         user: req.body,
-        error: "All fields are required."
+        error: "All fields are required.",
       });
     }
 
-    // Simple regex for email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.render("editUser", {
         user: req.body,
-        error: "Invalid email format."
+        error: "Invalid email format.",
       });
     }
 
@@ -68,7 +63,7 @@ const postEditUser = async (req, res) => {
     if (existingProfile && existingProfile._id.toString() !== id) {
       return res.render("editUser", {
         user: req.body,
-        error: "User already exists, please choose another name."
+        error: "User already exists, please choose another name.",
       });
     }
 
@@ -81,24 +76,22 @@ const postEditUser = async (req, res) => {
     if (updateProfile) {
       res.render("editUser", {
         user: updateProfile,
-        success: "Profile updated successfully."
+        success: "Profile updated successfully.",
       });
     } else {
       res.render("editUser", {
         user: req.body,
-        error: "User not found."
+        error: "User not found.",
       });
     }
   } catch (error) {
     console.error("Error updating user:", error);
     res.render("editUser", {
       user: req.body,
-      error: "Internal server error."
+      error: "Internal server error.",
     });
   }
 };
-
-
 
 module.exports = {
   getProfile,

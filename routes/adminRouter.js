@@ -50,5 +50,3 @@ module.exports = router
 
 
 
-// admin@gmail.com
-//admin123

@@ -1,14 +1,15 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { getOrderList, updateOrderStatus, cancelOrder } = require('../controllers/admin/orderController'); // Importing order controller
+const {
+  getOrderList,
+  updateOrderStatus,
+  cancelOrder,
+} = require("../controllers/admin/orderController");
 
+router.get("/orderList", getOrderList);
 
-router.get('/orderList', getOrderList);
+router.post("/order/update/:id", updateOrderStatus);
 
-// Route to change order status (POST request for form submission)
-router.post('/order/update/:id', updateOrderStatus);
-
-// Route to cancel an order
-router.get('/order/cancel/:id', cancelOrder);
+router.get("/order/cancel/:id", cancelOrder);
 
 module.exports = router;

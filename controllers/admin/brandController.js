@@ -49,7 +49,7 @@ const addBrand = async (req, res) => {
 
 const getEditBrand = async (req, res) => {
   try {
-    const id = req.query.id; // Or use req.params.id if you're using a route with params
+    const id = req.query.id;
 
     const brand = await Brand.findOne({ _id: id });
     if (brand) {
@@ -65,12 +65,11 @@ const getEditBrand = async (req, res) => {
 
 const editBrand = async (req, res) => {
   try {
-    const id = req.params.id; // Use params if ID is passed in the route
+    const id = req.params.id;
     console.log("Updating brand:", req.body);
-    // Ensure you're receiving the correct body data
+
     const { brandname } = req.body;
 
-    // Check if the category name already exists
     const existingBrand = await Brand.findOne({ name: brandname });
     if (existingBrand && existingBrand._id.toString() !== id) {
       return res
@@ -78,7 +77,6 @@ const editBrand = async (req, res) => {
         .json({ error: "Brand already exists, please choose another name" });
     }
 
-    // Update the category
     const updatedBrand = await Brand.findByIdAndUpdate(
       id,
       {

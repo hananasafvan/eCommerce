@@ -21,7 +21,7 @@ const couponSchema = new mongoose.Schema({
         type : Number,
         required : true
     },
-    minimumPrice : { //product offer allow abou this price
+    minimumPrice : { 
         type : Number,
         required : true
     },

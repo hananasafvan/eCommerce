@@ -1,10 +1,10 @@
 const Cart = require("../../models/cartSchema");
 const Product = require("../../models/productShema");
-const session = require('express-session')
+const session = require("express-session");
 
 const addToCart = async (req, res) => {
   try {
-    const userId = req.session.user; // Make sure session.user contains the ID
+    const userId = req.session.user;
     const { productId } = req.body;
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
@@ -17,8 +17,8 @@ const addToCart = async (req, res) => {
     }
 
     if (product.quantity <= 0) {
-        return res.status(400).json({ message: "Product out of stock" });
-      }
+      return res.status(400).json({ message: "Product out of stock" });
+    }
 
     let cart = await Cart.findOne({ userId });
 
@@ -28,20 +28,17 @@ const addToCart = async (req, res) => {
 
     // Check if cart has 10 items
     if (cart.items.length >= 10) {
-        // Remove the oldest item (first item in the array)
-        cart.items.shift(); // Removes the first item
-      }
+      cart.items.shift();
+    }
 
     const itemIndex = cart.items.findIndex(
       (item) => item.productId == productId
     );
 
     if (itemIndex > -1) {
-      // If product exists in cart, increase quantity
       cart.items[itemIndex].quantity += 1;
       cart.items[itemIndex].totalPrice += product.regularPrice;
     } else {
-      // If product doesn't exist, add it to the cart
       cart.items.push({
         productId,
         quantity: 1,
@@ -78,8 +75,6 @@ const getCart = async (req, res) => {
   }
 };
 
-
-
 const removeFromCart = async (req, res) => {
   const userId = req.session.user;
   const productId = req.params.productId;
@@ -96,11 +91,9 @@ const removeFromCart = async (req, res) => {
     );
 
     if (itemIndex > -1) {
-      cart.items.splice(itemIndex, 1); // Remove the product from the cart
+      cart.items.splice(itemIndex, 1);
       await cart.save();
-      return res.json({ message: "Product removed" }); // Send a JSON response
-
-      
+      return res.json({ message: "Product removed" });
     } else {
       return res.status(404).json({ message: "Product not found in cart" });
     }
@@ -109,8 +102,6 @@ const removeFromCart = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 module.exports = {
   addToCart,

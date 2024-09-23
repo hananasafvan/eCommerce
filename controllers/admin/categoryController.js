@@ -29,16 +29,13 @@ const addCategory = async (req, res) => {
   const { name, description } = req.body;
 
   try {
-    // Log the incoming data
     console.log("Adding category:", req.body);
 
-    // Check if the category already exists
     const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
       return res.status(400).json({ error: "Category already exists" });
     }
 
-    // Create a new category
     const newCategory = new Category({ name, description });
     await newCategory.save();
     return res.json({ message: "category added succsesfully" });
@@ -66,12 +63,11 @@ const getEditCategory = async (req, res) => {
 
 const editCategory = async (req, res) => {
   try {
-    const id = req.params.id; // Use params if ID is passed in the route
+    const id = req.params.id;
     console.log("Updating category:", req.body);
 
     const { categoryname, description } = req.body;
 
-    // Check if the category name already exists
     const existingCategory = await Category.findOne({ name: categoryname });
     if (existingCategory && existingCategory._id.toString() !== id) {
       return res
@@ -79,7 +75,6 @@ const editCategory = async (req, res) => {
         .json({ error: "Category already exists, please choose another name" });
     }
 
-    // Update the category
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
       {

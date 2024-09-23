@@ -12,11 +12,11 @@ const customerInfo = async (req, res) => {
       page = req.query.page;
     }
 
-    const limit = 3; // Number of users per page
+    const limit = 3;
     const userData = await User.find({
       isAdmin: false,
       $or: [
-        { name: { $regex: ".*" + search + ".*", $options: "i" } }, // Case insensitive search
+        { name: { $regex: ".*" + search + ".*", $options: "i" } },
         { email: { $regex: ".*" + search + ".*", $options: "i" } },
       ],
     })
