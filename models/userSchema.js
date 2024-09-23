@@ -77,7 +77,24 @@ const userSchema = new Schema({
             type: Date,
             default: Date.now
         }
-    }]
+    }],
+    address:{
+        type:String,
+        required:false
+
+    },
+    city:{
+        type:String,
+        required:false
+    },
+    postalCode: {
+        type: String,
+        required: false
+    },
+    country: {
+        type: String,
+        required: false
+    }
 });
 
 const User = mongoose.model("User", userSchema);

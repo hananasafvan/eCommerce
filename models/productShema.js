@@ -54,6 +54,18 @@ const productSchema = new Schema({
         required : true,
         default : "Available"
     },
+    popularity: {
+        type: Number,
+        default: 0,
+    },
+    rating: {
+        type: Number,
+        default: 0, // Store average ratings
+    },
+    isFeatured: {
+        type: Boolean,
+        default: false,
+    },
 },
 {timestamps:true});  //enabling automatic time-stamping for your MongoDB documents.
 

@@ -1,0 +1,74 @@
+
+   <%- include("../../views/partials/user/header") %>
+   <div>
+    <div>
+
+</div>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <h1 class="text-center">Your Cart</h1>
+      <div class="cart-items">
+        <% if (cartItems.length > 0) { %>
+          <% cartItems.forEach(item => { %>
+            <div class="card mb-4">
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-3"></div>
+                    <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid">
+                  </div>
+                  <div class="col-md-8">
+                    <h3><%= item.productId.productName %></h3>
+                    <p>Quantity: <%= item.quantity %></p>
+                    <p>Total Price: <%= item.totalPrice %> $</p>
+                  </div>
+                  <div class="col-md-4 text-end">
+                    <a href="/cart/remove/<%= item.productId._id %>" class="btn btn-danger">Remove</a>
+                    <a href="/order/checkout?productId=<%= item.productId._id %>" class="btn btn-primary">Order This Product</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+          
+        <% } else { %>
+          <div class="alert alert-warning text-center" role="alert">
+            Your cart is empty.
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<%- include("../../views/partials/user/footer") %>
+
+<script>
+  $(document).ready(function() {
+    $(".btn-danger").click(function(e) {
+      e.preventDefault();
+      const removeUrl = $(this).attr('href');
+      const productCard = $(this).closest(".card"); // Select the product card
+
+      $.ajax({
+        url: removeUrl,
+        method: 'GET',
+        success: function(response) {
+          Swal.fire('Removed!', response.message, 'success').then(() => {
+            productCard.remove(); // Remove the product card from the DOM
+            if ($(".cart-items .card").length === 0) {
+              // If no more items in the cart, show the "empty cart" message
+              $(".cart-items").html('<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>');
+            }
+          });
+        },
+        error: function(error) {
+          Swal.fire('Oops!', 'Something went wrong!', 'error');
+        }
+      });
+    });
+  });
+</script>

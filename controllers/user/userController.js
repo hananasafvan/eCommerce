@@ -79,6 +79,8 @@ const signup = async (req, res) => {
       console.error("Signup error", error);
       res.redirect("/pageNotFound");
     }
+    // console.error("Signup error:", error);
+    // res.redirect("/pageNotFound");
   }
 };
 
@@ -163,6 +165,7 @@ const resendOtp = async (req, res) => {
         .status(400)
         .json({ success: false, message: "email not found" });
     }
+    
     const otp = generateOtp();
     req.session.userOtp = otp;
     const emailSent = await sentVerificationEmail(email, otp);
@@ -247,6 +250,8 @@ const googleCallback = (req, res) => {
   res.redirect("/"); // Redirect to the home page after login
 };
 
+
+
 module.exports = {
   loadHomepage,
   pageNotFound,
@@ -258,4 +263,6 @@ module.exports = {
   login,
   logout,
   googleCallback,
+  
 };
+

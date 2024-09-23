@@ -1,0 +1,85 @@
+<%- include("../../views/partials/admin/header") %>
+<main>
+    <div class="container">
+        <h1>Order List</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>User ID</th>
+                    <th>Items</th>
+                    <th>Total Price</th>
+                    <th>Payment Method</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (orders.length > 0) { %>
+                    <% orders.forEach(order => { %>
+                        <tr>
+                            <td><%= order._id %></td>
+                            <td><%= order.userId %></td>
+                            <td>
+                                <ul>
+                                    <% order.items.forEach(item => { %>
+                                        <li>Product ID: <%= item.productId %>, Quantity: <%= item.quantity %>, Total Price: <%= item.totalPrice %></li>
+                                    <% }) %>
+                                </ul>
+                            </td>
+                            <td>$<%= order.items.reduce((total, item) => total + item.totalPrice, 0).toFixed(2) %></td>
+                            <td><%= order.paymentMethod %></td>
+                            <td>
+                                <!-- Order Status Dropdown -->
+                                <form action="/admin/order/update/<%= order._id %>" method="POST">
+                                    <select name="status" class="form-select">
+                                        <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                        <option value="Processing" <%= order.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                        <option value="Shipped" <%= order.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                        <option value="Delivered" <%= order.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                        <option value="Cancelled" <%= order.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-success mt-2">Update</button>
+                                </form>
+                            </td>
+                            <td><%= new Date(order.createdAt).toLocaleString() %></td>
+                            <td>
+                                <!-- <a href="/admin/order/view/<%= order._id %>" class="btn btn-sm btn-primary">View</a> -->
+                                <a href="/admin/order/cancel/<%= order._id %>" class="btn btn-sm btn-danger">Cancel</a>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="8">No orders found</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+
+        <!-- Pagination Links -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <% if (current > 1) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="/admin/orderList?page=<%= current - 1 %>">Previous</a>
+                    </li>
+                <% } %>
+
+                <% for (let i = 1; i <= pages; i++) { %>
+                    <li class="page-item <%= current === i ? 'active' : '' %>">
+                        <a class="page-link" href="/admin/orderList?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+
+                <% if (current < pages) { %>
+                    <li class="page-item">
+                        <a class="page-link" href="/admin/orderList?page=<%= current + 1 %>">Next</a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    </div>
+</main>
+<%- include("../../views/partials/admin/footer") %>

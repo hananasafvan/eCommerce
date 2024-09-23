@@ -1,10 +1,13 @@
 const Product = require("../../models/productShema");
+const User = require("../../models/userSchema");
+
 
 // Get all products to list on Home and Shop pages
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.render("shop", { products }); // Render the shop page with products data
+    const products = await Product.find({quantity:{$gt:0}});
+    const user = req.session.user || null;
+    res.render("shop", { products,user }); // Render the shop page with products data
   
   
   
@@ -19,7 +22,7 @@ const getProductDetails = async (req, res) => {
   try {
     const productId = req.params.id;
     const product = await Product.findById(productId); // Fetch a specific product by its ID
-
+    const user = req.session.user || null;  
     if (!product) {
       return res.status(404).send("Product not found");
     }
@@ -39,7 +42,7 @@ if(product.isBlocked){
 }
 
 else{
-  res.render("productDetails", { product })
+  res.render("productDetails", { product,user })
 }
 
 } catch (error) {
@@ -48,7 +51,18 @@ else{
   }
 };
 
+const getForgotpassword =async(req,res)=>{
+  try {
+    res.render('forgotPassword')
+  } catch (error) {
+    res.redirect('/pageNotFound')
+  }
+}
+
+
 module.exports = {
   getProducts,
   getProductDetails,
+  getForgotpassword
+  
 };

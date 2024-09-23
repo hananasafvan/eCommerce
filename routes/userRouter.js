@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/user/userController");
+const profileController = require('../controllers/user/profileController')
 const passport = require("passport");
 const { userAuth } = require("../middleweares/auth");
 
@@ -30,6 +31,7 @@ router.get(
 router.get("/login", userController.loadLogin);
 router.post("/login", userController.login);
 router.get("/logout", userAuth, userController.logout);
+
 
 
 module.exports = router;

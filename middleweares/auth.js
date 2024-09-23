@@ -1,6 +1,8 @@
 const User = require("../models/userSchema");
+const Address = require('../models/addressSchema')
 
 const userAuth = async (req, res, next) => {
+  console.log('Session data:', req.session); 
   if (req.session.user) {
     try {
       const user = await User.findById(req.session.user);
@@ -24,6 +26,11 @@ const userAuth = async (req, res, next) => {
     res.redirect("/login"); // No session, redirect to login
   }
 };
+
+
+
+
+
 
 const adminAuth = (req, res, next) => {
   User.findOne({ isAdmin: true })

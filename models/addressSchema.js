@@ -8,37 +8,38 @@ const addressSchema = new Schema({
         required : true
     },
     address : [{
-        addressType :{
-            type:String,
-            required : true,
-        },
+        // addressType :{
+        //     type:String,
+        //     required : true,
+        // },
          name : {
             type : String,
-            required : true,
+            required : false,
+            //unique:true
         },
         city:{
             type : String,
-            required : true
+            required : false
         },
-        landMark : {
-            type : String,
-            required : true
-        },
+        // landMark : {
+        //     type : String,
+        //     required : true
+        // },
         state : {
             type : String,
-            required : true
+            required : false
         },
         pincode : {
             type : Number,
-            required : true
+            required : false
         },
         phone : {
             type : String,
-            required : true
+            required : false
         },
         altphone : {
             type : String,
-            required : true
+            required : false
         }
     }]
 })

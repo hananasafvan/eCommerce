@@ -1,0 +1,119 @@
+
+<style>
+  /* Styling for the form container */
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Form heading */
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+/* Styling each form group */
+.mb-3 {
+    margin-bottom: 20px;
+}
+
+/* Label styling */
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Input field styling */
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 10px;
+    font-size: 16px;
+}
+
+/* Input field focus effect */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+}
+
+/* Submit button styling */
+.btn-primary {
+    display: block;
+    width: 100%;
+    background-color: #007bff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* Small screen adjustments */
+@media (max-width: 576px) {
+    .container {
+        padding: 15px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    .form-control {
+        font-size: 14px;
+    }
+
+    .btn-primary {
+        font-size: 16px;
+    }
+}
+
+</style>
+
+
+      <div class="container mt-5">
+        <h2>Edit Address</h2>
+        <form action="/address/edit/<%= address._id %>" method="POST">
+          <!-- <div class="mb-3">
+            <label for="addressType" class="form-label">Address Type</label>
+            <input type="text" class="form-control" id="addressType" name="addressType" value="<%= address.addressType %>" required>
+          </div> -->
+          <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="<%= address.name %>">
+          </div>
+          <div class="mb-3">
+            <label for="city" class="form-label">City</label>
+            <input type="text" class="form-control" id="city" name="city" value="<%= address.city %>">
+          </div>
+          <div class="mb-3">
+            <label for="state" class="form-label">State</label>
+            <input type="text" class="form-control" id="state" name="state" value="<%= address.state %>">
+          </div>
+          <div class="mb-3">
+            <label for="pincode" class="form-label">Pincode</label>
+            <input type="text" class="form-control" id="pincode" name="pincode" value="<%= address.pincode %>">
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone</label>
+            <input type="text" class="form-control" id="phone" name="phone" value="<%= address.phone %>">
+          </div>
+          <div class="mb-3">
+            <label for="altphone" class="form-label">Alt Phone</label>
+            <input type="text" class="form-control" id="altphone" name="altphone" value="<%= address.altphone %>">
+          </div>
+          <!-- Submit button -->
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+      

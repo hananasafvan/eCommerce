@@ -1,0 +1,63 @@
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  form {
+  background-color: #f8f9fa; /* Light background for the form */
+}
+
+form h3 {
+  margin-bottom: 1rem;
+}
+
+button[type="submit"] {
+  margin-top: 1.5rem;
+}
+
+.list-group-item {
+  background-color: #fff; /* White background for items */
+  border-color: #dee2e6; /* Light border */
+  padding: 1rem;
+}
+
+</style>
+
+<div class="container mt-5">
+  <h1 class="text-center mb-5">Confirm Your Order</h1>
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <form action="/order/place" method="POST" class="p-4 border rounded shadow">
+        <div class="mb-4">
+          <h3>Select Delivery Address</h3>
+          <select name="selectedAddress" class="form-select">
+            <% userAddresses.forEach(address => { %>
+              <option value="<%= address._id %>">
+                 <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="mb-4">
+          <h3>Your Cart Items</h3>
+          <ul class="list-group">
+            <% cartItems.forEach(item => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong><%= item.productId.productName %></strong>
+                  <div>Quantity: <%= item.quantity %></div>
+                </div>
+                <span>Total: <%= item.totalPrice %> $</span>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-success btn-lg px-5">Place Order (Cash on Delivery)</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
