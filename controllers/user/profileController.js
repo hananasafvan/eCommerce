@@ -40,23 +40,23 @@ const getEditUser = async (req, res) => {
 const postEditUser = async (req, res) => {
   try {
     const id = req.params.id;
-    const { name, email, phone } = req.body;
+    const { name,  phone } = req.body;
 
     // Validate input
-    if (!name || !email || !phone) {
+    if (!name || !phone) {
       return res.render("editUser", {
         user: req.body,
         error: "All fields are required.",
       });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.render("editUser", {
-        user: req.body,
-        error: "Invalid email format.",
-      });
-    }
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // if (!emailRegex.test(email)) {
+    //   return res.render("editUser", {
+    //     user: req.body,
+    //     error: "Invalid email format.",
+    //   });
+    // }
 
     // Check for existing user with the same name
     const existingProfile = await User.findOne({ name });
@@ -69,7 +69,7 @@ const postEditUser = async (req, res) => {
 
     const updateProfile = await User.findByIdAndUpdate(
       id,
-      { $set: { name, email, phone } },
+      { $set: { name,  phone } },
       { new: true }
     );
 

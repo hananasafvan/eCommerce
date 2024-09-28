@@ -1,0 +1,51 @@
+<%- include("../../views/partials/admin/header") %>
+<main>
+    <div class="container mt-4">
+        <h1>Order Details</h1>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5>Order ID: <%= order._id %></h5>
+                <p><strong>User ID:</strong> <%= order.userId ? order.userId._id : 'User not found' %></p>
+                
+                <p><strong>Order Date:</strong> <%= new Date(order.createdAt).toLocaleString() %></p>
+                <p><strong>Payment Method:</strong> <%= order.paymentMethod %></p>
+                <p><strong>Order Status:</strong> <%= order.status %></p>
+            </div>
+        </div>
+
+        <h3>Ordered Items</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% order.items.forEach(item => { %>
+                    <tr>
+                        <td><%= item.productId.productName %></td>
+                        <td><%= item.productId.quantity %></td>
+                        <td>$<%= item.productId.regularPrice %></td>
+                        <td>$<%= (item.productId.regularPrice * item.productId.quantity).toFixed(2) %></td>
+                    </tr>
+                    
+                        <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail" style="width: 100px; height: auto; margin-right: 15px;">
+                            
+                <% }) %>
+            </tbody>
+        </table>
+
+        <div class="mt-4">
+            <h4>Total Price: $<%= order.items.reduce((total, item) => total + (item.productId.regularPrice * item.productId.quantity), 0).toFixed(2) %></h4>
+        </div>
+
+        
+
+        <a href="/admin/orderList" class="btn btn-secondary mt-3">Back to Orders</a>
+    </div>
+</main>
+<%- include("../../views/partials/admin/footer") %>

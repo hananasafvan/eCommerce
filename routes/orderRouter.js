@@ -5,9 +5,13 @@ const { userAuth } = require("../middleweares/auth");
 
 router.get("/checkout", userAuth, orderController.getOrderPage);
 router.post("/place", userAuth, orderController.placeOrder);
+router.get('/details/:orderId', orderController.getOrderDetails);
+
 
 router.get("/history", userAuth, orderController.getOrderHistory);
 router.post("/cancel/:orderId", userAuth, orderController.cancelOrder);
+router.post('/cancel-item/:orderId/:productId', orderController.cancelOrder);
+
 
 
 module.exports = router;

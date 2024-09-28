@@ -1,149 +1,188 @@
-
+<%- include("../../views/partials/user/header") %>
 
 <head>
-  
-  
- <style>
-    /* Basic styling for product details page */
-.product-details {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/css/style.css.map">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
 
-.product-images {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+    .product-details {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      max-width: 1200px;
+      margin: auto;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+    }
 
-.product-images img {
-  max-width: 100%;
-  height: auto;
-  transition: transform 0.3s ease;
-  cursor: pointer;
-  
-}
+    .product-images {
+      position: relative;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
-.product-details p {
-  font-size: 1.2rem;
-  margin: 10px 0;
-}
+    .product-images img {
+      max-width: 300px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+    }
 
-.product-details h1 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-}
+    /* Zoomed-in image styling */
+    .zoomed-in {
+      cursor: move; /* Change cursor to indicate panning is enabled */
+      transform-origin: center;
+    }
 
-/* Zoom effect styling */
-.zoom {
-  display: block;
-  width: 200px;
-  
-}
+    .zoomed-in img {
+      transform: scale(2); /* Set default zoom level when clicked */
+      transition: transform 0.3s ease;
+    }
 
-.zoom:hover {
-  transform: scale(1.5);
-}
-p{
-  color: #040a5f;
-}
+    .breadcrumbs {
+      font-size: 1rem;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+    }
 
-.breadcrumbs {
-    font-size: 0.9rem;
-    margin: 10px 0;
-    padding: 10px;
-    background-color: #f8f8f8;
-    border-radius: 5px;
-    display: inline-block;
-}
+    .breadcrumbs a {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: 500;
+    }
 
-.breadcrumbs a {
-    color: #007bff;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
+    .breadcrumbs a:hover {
+      color: #0056b3;
+    }
 
-.breadcrumbs a:hover {
-    color: #0056b3;
-}
+    .breadcrumbs a::after {
+      content: '>';
+      margin: 0 8px;
+      color: #6c757d;
+    }
 
-.breadcrumbs a::after {
-    content: '>';
-    margin: 0 8px;
-    color: #6c757d;
-}
+    .breadcrumbs a:last-child::after {
+      content: '';
+    }
 
-.breadcrumbs a:last-child::after {
-    content: ''; /* Remove the arrow from the last element */
-}
+    .price {
+      font-size: 1.5rem;
+      color: #28a745;
+      font-weight: 700;
+    }
 
-.breadcrumbs span {
-    color: #6c757d; /* Style for non-link text */
-}
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 20px;
+    }
 
+    button:hover {
+      background-color: #0056b3;
+    }
   </style>
-  </head>
-  
+</head>
+<body>
+
   <div class="breadcrumbs">
     <a href="/">Home</a> > <a href="/shop">Shop</a> >
-  
     <% if (product) { %>
       <a href="/category/<%= product.category %>"><%= product.categoryName %></a> > <%= product.productName %>
     <% } else { %>
       <span>Product not available</span>
     <% } %>
   </div>
-  
+
   <% if (product) { %>
-    <!-- Render product details -->
-    <h1 style="text-align: center; color: rgb(204, 119, 7);"><%= product.productName %></h1>
-    
     <div class="product-details">
-      <div class="product-images" style="margin-left: 340px;">
+      <h1><%= product.productName %></h1>
+
+      <!-- Product Images with Click-to-Zoom -->
+      <div class="product-images">
         <% product.productImage.forEach(image => { %>
-          <img src="/uploads/product-imgs/<%= image %>" alt="<%= product.productName %>" class="zoom">
+          <div class="image-container">
+            <img src="/uploads/product-imgs/<%= image %> " alt="<%= product.productName %>" class="zoomable-image">
+          </div>
         <% }) %>
       </div>
-  
+
       <div style="text-align: center;">
-        <p>Price: <%= product.regularPrice %></p>
+        <p class="price">Price: $<%= product.regularPrice %></p>
         <p>Description: <%= product.description %></p>
         <p>Color: <%= product.color %></p>
         <p>Status: 
           <% if (product.quantity > 0) { %>
-            Available
+            <span style="color: green;">Available</span>
           <% } else { %>
-            Not Available
+            <span style="color: red;"> Sorry,This product is unavailable now</span>
           <% } %>
         </p>
-           
+
+        <!-- <button>Add to Cart</button>
+        <button>Buy Now</button> -->
       </div>
     </div>
   <% } else { %>
-    <p>This product is currently unavailable.</p>
+    <p style="text-align: center;">This product is currently unavailable.</p>
   <% } %>
 
-  
-
-  
-  
-  
-  
-  
-  <!-- Add scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  
+  <%- include("../../views/partials/user/footer") %>
+  <!-- Click-to-Zoom Functionality Script -->
   <script>
-    // Simple zoom effect
-    document.querySelectorAll('.zoom').forEach(img => {
-      img.addEventListener('mouseover', () => {
-        img.style.transform = 'scale(1.5)';
-        img.style.transition = 'transform 0.5s ease';
+    document.querySelectorAll('.zoomable-image').forEach(img => {
+      let isZoomed = false;
+      let offsetX = 0, offsetY = 0;
+      let initialX, initialY;
+
+      img.addEventListener('click', (e) => {
+        if (!isZoomed) {
+          img.style.transform = 'scale(2)';
+          img.style.cursor = 'move';
+          isZoomed = true;
+          img.addEventListener('mousemove', panImage);
+        } else {
+          img.style.transform = 'scale(1)';
+          img.style.cursor = 'zoom-in';
+          isZoomed = false;
+          img.removeEventListener('mousemove', panImage);
+        }
       });
-      img.addEventListener('mouseout', () => {
-        img.style.transform = 'scale(1)';
-      });
+
+      function panImage(e) {
+        if (isZoomed) {
+          const rect = img.getBoundingClientRect();
+          const x = e.clientX - rect.left; // Horizontal cursor position relative to image
+          const y = e.clientY - rect.top; // Vertical cursor position relative to image
+
+          const moveX = ((x / rect.width) - 0.5) * 100;
+          const moveY = ((y / rect.height) - 0.5) * 100;
+
+          img.style.transform = `scale(2) translate(${moveX}%, ${moveY}%)`;
+        }
+      }
     });
   </script>
-  
+
+</body>
+</html>

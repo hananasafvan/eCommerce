@@ -140,8 +140,7 @@
                     <th class="text-center"></th>
                     <th>Name</th>
                     <th>Description</th>
-                    <!-- <th>Offer Price</th>
-                    <th>Offer</th> -->
+                    
                     <th>Status</th>
                     <th>List/Unlist</th>
                     <th class="text-start">Edit</th>
@@ -155,14 +154,7 @@
                     <td class="text-start"><%=category.name%></td>
                     <td class="text-start"><%=category.description%></td>
                     <td></td>
-                    <!-- <td class="text-start">
-                      <button class="btn btn-info" style="width: 100px">
-                        <a href="#" class="text-white">Add Offer</a>
-                      </button>
-                      <button class="btn btn-info"style="width: 100px">
-                        <a href="#" class="text-white">Remove</a>
-                      </button>
-                    </td> -->
+                    
                     <td class="text-start">
                       <%if (category.isListed){%>
                       <span
@@ -205,15 +197,15 @@
                         >Edit</a
                       >
                     </td>
-                    <td class="text-start">
-                      <!-- <a href="/admin/deleteCategory/<%= category._id %>" class="btn btn-info text-white">Delete</a> -->
+                    <!-- <td class="text-start">
+                       <a href="/admin/deleteCategory/<%= category._id %>" class="btn btn-info text-white">Delete</a>
                       <a
                         href="javascript:void(0);"
                         class="btn btn-info text-white"
                         onclick="confirmDelete('<%= category._id %>')"
                         >Delete</a
                       >
-                    </td>
+                    </td> -->
                   </tr>
                   <%})%>
                 </tbody>

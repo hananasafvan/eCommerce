@@ -1,0 +1,129 @@
+const orderDetails = async (req, res, next) => {
+  try {
+    const { orderId, productId } = req.params;
+
+    const order = await Order.findOne({ orderId })
+      .populate('user')
+      .populate('address')
+      .populate('items.product')
+      .exec();
+
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+
+    const selectedItem = order.items.find(item => item.product._id.toString() === productId);
+
+    if (!selectedItem) {
+      return res.status(404).send('Product not found in order');
+    }
+
+   
+
+    return res.render('order-details-page', { order, selectedItem });
+  } catch (error) {
+    console.error('Error fetching order details:', error);
+    return next(error);
+  }
+};
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .order-status {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .coin-icon {
+            color: gold;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <%- include("../../views/partials/user/header") %>
+        <%- include("../../views/partials/user/breadcrumb") %>
+        
+        <div class="dashboard-container">
+            <%- include("../../views/partials/user/sidebar") %>
+            
+            <div class="dashboard-content" id="dashboardContent">
+                <div class="container mt-5">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5>Delivery Address</h5>
+                            <p><%= order.user.name %></p>
+                            <p><%= order.address.house %>, <%= order.address.place %>, <%= order.address.city %>, <%= order.address.state %> - <%= order.address.pin %></p>
+                            <p>+91 <%= order.address.contactNo %></p>
+                            <p class="text-muted">This order is tracked by <%= order.trackingNumber %></p>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h5>Your Rewards</h5>
+                            <p><span class="coin-icon">&#9733;</span> ₹<%= order.discount %> Saved Using SuperCoins</p>
+                            <p class="text-muted"><%= order.discount %> coins paid</p>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h5>More actions</h5>
+                            <button class="btn btn-warning mb-2">
+                                <i class="fas fa-download"></i> Download Invoice
+                            </button>
+                            <button class="btn btn-outline-primary">Download</button>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <% if (selectedItem.product.productImage && selectedItem.product.productImage.length > 0) { %>
+                                        <img src="/uploads/product-images/<%= selectedItem.product.productImage[0] %>" 
+                                        alt="<%= selectedItem.product.productName %>" 
+                                        class="img-fluid"
+                                        onerror="this.src='/images/placeholder-image.jpg'; this.onerror=null;">
+                                    <% } else { %>
+                                        <img src="/path/to/placeholder-image.jpg" 
+                                             alt="Product image not available" 
+                                             class="img-fluid">
+                                    <% } %>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5><%= selectedItem.product.productName %></h5>
+                                    <p>Color: <%= selectedItem.product.color %> | SKU: <%= selectedItem.product.skuNumber %></p>
+                                
+                                    <p>₹<%= selectedItem.product.salePrice %> <span class="coin-icon">&#9733;</span><%= selectedItem.quantity %></p>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="order-status">
+                                        <p class="text-success"><%= order.status %></p>
+                                        <button class="btn btn-outline-primary btn-sm">Rate & Review Product</button>
+                                        <button class="btn btn-outline-secondary btn-sm mt-2">Chat with us</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>    
+                </div>
+            </div>
+        </div>
+
+        <%- include("../../views/partials/user/footer") %>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -5,13 +5,10 @@ const addressSchema = new Schema({
     userId : {
         type : Schema.Types.ObjectId,
         ref : 'User',
-        required : true
+        required : false
     },
     address : [{
-        // addressType :{
-        //     type:String,
-        //     required : true,
-        // },
+        
          name : {
             type : String,
             required : false,
@@ -40,6 +37,7 @@ const addressSchema = new Schema({
         altphone : {
             type : String,
             required : false
+            
         }
     }]
 })

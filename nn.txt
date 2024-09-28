@@ -1,56 +1,144 @@
-<!-- <h1>Shop</h1>
+const MAX_QUANTITY_PER_PRODUCT = 5;
 
-<div class="products-list">
-  <% products.forEach(product => { %>
-    <div class="product-item">
-      <h3><%= product.productName %></h3>
+const updateQuantity = async (req, res, next) => {
+    const { productId, change } = req.body;
+    const userId = req.session.user || req.user;
 
-      <% if (product.productImage && product.productImage.length > 0) { %>
-        <img src="/uploads/product-imgs/<%= product.productImage[0] %>"  alt="<%= product.productName %>">
-      <% } else { %>
-        <img src="/uploads/product-imgs/no-image.jpg" alt="No image available">
-      <% } %>
-          
-      <p>Price: <%= product.regularPrice %>$</p>
-      <% if (product.quantity > 0) { %>
-      <a href="#" class="btn btn-primary add-to-cart" data-product-id="<%= product._id %>" style="margin-bottom: 10px;">
-        <i class="fas fa-shopping-cart"></i> Add to Cart
-    </a>
-    <% } %>
+    try {
+        let cart = await Cart.findOne({ userId }).populate('items.product');
+        
+        if (!cart) {
+            return res.status(404).json({ error: 'Cart not found' });
+        }
 
-      <a href="/product/<%= product._id %>">View Details</a>
-    </div>
-  <% }) %>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-  
+        const item = cart.items.find(item => item.product._id.toString() === productId);
 
-<%-include("../../views/partials/user/footer")%>
+        if (!item) {
+            return res.status(404).json({ error: 'Item not found in cart' });
+        }
+
+        if (item.isBlocked) {
+            return res.status(400).json({ error: 'Product is blocked' });
+        }
+
+        let newQuantity = item.quantity + change;
+
+       
+        if (newQuantity < 1) {
+            newQuantity = 1;
+            return res.status(400).json({ error: 'Minimum quantity is 1. If you want to remove the item, use the remove button.' });
+        }
+
+        if (newQuantity > MAX_QUANTITY_PER_PRODUCT) {
+            return res.status(400).json({ error: You can only have up to ${MAX_QUANTITY_PER_PRODUCT} units of this product });
+        }
+
+      
+        if (change > 0 && item.product.quantity < change) {
+            return res.status(400).json({ error: 'Not enough stock available' });
+        }
+
+        const quantityDifference = change;
+
+      
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            {
+                $inc: { quantity: -quantityDifference }
+            },
+            { new: true }
+        );
+
+       
+        if (updatedProduct.quantity === 0) {
+            updatedProduct.status = "out of stock";
+        } else {
+            updatedProduct.status = "Available";
+        }
+
+        await updatedProduct.save();
+
+       
+        item.quantity = newQuantity;
+        await cart.save();
+
+        res.json({ 
+            success: true, 
+            updatedQuantity: item.quantity,
+            productStatus: updatedProduct.status,
+            productQuantity: updatedProduct.quantity
+        });
+        
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
 
 
 
 <script>
-  $(document).ready(function() {
-      $(".add-to-cart").click(function(e) {
-          e.preventDefault();
-          const productId = $(this).data("product-id");
 
-          $.ajax({
-              url: '/cart/add',
-              method: 'POST',
-              data: { productId: productId },
-              success: function(response) {
-                  Swal.fire('Added!', response.message, 'success');
-              },
-              error: function(error) {
-                  Swal.fire('Oops!', 'Something went wrong!', 'error');
-              }
-          });
-      });
-  });
+function updateQuantity(productId, change) {
+    fetch('/cart/update-quantity', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ productId, change })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire('Updated', 'Cart updated successfully', 'success').then(() => {
+                location.reload(); 
+            });
+        } else {
+            Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
+        }
+    })
+    .catch(error => {
+        Swal.fire('Error', error.message || 'An error occurred', 'error');
+    });
+}
+
+
+</script>
+
+<script>
+    document.querySelector('.btn-success').addEventListener('click', async function (event) {
+        event.preventDefault();
+
+        try {
+            const response = await fetch('/cart/place-order', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+               
+                window.location.href = '/cart/place-order';
+            } else {
+                const data = await response.json();
+                
+                Swal.fire('Error', data.message || 'Failed to place order', 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'An error occurred while placing the order', 'error');
+        }
+    });
 </script>
 
 
- -->
-
+<form id="updateQuantityForm-<%= item.product._id %>" onsubmit="return false;">
+                             <input type="hidden" name="productId" value="<%= item.product._id %>">
+                            <div class="quantity-buttons">
+                            <button type="button" class="btn btn-primary" onclick="updateQuantity('<%= item.product._id %>', -1)">-</button>
+                                <button type="button" class="btn btn-primary"><%= item.quantity %></button>
+                                 <button type="button" class="btn btn-primary" onclick="updateQuantity('<%= item.product._id %>', 1)">+</button>
+                              </div>
+                                  </form>

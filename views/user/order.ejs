@@ -1,63 +1,122 @@
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-  form {
-  background-color: #f8f9fa; /* Light background for the form */
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your Order</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f0f2f5; /* Light background for the whole page */
+    }
+    
+    h1 {
+      color: #343a40; /* Darker heading color */
+    }
+    
+    form {
+      background-color: #ffffff; /* White background for the form */
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    form h3 {
+      color: #495057; /* Slightly muted heading color */
+      margin-bottom: 1.5rem;
+    }
+    
+    select, .list-group-item {
+      background-color: #f8f9fa;
+      border: 1px solid #ced4da;
+      border-radius: 0.375rem;
+    }
+    
+    .list-group-item {
+      padding: 1.5rem;
+    }
+    
+    .list-group-item strong {
+      font-size: 1.1rem;
+      color: #212529; /* Darker text color for emphasis */
+    }
+    
+    button[type="submit"] {
+      background-color: #28a745;
+      color: white;
+      padding: 0.75rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 5px;
+      border: none;
+      transition: background-color 0.3s;
+    }
+    
+    button[type="submit"]:hover {
+      background-color: #218838;
+    }
+    
+    .form-select {
+      padding: 0.75rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
 
-form h3 {
-  margin-bottom: 1rem;
-}
+  <div class="container mt-5">
+    <h1 class="text-center mb-5">Confirm Your Order</h1>
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <form action="/order/place" method="POST" class="p-4 border rounded shadow">
+          <!-- Address Selection -->
+          <div class="mb-4">
+            <h3>Select Delivery Address</h3>
+            <select name="selectedAddress" class="form-select">
+              <% userAddresses.forEach(address => { %>
+                <option value="<%= address._id %>">
+                  <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
 
-button[type="submit"] {
-  margin-top: 1.5rem;
-}
+          <!-- Payment Method Selection -->
+          <div class="mb-4">
+            <h3>Select Payment Method</h3>
+            <select name="paymentMethod" class="form-select">
+              <option value="Cash on Delivery" selected>Cash on Delivery</option>
+              <!-- You can add more payment methods here in the future -->
+              <!-- <option value="Credit Card">Credit Card</option>
+              <option value="PayPal">PayPal</option> -->
+            </select>
+          </div>
 
-.list-group-item {
-  background-color: #fff; /* White background for items */
-  border-color: #dee2e6; /* Light border */
-  padding: 1rem;
-}
+          <!-- Cart Items -->
+          <div class="mb-4">
+            <h3>Your Cart Items</h3>
+            <ul class="list-group">
+              <% cartItems.forEach(item => { %>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong><%= item.productId.productName %></strong>
+                    <div>Quantity: <%= item.quantity %></div>
+                  </div>
+                  <span>Total: <%= item.totalPrice %> $</span>
+                </li>
+              <% }) %>
+            </ul>
+          </div>
 
-</style>
-
-<div class="container mt-5">
-  <h1 class="text-center mb-5">Confirm Your Order</h1>
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <form action="/order/place" method="POST" class="p-4 border rounded shadow">
-        <div class="mb-4">
-          <h3>Select Delivery Address</h3>
-          <select name="selectedAddress" class="form-select">
-            <% userAddresses.forEach(address => { %>
-              <option value="<%= address._id %>">
-                 <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
-              </option>
-            <% }) %>
-          </select>
-        </div>
-        <div class="mb-4">
-          <h3>Your Cart Items</h3>
-          <ul class="list-group">
-            <% cartItems.forEach(item => { %>
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <strong><%= item.productId.productName %></strong>
-                  <div>Quantity: <%= item.quantity %></div>
-                </div>
-                <span>Total: <%= item.totalPrice %> $</span>
-              </li>
-            <% }) %>
-          </ul>
-        </div>
-        <div class="text-center">
-          <button type="submit" class="btn btn-success btn-lg px-5">Place Order (Cash on Delivery)</button>
-        </div>
-      </form>
+          <!-- Submit Button -->
+          <div class="text-center">
+            <button type="submit" class="btn btn-success btn-lg px-5">Place Order</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

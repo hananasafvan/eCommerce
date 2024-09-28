@@ -1,5 +1,6 @@
 const Product = require("../../models/productShema");
 const User = require("../../models/userSchema");
+const Category = require('../../models/categorySchema')
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const env = require("dotenv").config();
@@ -52,22 +53,27 @@ const securePassword = async (password) => {
   }
 };
 
-// Get all products to list on Home and Shop pages
-const getProducts = async (req, res) => {
+
+
+const getProducts = async (req, res, next) => {
   try {
-    const searchQuery = req.query.searchQuery || "";
+    const searchQuery = req.query.searchQuery || ""; // Get the search query
     const { sortBy } = req.query;
 
     const page = parseInt(req.query.page) || 1;
     const limit = 3;
     const skip = (page - 1) * limit;
 
+    // Base search condition to exclude blocked products
     let searchCondition = { isBlocked: false };
+
+    // Apply search query filter if provided
     if (searchQuery) {
-      const regex = new RegExp(searchQuery, "i");
-      searchCondition.$or = [{ productName: regex }];
+      const regex = new RegExp(searchQuery, "i"); // Case-insensitive search
+      searchCondition.$or = [{ productName: regex }]; // Search by product name
     }
 
+    // Sorting logic based on the selected sort option
     let sortCriteria = {};
     switch (sortBy) {
       case "popularity":
@@ -98,14 +104,26 @@ const getProducts = async (req, res) => {
         sortCriteria = {};
     }
 
+    // Fetch products and only include those with listed categories
     const products = await Product.find(searchCondition)
-      .populate("category")
+      .populate({
+        path: "category",
+        match: { isListed: true }, // Only include products with listed categories
+      })
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
       .exec();
 
-    const totalProducts = await Product.countDocuments(searchCondition);
+    // Filter out products where category is null (unlisted category)
+    const filteredProducts = products.filter(product => product.category !== null);
+
+    // Count total products with listed categories
+    const totalProducts = await Product.countDocuments({
+      ...searchCondition,
+      category: { $in: await Category.find({ isListed: true }).select('_id') }
+    });
+
     const totalPages = Math.ceil(totalProducts / limit);
 
     let userId = req.user || req.session.user;
@@ -114,8 +132,9 @@ const getProducts = async (req, res) => {
 
     return res.render("shop", {
       user: userData,
-      products: products,
+      products: filteredProducts,
       sortBy: sortBy || "",
+      searchQuery: searchQuery, // Include the search query in the render
       currentPage: page,
       totalPages: totalPages,
       totalProducts: totalProducts,
@@ -125,6 +144,8 @@ const getProducts = async (req, res) => {
     next(error);
   }
 };
+
+
 
 // Get product details by ID
 const getProductDetails = async (req, res) => {

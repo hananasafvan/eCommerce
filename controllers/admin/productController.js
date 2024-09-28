@@ -14,7 +14,7 @@ const productInfo = async (req, res) => {
 
     const totalProducts = await Product.countDocuments();
     const totalPages = Math.ceil(totalProducts / limit);
-    res.render("product", {
+    res.render("/product", {
       pro: productData,
       currentPage: page,
       totalPages: totalPages,

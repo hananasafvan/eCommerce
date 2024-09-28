@@ -1,10 +1,13 @@
 const Order = require("../../models/orderSchema");
+const User = require('../../models/userSchema')
 
 const getOrderList = async (req, res) => {
+  const userId = req.session.user || req.user
   try {
     const perPage = 3;
     const page = parseInt(req.query.page) || 1;
-
+    let userData = userId ? await User.findById(userId) : null;
+    res.locals.user = userData;
     const orders = await Order.find({})
       .skip(perPage * page - perPage)
       .limit(perPage)
@@ -15,6 +18,7 @@ const getOrderList = async (req, res) => {
 
     res.render("orderList", {
       orders,
+      user: userData,
       current: page,
       pages: Math.ceil(totalOrders / perPage),
     });
@@ -57,8 +61,33 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+const viewOrder = async (req, res) => {
+  try {
+      const orderId = req.params.id;
+      const order = await Order.findById(orderId)
+      .populate('userId','name')
+          .populate( 'items.productId',  'productName')
+          .exec(); 
+          console.log("Fetched Order:", order);
+
+      if (!order) {
+          return res.status(404).send('Order not found');
+      }
+
+      res.render('viewOrder', {
+          order: order,
+          pageTitle: 'Order Details',
+          path: '/admin/order/view'
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal server error');
+  }
+};
+
 module.exports = {
   getOrderList,
   updateOrderStatus,
   cancelOrder,
+  viewOrder,
 };

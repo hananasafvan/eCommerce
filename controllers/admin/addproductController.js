@@ -233,6 +233,8 @@ const editProduct = async (req, res) => {
     }
 
     await Product.findByIdAndUpdate(id, updateFields, { new: true });
+    console.log('product updateed:',updateFields);
+    
 
     res.redirect("/admin/products");
   } catch (error) {

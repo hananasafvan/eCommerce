@@ -190,13 +190,13 @@
                         >Edit</a
                       >
                     </td>
-                    <td class="text-start">
+                    <!-- <td class="text-start">
                       <a
                         href="/admin/deleteCategory/<%= category._id %>"
                         class="btn btn-info text-white"
                         >Delete</a
                       >
-                    </td>
+                    </td> -->
                   </tr>
                   <%})%>
                 </tbody>
@@ -270,37 +270,45 @@
     }
 
     function validateForm() {
-      clearErrorMessage();
-      const name = document.getElementsByName("name")[0].value.trim();
-      const description = document.getElementById("descriptionId").value.trim();
-      isValid = true;
+  clearErrorMessage();
+  const name = document.getElementsByName("name")[0].value.trim();
+  const description = document.getElementById("descriptionId").value.trim();
+  let isValid = true;
 
-      if (name === "") {
-        displayErrorMessage("name-error", "pleace enter a name");
-        isValid = false;
-      } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-        displayErrorMessage("name-error", "Category name suld in alphabet");
-        isValid = false;
-      }
-      if (description === "") {
-        displayErrorMessage("descripton-error", "pleace enter a description");
-        isValid = false;
-      }
-      return (isValid = true);
-    }
+  // Name validation (alphabets only)
+  if (name === "") {
+    displayErrorMessage("name-error", "Please enter a name.");
+    isValid = false;
+  } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+    displayErrorMessage("name-error", "Category name must only contain alphabets.");
+    isValid = false;
+  }
 
-    function displayErrorMessage(elementId, message) {
-      var errorElement = document.getElementById("elementId");
-      errorElement.innerText = message;
-      errorElement.style.display = "block";
-    }
+  // Description validation (alphabets only)
+  if (description === "") {
+    displayErrorMessage("description-error", "Please enter a description.");
+    isValid = false;
+  } else if (!/^[a-zA-Z\s]+$/.test(description)) {
+    displayErrorMessage("description-error", "Description must only contain alphabets.");
+    isValid = false;
+  }
 
-    function clearErrorMessage() {
-      const errorElements = document.getElementsByClassName("error-messge");
-      Array.from(errorElements).forEach((element) => {
-        element.innerText = "";
-        element.style.display = "none";
-      });
-    }
+  return isValid;
+}
+
+function displayErrorMessage(elementId, message) {
+  const errorElement = document.getElementById(elementId);
+  errorElement.innerText = message;
+  errorElement.style.display = "block";
+}
+
+function clearErrorMessage() {
+  const errorElements = document.getElementsByClassName("error-message");
+  Array.from(errorElements).forEach((element) => {
+    element.innerText = "";
+    element.style.display = "none";
+  });
+}
+
   </script>
 </body>

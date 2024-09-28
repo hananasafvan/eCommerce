@@ -1,136 +1,228 @@
-
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Profile</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  
-</head>
-<body>
-
-
-<div class="container mt-5">
-  <div class="row">
-    
-    <div class="container">
-      <div class="row justify-content-center">
-        <div class="col-md-6 mt-60">
-                    <form method="post" action="/user/editUser/<%= user._id %>">
-            <div class="d-grid text-end mt-30 col-md-5">
-              <button class="btn btn-primary" type="submit">Update profile</button>
-            </div>
-            <div class="mb-4 mt-30">
-              <label for="product_name" class="form-label">Name</label>
-              <input
-                type="text"
-                name="name"
-                value="<%= user.name %>"
-                class="form-control border"
-                required
-              />
-            </div>
-          
-            <div class="mb-4">
-              <label class="form-label">Email</label>
-              <input
-                type="email"
-                name="email"
-                value="<%= user.email %>"
-                class="form-control border"
-                required
-              />
-            </div>
-            
-            <div class="mb-4">
-              <label class="form-label">Phone</label>
-              <input
-                type="tel"
-                name="phone"
-                value="<%= user.phone %>"
-                class="form-control border"
-                required
-              />
-            </div>
-          </form>
-          
-
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html> -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit User Profile</title>
+  
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #f8f9fa; /* Light background */
+      color: #212529; /* Dark text */
+    }
+
+    .sidebar {
+      background-color: #343a40; /* Dark sidebar */
+      color: white; /* White text for sidebar */
+      height: 100%;
+      padding: 20px;
+      border-right: 1px solid #495057; /* Dark gray border */
+    }
+
+    .sidebar a {
+      color: #ccc; /* Light gray links */
+    }
+
+    .sidebar a:hover {
+      color: white; /* White on hover */
+      text-decoration: underline;
+    }
+
+    .content {
+      padding: 20px;
+      background-color: white; /* White background for content area */
+      color: #212529; /* Dark text in content */
+      border-radius: 0.25rem; /* Rounded corners */
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    }
+
+    .form-label {
+      font-weight: bold;
+    }
+
+    .form-control {
+      border-radius: 0.25rem;
+    }
+
+    .alert {
+      display: none; /* Initially hide alerts */
+    }
+
+    .alert.show {
+      display: block; /* Show alerts when needed */
+    }
+
+    .btn-primary {
+      background-color: #007bff; /* Bootstrap primary button color */
+      border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3; /* Darker on hover */
+      border-color: #0056b3;
+    }
+
+    .header__menu {
+      text-align: center;
+      padding: 10px 0;
+      background-color: #e9ecef; /* Light gray background for header */
+    }
+
+    .header__menu ul li {
+      list-style: none;
+      display: inline-block;
+      margin-right: 20px;
+    }
+
+    .header__menu ul li a {
+      font-size: 16px;
+      color: #007bff; /* Bootstrap link color */
+      text-decoration: none;
+    }
+
+    .header__menu ul li a:hover {
+      color: #0056b3; /* Darker link color on hover */
+    }
+    .dropdown-toggle {
+              text-decoration: none;
+              margin-left: 1200px;
+              color: black;
+              font-weight: bold;
+              
+        }
+        
+
+  </style>
 </head>
 <body>
 
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6 mt-60">
+<header>
+  <nav class="header__menu mobile-menu">
+    <ul>
+      <li class="active"><a href="/home">Home</a></li>
+      <li><a href="/shop">Shop</a></li>
+    </ul>
+  </nav>
+  <% if (locals.user) { %>
+    <!-- User Dropdown Menu -->
+    <div class="dropdown">
+        <a href="#" class="dropdown-toggle sign-in-link" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <%= locals.user.name %>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="/userProfile">Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/logout">Logout</a></li>
+        </ul>
+    </div>
+<% } else { %>
+  <a href="/signup" class="sign-in-link">Sign Up</a>
+              <a href="/login" class="sign-in-link">Log In</a>
+          <% } %>
+          
+          
+      </div>
+</header>
 
-      <!-- Alert Section -->
-      <% if (typeof error !== 'undefined') { %>
-        <div class="alert alert-danger" role="alert">
-          <%= error %>
-        </div>
-      <% } %>
-      <% if (typeof success !== 'undefined') { %>
-        <div class="alert alert-success" role="alert">
-          <%= success %>
-        </div>
-      <% } %>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-4 sidebar">
+      <h5 class="text-center" style="text-decoration: underline;">Dashboard</h5>
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link" href="#account-details">
+            <i class="fas fa-user"></i> Account Details
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/address">
+            <i class="fas fa-address-card"></i> Address
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#coupons">
+            <i class="fas fa-ticket-alt"></i> Coupons
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/order/history">
+            <i class="fas fa-box"></i> Order History
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/cart">
+            <i class="fas fa-shopping-cart"></i> Shopping Cart
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#track-order">
+            <i class="fas fa-truck"></i> Track Order
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#wallet">
+            <i class="fas fa-wallet"></i> Wallet
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#wishlist">
+            <i class="fas fa-heart"></i> Wish List
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#logout">
+            <i class="fas fa-sign-out-alt"></i> Log-out
+          </a>
+        </li>
+      </ul>
+    </div>
 
-      <form method="post" action="/user/editUser/<%= user._id %>">
-        <div class="d-grid text-end mt-30 col-md-5">
-          <button class="btn btn-primary" type="submit">Update profile</button>
-        </div>
-        <div class="mb-4 mt-30">
-          <label for="product_name" class="form-label">Name</label>
-          <input
-            type="text"
-            name="name"
-            value="<%= user.name %>"
-            class="form-control border"
-            required
-          />
-        </div>
+    <div class="col-md-8 content">
+      <h2 class="text-center">Edit Profile</h2>
+      <div class="row justify-content-center">
+        <div class="col-md-8 mt-3">
+          <% if (typeof error !== 'undefined') { %>
+            <div class="alert alert-danger show" role="alert">
+              <%= error %>
+            </div>
+          <% } %>
+          <% if (typeof success !== 'undefined') { %>
+            <div class="alert alert-success show" role="alert">
+              <%= success %>
+            </div>
+          <% } %>
 
-        <div class="mb-4">
-          <label class="form-label">Email</label>
-          <input
-            type="email"
-            name="email"
-            value="<%= user.email %>"
-            class="form-control border"
-            required
-          />
+          <form method="post" action="/user/editUser/<%= user._id %>" class="form mt-4">
+            <div class="mb-4">
+              <label for="name" class="form-label">Name</label>
+              <input
+                type="text"
+                name="name"
+                value="<%= user.name %>"
+                class="form-control"
+                required
+              />
+            </div>
+
+            <div class="mb-4">
+              <label for="phone" class="form-label">Phone</label>
+              <input
+                type="tel"
+                name="phone"
+                value="<%= user.phone %>"
+                class="form-control"
+                required
+              />
+            </div>
+
+            <div class="d-grid text-end mt-4">
+              <button class="btn btn-primary" type="submit">Update Profile</button>
+            </div>
+          </form>
         </div>
-        
-        <div class="mb-4">
-          <label class="form-label">Phone</label>
-          <input
-            type="tel"
-            name="phone"
-            value="<%= user.phone %>"
-            class="form-control border"
-            required
-          />
-        </div>
-      </form>
+      </div>
     </div>
   </div>
 </div>

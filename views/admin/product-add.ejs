@@ -291,76 +291,85 @@ function handleFileSelect(event){
     }
 }
 
-    function validateForm() {
-              clearErrorMessages();
-              const name = document.getElementsByName('productName')[0].value;
-              const description = document.getElementById('descriptionid').value;
-              const brand = document.getElementsByName('brand')[0].value;
-              const price = document.getElementsByName('regularPrice')[0].value;
-              //const saleprice = document.getElementsByName('salePrice')[0].value;
-              const color = document.getElementsByName('color')[0].value;
-              const category = document.getElementsByName('category')[0].value;
-              const images = document.getElementById('input1')
-              const quantity=document.getElementsByName('quantity')
-              let isValid = true
-              if (name.trim() === "") {
-      displayErrorMessage('productName-error', 'Please enter a product name.');
-      isValid = false;
-   } else if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
-      displayErrorMessage('productName-error', 'Product name should contain only alphabetic characters.');
-      isValid = false;
-   }
-            
-   if (description.trim() === "") {
-      displayErrorMessage('description-error', 'Please enter a product description.');
-      isValid = false;
-   } else if (!/^[a-zA-Z\s]+$/.test(description.trim())) {
-      displayErrorMessage('description-error', 'Product description should contain only alphabetic characters.');
-     isValid = false;
-   }
-  
-   if ( parseInt(quantity) < 0) {
-      displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-      isValid = false;
-             
-   }
-   if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
-      displayErrorMessage('regularPrice-error', 'Please enter a valid non-negative price.');
-      isValid = false;
-   }
-            //   if (!/^\d+(\.\d{1,2})?$/.test(saleprice) || parseFloat(saleprice) < 0) {
-            //       displayErrorMessage('salePrice-error', 'Please enter a valid non-negative price.');
-            //       isValid = false;
-            //   }
-            //if (parseFloat(price) <= parseFloat(saleprice)) {
-            // displayErrorMessage('regularPrice-error', 'Regular price must be greater than sale price.');
-           //       isValid = false;
-             //    }
-   if (color.trim() === "") {
-      displayErrorMessage('color-error', 'Please enter a color.');
-      isValid = false;
-   }
-  
-   if (images.files.length === 0) {
-      displayErrorMessage("images-error",'Please select an image.');
-      isValid = false;
-   }
-   return isValid;
-          }
+function validateForm() {
+    clearErrorMessages();
 
-          function displayErrorMessage(elementId, message) {
-              var errorElement = document.getElementById(elementId);
-              errorElement.innerText = message;
-              errorElement.style.display = "block";
-          }
-  
-          function clearErrorMessages() {
-              const errorElements = document.getElementsByClassName('error-message');
-              Array.from(errorElements).forEach(element => {
-                  element.innerText = '';
-              });
-              const errorMessage = document.getElementById('errorMessage');
-          }
+    const name = document.getElementsByName('productName')[0].value.trim();
+    const description = document.getElementById('descriptionid').value.trim();
+    const brand = document.getElementsByName('brand')[0].value;
+    const price = document.getElementsByName('regularPrice')[0].value;
+    const quantity = document.getElementsByName('quantity')[0].value;
+    const category = document.getElementsByName('category')[0].value;
+    const color = document.getElementsByName('color')[0].value;
+    const images = document.getElementById('input1').files;
+
+    let isValid = true;
+
+    // Validate product name
+    if (name === "") {
+        displayErrorMessage('productName-error', 'Please enter a product name.');
+        isValid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+        displayErrorMessage('productName-error', 'Product name should contain only alphabetic characters.');
+        isValid = false;
+    }
+
+    // Validate description
+    if (description === "") {
+        displayErrorMessage('description-error', 'Please enter a product description.');
+        isValid = false;
+    } else if (!/^[a-zA-Z\s]+$/.test(description)) {
+        displayErrorMessage('description-error', 'Product description should contain only alphabetic characters.');
+        isValid = false;
+    }
+
+    // Validate regular price
+    if (!/^\d+(\.\d{1,2})?$/.test(price) || parseFloat(price) < 0) {
+        displayErrorMessage('regularPrice-error', 'Please enter a valid price.');
+        isValid = false;
+    }
+
+    // Validate quantity
+    if (!/^\d+$/.test(quantity) || parseInt(quantity) < 0) {
+        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
+        isValid = false;
+    }
+
+    // Validate color
+    if (color === "") {
+        displayErrorMessage('color-error', 'Please enter a product color.');
+        isValid = false;
+    }
+
+    // Validate category
+    if (category === "") {
+        displayErrorMessage('category-error', 'Please select a valid category.');
+        isValid = false;
+    }
+
+    // Validate images
+    if (images.length === 0) {
+        displayErrorMessage('images-error', 'Please upload at least one image.');
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+function clearErrorMessages() {
+    document.getElementById('productName-error').innerHTML = '';
+    document.getElementById('description-error').innerHTML = '';
+    document.getElementById('regularPrice-error').innerHTML = '';
+    document.getElementById('quantity-error').innerHTML = '';
+    document.getElementById('color-error').innerHTML = '';
+    document.getElementById('category-error').innerHTML = '';
+    document.getElementById('images-error').innerHTML = '';
+}
+
+function displayErrorMessage(elementId, message) {
+    document.getElementById(elementId).innerHTML = message;
+}
+
 
 </script>
      

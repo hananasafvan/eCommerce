@@ -14,6 +14,9 @@ router.post("/cart/add", userAuth, cartController.addToCart);
 router.get("/cart", userAuth, cartController.getCart);
 router.get("/cart/remove/:productId", userAuth, cartController.removeFromCart);
 
+router.post("/cart/update-quantity",userAuth,cartController.updateQuantity)
+
+
 router.get("/address", userAuth, addressController.getAddress);
 router.post("/addAddress", userAuth, addressController.addAddress);
 router.post(

@@ -38,6 +38,10 @@ app.set("views", [
 ]);
 app.use(express.static(path.join(__dirname, "public")));
 
+
+
+
+
 app.use("/", userRouter);
 app.use("/admin", adminRouter);
 app.use("/", productRouter);
@@ -45,7 +49,7 @@ app.use("/", profile);
 app.use("/order", orderRouter);
 app.use("/admin", adminOrderRouter);
 
-app.set("view cache", false);
+//app.set("view cache", false);
 
 const PORT = 3000 || process.env.PORT;
 app.listen(PORT, () => {

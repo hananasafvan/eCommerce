@@ -1,15 +1,15 @@
 const express = require("express");
+
 const router = express.Router();
-const {
-  getOrderList,
-  updateOrderStatus,
-  cancelOrder,
-} = require("../controllers/admin/orderController");
+const {userAuth,adminAuth} = require('../middleweares/auth')
+const orderController= require("../controllers/admin/orderController");
 
-router.get("/orderList", getOrderList);
+router.get("/orderList",orderController.getOrderList);
 
-router.post("/order/update/:id", updateOrderStatus);
+router.post("/order/update/:id", orderController.updateOrderStatus);
 
-router.get("/order/cancel/:id", cancelOrder);
+router.get("/order/cancel/:id", orderController.cancelOrder);
+
+router.get('/order/view/:id',adminAuth, orderController.viewOrder);
 
 module.exports = router;

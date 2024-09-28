@@ -1,57 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <%- include("../../views/partials/user/header") %>
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-lg-10 mx-auto">
+        <h2 class="text-center mb-4">Your Shopping Cart</h2>
+        <div class="cart-items">
+          <% if (cartItems.length > 0) { %>
+            <% cartItems.forEach(item => { %>
+              <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                      <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid rounded">
+                    </div>
+                    <div class="col-md-6">
+                      <h5 class="card-title"><%= item.productId.productName %></h5>
+                      <!-- <p class="card-text">Quantity: 
+                        <button class="btn btn-outline-secondary btn-sm decrease-quantity" data-id="<%= item.productId._id %>">-</button>
+                        <strong><span class="quantity"><%= item.quantity %></span></strong>
+                        <button class="btn btn-outline-secondary btn-sm increase-quantity" data-id="<%= item.productId._id %>">+</button>
+                      </p> -->
+            
 
-   <%- include("../../views/partials/user/header") %>
-   <div>
-    <div>
 
-</div>
+                      <form id="updateQuantityForm-<%= item.productId._id %>" onsubmit="return false;">
+                        <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                        <div class="quantity-buttons">
+                          <button type="button" class="btn btn-primary" onclick="updateQuantity('<%= item.productId._id %>', -1)">-</button>
+                          <button type="button" class="btn btn-primary"><%= item.quantity %></button>
+                          <button type="button" class="btn btn-primary" onclick="updateQuantity('<%= item.productId._id %>', 1)">+</button>
+                        </div>
+                      </form>
+                      
 
-<div class="container mt-5">
-  <div class="row">
-    <div class="col-lg-8 mx-auto">
-      <h1 class="text-center">Your Cart</h1>
-      <div class="cart-items">
-        <% if (cartItems.length > 0) { %>
-          <% cartItems.forEach(item => { %>
-            <div class="card mb-4">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-3"></div>
-                    <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid">
-                  </div>
-                  <div class="col-md-8">
-                    <h3><%= item.productId.productName %></h3>
-                    <p>Quantity: <%= item.quantity %></p>
-                    <p>Total Price: <%= item.totalPrice %> $</p>
-                  </div>
-                  <div class="col-md-4 text-end">
-                    <a href="/cart/remove/<%= item.productId._id %>" class="btn btn-danger">Remove</a>
-                    <a href="/order/checkout?productId=<%= item.productId._id %>" class="btn btn-primary">Order This Product</a>
+
+                      <p class="card-text text-muted">Price per unit: <%= item.productId.regularPrice %> $</p>
+                      <p class="card-text text-muted total-price">Total Price: <%= item.totalPrice %> $</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                      <a href="/cart/remove/<%= item.productId._id %>" class="btn btn-outline-danger me-2"><i class="bi bi-trash"></i> Remove</a>
+                      <a href="/order/checkout?productId=<%= item.productId._id %>" class="btn btn-primary"><i class="bi bi-bag-check"></i> Order</a>
+                    </div>
                   </div>
                 </div>
               </div>
+            <% }) %>
+          <% } else { %>
+            <div class="alert alert-warning text-center" role="alert">
+              Your cart is empty.
             </div>
-          <% }) %>
-          
-        <% } else { %>
-          <div class="alert alert-warning text-center" role="alert">
-            Your cart is empty.
-          </div>
-        <% } %>
+          <% } %>
+        </div>
       </div>
     </div>
   </div>
 
-</div>
-</div>
+  <%- include("../../views/partials/user/footer") %>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+  
+  <script>
 
-<%- include("../../views/partials/user/footer") %>
+    function updateQuantity(productId, change) {
+        fetch('/cart/update-quantity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ productId, change })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire('Updated', 'Cart updated successfully', 'success').then(() => {
+                    location.reload(); 
+                });
+            } else {
+                Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
+            }
+        })
+        .catch(error => {
+            Swal.fire('Error', error.message || 'An error occurred', 'error');
+        });
+    }
+    
+    
+    </script>
+
 
 <script>
   $(document).ready(function() {
-    $(".btn-danger").click(function(e) {
+    // Increase quantity
+    $(".increase-quantity").click(function(e) {
+      e.preventDefault();
+      const productId = $(this).data('id');
+      const quantityElement = $(this).siblings(".quantity");
+      const totalPriceElement = $(this).closest(".card-body").find(".total-price");
+
+      $.ajax({
+        url: `/cart/increase/${productId}`,
+        method: 'PUT',
+        success: function(response) {
+          quantityElement.text(response.quantity); // Update the quantity
+          totalPriceElement.text(`Total Price: ${response.totalPrice} $`); // Update the total price
+        },
+        error: function(error) {
+          Swal.fire('Error!', 'Unable to increase quantity.', 'error');
+        }
+      });
+    });
+
+    // Decrease quantity
+    $(".decrease-quantity").click(function(e) {
+      e.preventDefault();
+      const productId = $(this).data('id');
+      const quantityElement = $(this).siblings(".quantity");
+      const totalPriceElement = $(this).closest(".card-body").find(".total-price");
+
+      $.ajax({
+        url: `/cart/decrease/${productId}`,
+        method: 'PUT',
+        success: function(response) {
+          if (response.quantity > 0) {
+            quantityElement.text(response.quantity); // Update the quantity
+            totalPriceElement.text(`Total Price: ${response.totalPrice} $`); // Update the total price
+          } else {
+            Swal.fire('Info', 'Minimum quantity reached.', 'info');
+          }
+        },
+        error: function(error) {
+          Swal.fire('Error!', 'Unable to decrease quantity.', 'error');
+        }
+      });
+    });
+
+    // Remove product from cart
+    $(".btn-outline-danger").click(function(e) {
       e.preventDefault();
       const removeUrl = $(this).attr('href');
-      const productCard = $(this).closest(".card"); // Select the product card
+      const productCard = $(this).closest(".card");
 
       $.ajax({
         url: removeUrl,
@@ -59,9 +155,7 @@
         success: function(response) {
           Swal.fire('Removed!', response.message, 'success').then(() => {
             productCard.remove();
-            
             if ($(".cart-items .card").length === 0) {
-              
               $(".cart-items").html('<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>');
             }
           });
@@ -73,3 +167,9 @@
     });
   });
 </script>
+    
+    
+
+  
+</body>
+</html>

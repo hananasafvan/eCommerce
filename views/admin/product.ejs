@@ -11,7 +11,7 @@
     <form action="" method="get" class="d-inline">
         <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
             <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products or brands" name="search">
-            <button class="btn  border-0" type="submit">Search</button>
+            <button class="btn border-0" type="submit">Search</button>
         </div>
     </form>
 </header>
@@ -19,6 +19,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
+                <th scope="col"><b>Image</b></th>
                 <th scope="col"><b>Product name</b></th>
                 <th scope="col"><b>Brand</b></th>
                 <th scope="col"><b>Category</b></th>
@@ -31,10 +32,14 @@
             </tr>
         </thead>
         <tbody>
-            <%for(let i=data.length-1;i>=0;i--) { %>
+            <% for(let i = data.length - 1; i >= 0; i--) { %>
             <tr>
-                <td><%=data[i].productName%></td>
-                <td><%=data[i].brand%></td>
+            
+                <td>
+                    <img src="/uploads/product-imgs/<%= data[i].productImage[0] %>" alt="Product Image" style="width: 50px; height: 50px; object-fit: cover;">
+                </td>
+                <td><%= data[i].productName %></td>
+                <td><%= data[i].brand %></td>
                 <td>
                     <% if (data[i].category && data[i].category.name) { %>
                         <%= data[i].category.name %>
@@ -42,46 +47,28 @@
                         No Category
                     <% } %>
                 </td>
-                <td><%=data[i].quantity%></td>
-
-
-                <td>
-                </td>
-                <td>
-                
-                    <!-- <button class="btn btn-info" onclick="" style="width: 100px;">
-                        <a href="#" class="text-white">Add Offer</a>
-                    </button>
-        
-                    <button class="btn btn-info" onclick="" style="width: 100px;">
-                        <a href="#" class="text-white">Remove</a>
-                    </button>
-                 -->
-                </td>
+                <td><%= data[i].quantity %></td>
+                <td></td>
                 <td></td>
                 <td>
-                    <%if (data[i].isBlocked===false){%>
+                    <% if (data[i].isBlocked === false) { %>
                     <button class="btn btn-danger" style="width: 80px;">
-                        <a href="/admin/blockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none; ">Block</a>
+                        <a href="/admin/blockProduct?id=<%= data[i]._id %>" class="text-white" style="text-decoration: none;">Block</a>
                     </button>
-                    <%}else{%>
+                    <% } else { %>
                     <button class="btn btn-success" style="width: 80px;">
-                        <a href="/admin/unblockProduct?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Unblock</a>
+                        <a href="/admin/unblockProduct?id=<%= data[i]._id %>" class="text-white" style="text-decoration: none;">Unblock</a>
                     </button>
-                    <%}%>
+                    <% } %>
                 </td>
-
-                
                 <td>
                     <button class="btn btn-info" style="width: 80px;">
                         <a href="/admin/editproduct?id=<%= data[i]._id %>" class="text-white" style="text-decoration: none;">Edit</a>
                     </button>
                 </td>
-                
             </tr>
-            <%}%>
+            <% } %>
         </tbody>
-
     </table>
 </div>
 </div>
@@ -91,17 +78,15 @@
     <div class="pagination-container">
         <% if (currentPage > 1) { %>
         <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-        <% } %> <% for (let i = 1; i <= totalPages; i++) { %> <% if (i ===
-        currentPage) { %>
+        <% } %> <% for (let i = 1; i <= totalPages; i++) { %> <% if (i === currentPage) { %>
         <span class="current-page"><%= i %></span>
         <% } else { %>
         <a href="?page=<%= i %>"><%= i %></a>
         <% } %> <% } %> <% if (currentPage < totalPages) { %>
         <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
         <% } %>
-      </div>
+    </div>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>

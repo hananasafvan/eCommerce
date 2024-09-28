@@ -4,7 +4,7 @@ const path = require("path");
 //for storing uploding imgs
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/uploads/re-img"); // the directory where you want to save the files
+    cb(null, "public/uploads/product-imgs"); // the directory where you want to save the files
   },
   //set unique name for stored files
   filename: function (req, file, cb) {

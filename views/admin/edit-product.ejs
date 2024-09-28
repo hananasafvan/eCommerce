@@ -48,7 +48,7 @@
                            </div>
                            <div class="col-lg-4 mb-4">
                                <label class="form-label">Brand</label>
-                               <select class="form-select border" name="brand">
+                               <!-- <select class="form-select border" name="brand">
                                   
                                 <%for(let i=0;i<brand.length;i++){%>     
                                     <option value="<%=brand[i].name%>">
@@ -59,7 +59,17 @@
                                     </option>
                                     <%}%>
                                       
-                               </select>
+                               </select> -->
+
+
+                               <select class="form-select border" name="brand">
+                                <% for (let i = 0; i < brand.length; i++) { %>
+                                    <option value="<%= brand[i].name %>" <%= product.brand === brand[i].name ? 'selected' : '' %>> 
+                                        <%= brand[i].name %>
+                                    </option>
+                                <% } %>
+                            </select>
+                            
                                <div id="brand-error" class="error-message"></div>
 
 
@@ -130,15 +140,13 @@
                                <div class="card-header">
                                    <h4>Choose images</h4>
                                </div>
-                                  <% for(let i=0;i<product.productImage.length;i++){%>
+                                  <!-- <% for(let i=0;i<product.productImage.length;i++){%>
                                        <div class="col-md-12">
                                            <div class="mb-4">
                                                <div class="col-12">
                                                    <td>
                                                        <input type="hidden" value="<%=product.productImage[i]%>" id="imageDatas">
-                                                       <!-- <img class="rounded" style="width: 50px; height: 60px;"
-                                                           src="/uploads/product-imgs/<%=product.productImage[i]%>"
-                                                           alt="new img"> -->
+                                                       
                                                            <img class="rounded" style="width: 50px; height: 60px;" src="/uploads/product-imgs/<%=product.productImage[i]%>" alt="new img">
 
                                                        <i onclick="deleteSingleImage('<%=product.productImage[i]%>','<%=product._id%>')" style="position: absolute; margin-left: .5rem; cursor: pointer;" class="fa-thin fa-x"></i>
@@ -148,7 +156,31 @@
                                            </div>
                                        </div>
                                        <%}%>
-                              
+                               -->
+
+
+                               <% for(let i = 0; i < product.productImage.length; i++) { %>
+                                <div class="col-md-12">
+                                    <div class="mb-4">
+                                        <div class="col-12">
+                                            <!-- Removed <td> since it's not required inside divs -->
+                                            <input type="hidden" value="<%= product.productImage[i] %>" id="imageDatas">
+                                            
+                                            <img class="rounded" style="width: 50px; height: 60px;" 
+                                                 src="/uploads/product-imgs/<%= product.productImage[i] %>" 
+                                                 alt="Product Image">
+                                                 
+                                            <!-- Corrected the icon class for Font Awesome -->
+                                            <i onclick="deleteSingleImage('<%= product.productImage[i] %>', '<%= product._id %>')" 
+                                               style="position: absolute; margin-left: .5rem; cursor: pointer;" 
+                                               class="fa fa-times"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% } %>
+                            
+
+
                                   
                                <div class="card-body">
                                    <div class="card-body align-items-center" style="margin-bottom: 20px;">
@@ -233,8 +265,9 @@
                //const saleprice = document.getElementsByName('salePrice')[0].value;
                const color = document.getElementsByName('color')[0].value;
                const category = document.getElementsByName('category')[0].value;
+               const quantity = document.getElementsByName('quantity')[0].value;
                const images = document.getElementById('input1')
-               const quantity=document.getElementsByName('quantity')
+               
     imageDatas = document.getElementById("imageDatas")?.value;
                let isValid = true;    
                if (name.trim() === "") {
@@ -290,6 +323,9 @@
     
            }
     
+
+
+
     
     
     
