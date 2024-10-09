@@ -1,6 +1,7 @@
 const Product = require("../../models/productShema");
 const User = require("../../models/userSchema");
-const Category = require('../../models/categorySchema')
+const Category = require('../../models/categorySchema');
+const Brand = require('../../models/brandSchema')
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const env = require("dotenv").config();
@@ -55,13 +56,15 @@ const securePassword = async (password) => {
 
 
 
+
+
 const getProducts = async (req, res, next) => {
   try {
     const searchQuery = req.query.searchQuery || ""; // Get the search query
-    const { sortBy } = req.query;
+    const { sortBy, category, brand } = req.query;
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 3;
+    const limit = 12;
     const skip = (page - 1) * limit;
 
     // Base search condition to exclude blocked products
@@ -71,6 +74,16 @@ const getProducts = async (req, res, next) => {
     if (searchQuery) {
       const regex = new RegExp(searchQuery, "i"); // Case-insensitive search
       searchCondition.$or = [{ productName: regex }]; // Search by product name
+    }
+
+    // Apply category filter if provided
+    if (category) {
+      searchCondition.category = category; // Filter by category
+    }
+
+    // Apply brand filter if provided
+    if (brand) {
+      searchCondition.brand = brand; // Filter by brand
     }
 
     // Sorting logic based on the selected sort option
@@ -110,31 +123,51 @@ const getProducts = async (req, res, next) => {
         path: "category",
         match: { isListed: true }, // Only include products with listed categories
       })
+      .populate({
+        path: "brand",
+        match: { isListed: true }, // Only include products with listed categories
+      })
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
       .exec();
 
     // Filter out products where category is null (unlisted category)
-    const filteredProducts = products.filter(product => product.category !== null);
+    const filteredProducts = products.filter(product => product.category !== null)  || products.filter(product => product.brand !== null);
+    
+    
+
 
     // Count total products with listed categories
     const totalProducts = await Product.countDocuments({
       ...searchCondition,
-      category: { $in: await Category.find({ isListed: true }).select('_id') }
+      category: { $in: await Category.find({ isListed: true }).select('_id') },
+      
+      
     });
 
+    
     const totalPages = Math.ceil(totalProducts / limit);
 
     let userId = req.user || req.session.user;
     let userData = userId ? await User.findById(userId) : null;
+
+    // Fetch categories and brands for the dropdowns
+    const categories = await Category.find({ isListed: true });
+    const brands = await Brand.find({isListed: true}); // Assuming you have a Brand model
+
     res.locals.user = userData;
 
     return res.render("shop", {
       user: userData,
       products: filteredProducts,
+      
       sortBy: sortBy || "",
       searchQuery: searchQuery, // Include the search query in the render
+      category: category || "", // Include the category in the render
+      brand: brand || "", // Include the brand in the render
+      categories: categories, // Pass categories to the view
+      brands: brands, // Pass brands to the view
       currentPage: page,
       totalPages: totalPages,
       totalProducts: totalProducts,
@@ -149,10 +182,15 @@ const getProducts = async (req, res, next) => {
 
 // Get product details by ID
 const getProductDetails = async (req, res) => {
+  const userId = req.session.user || req.user;
   try {
+    const user = req.session.user || null
+    let userData = userId ? await User.findById(userId) : null;
+    res.locals.user = userData;
     const productId = req.params.id;
     const product = await Product.findById(productId);
-    const user = req.session.user || null;
+    
+   
     if (!product) {
       return res.status(404).send("Product not found");
     }
@@ -168,8 +206,16 @@ const getProductDetails = async (req, res) => {
           product: null,
         });
       });
+
+
     } else {
-      res.render("productDetails", { product, user });
+      const relatedProducts = await Product.find({
+        category:product.category,
+        _id:{$ne:productId},
+        isBlocked:false,
+        
+      }).limit(4)
+      res.render("productDetails", { product, user:userData, relatedProducts });
     }
   } catch (error) {
     console.error("Error fetching product details:", error);
@@ -280,6 +326,9 @@ const postNewPassword = async (req, res) => {
     console.log(error);
   }
 };
+
+// product show in home page
+
 
 module.exports = {
   getProducts,

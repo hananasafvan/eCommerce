@@ -106,13 +106,17 @@
                                             <%for(let i=0;i<cat.length;i++){%>     
                                            
                                                 <option value="<%=cat[i].name%>">
-                                                    <%=cat[i].name%>
+                                                     <%=cat[i].name%> 
+                                                    
                                                 </option>
                                                
                                                 <%}%>
                                                 
                                         </select>
                                         <div id="category-error" class="error-message"></div>
+
+                                       
+
                                     </div>
                                    </div>
                                </div>
@@ -372,6 +376,8 @@ function displayErrorMessage(elementId, message) {
 
 
 </script>
+
+  
      
 <%- include("../../views/partials/admin/footer") %>
 

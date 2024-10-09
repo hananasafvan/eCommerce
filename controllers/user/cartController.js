@@ -138,13 +138,13 @@ const updateQuantity = async (req, res, next) => {
   const userId = req.session.user || req.user;
 
   try {
-      const cart = await Cart.findOne({ userId }).populate("items.productId"); // Ensure population of productId
+      const cart = await Cart.findOne({ userId }).populate("items.productId"); 
 
       if (!cart) {
           return res.status(404).json({ error: 'Cart not found' });
       }
 
-      // Update this line to reference productId
+    
       const item = cart.items.find(item => item.productId._id.toString() === productId);
 
       if (!item) {
@@ -156,6 +156,7 @@ const updateQuantity = async (req, res, next) => {
       }
 
       let newQuantity = item.quantity + change;
+    
 
       if (newQuantity < 1) {
           newQuantity = 1;
@@ -166,7 +167,7 @@ const updateQuantity = async (req, res, next) => {
           return res.status(400).json({ error: `You can only have up to ${MAX_QUANTITY_PER_PRODUCT} units of this product` });
       }
 
-      if (change > 0 && item.productId.quantity < change) { // Reference productId for quantity
+      if (change > 0 && item.productId.quantity < change) { 
           return res.status(400).json({ error: 'Not enough stock available' });
       }
 
@@ -175,7 +176,9 @@ const updateQuantity = async (req, res, next) => {
       const updatedProduct = await Product.findByIdAndUpdate(
           productId,
           {
-              $inc: { quantity: -quantityDifference }
+              $inc: { quantity: -quantityDifference },
+              
+
           },
           { new: true }
       );
@@ -187,18 +190,21 @@ const updateQuantity = async (req, res, next) => {
       }
 
       await updatedProduct.save();
+     // cart.items[itemIndex].totalPrice += product.regularPrice;
 
       item.quantity = newQuantity;
+      item.totalPrice = item.price*newQuantity
       await cart.save();
 
-      const user = await User.findById(userId); // Fetch updated user data
+      const user = await User.findById(userId); 
     res.locals.user = user;
 
       res.json({ 
           success: true, 
           updatedQuantity: item.quantity,
           productStatus: updatedProduct.status,
-          productQuantity: updatedProduct.quantity
+          productQuantity: updatedProduct.quantity,
+          
       });
 
   } catch (error) {

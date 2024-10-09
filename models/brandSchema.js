@@ -22,7 +22,10 @@ const brandSchema = new Schema({
     createdAt : {
         type : Date,
         default : Date.now
-    }
+    },isListed : { 
+                type : Boolean,
+        default : true
+    },
 
 })
 

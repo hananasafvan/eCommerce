@@ -7,6 +7,7 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
+
 const addproductInfo = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -50,7 +51,7 @@ const addProducts = async (req, res) => {
             "public",
             "uploads",
             "product-imgs",
-            req.files[i].filename
+            `resized-${req.files[i].filename}`
           );
 
           await sharp(originalImagePath)
@@ -61,7 +62,7 @@ const addProducts = async (req, res) => {
               position: sharp.strategy.entropy,
             })
             .toFile(resizedImagePath);
-          images.push(req.files[i].filename);
+          images.push(`resized-${req.files[i].filename}`);
         }
       }
 
@@ -162,11 +163,43 @@ const unblockProduct = async (req, res) => {
     res.redirect("/pageerror");
   }
 };
+// const getEditProduct = async (req, res) => {
+//   try {
+//     const id = req.query.id;
+
+//     console.log("Received ID:", id);
+
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).send("Invalid product ID");
+//     }
+
+//     const product = await Product.findOne({ _id: id });
+//     const category = await Category.find({});
+//     const brand = await Brand.find({});
+
+//     if (!product) {
+//       return res.status(404).send("Product not found");
+//     }
+
+//     res.render("edit-product", {
+//       product: product,
+//       cat: category,
+//       brand: brand,
+//       selectedCategory: product.category.toString(),
+      
+//     });
+//   } catch (error) {
+//     console.log(error);
+
+//     res.redirect("/pageerror");
+//   }
+// };
+
+
+
 const getEditProduct = async (req, res) => {
   try {
     const id = req.query.id;
-
-    console.log("Received ID:", id);
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).send("Invalid product ID");
@@ -184,64 +217,82 @@ const getEditProduct = async (req, res) => {
       product: product,
       cat: category,
       brand: brand,
+      selectedCategory: product.category.toString(), // Ensure this line is present
     });
+    console.log("Selected Category ID:", product.category.toString());
+
   } catch (error) {
     console.log(error);
-
     res.redirect("/pageerror");
   }
 };
 
+
+
+
+
 const editProduct = async (req, res) => {
   try {
-    const id = req.params.id;
-    const product = await Product.findOne({ _id: id });
+    const id = req.params.id; // Ensure you're getting the correct product ID from params
+    const product = await Product.findById(id); // Fetch the product by ID
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
     const data = req.body;
+
+    // Check if the product name already exists (excluding the current product)
     const existingProduct = await Product.findOne({
       productName: data.productName,
       _id: { $ne: id },
     });
+
     if (existingProduct) {
-      return res.status(400).json({ error: "product alredy exist" });
+      return res.status(400).json({ error: "Product already exists" });
     }
 
-    const images = [];
-    if (req.files && req.files.length > 0) {
-      for (let i = 0; i < req.files.length; i++) {
-        images.push(req.files[i].filename);
-      }
-    }
-
+    // Prepare the update fields
     const updateFields = {
       productName: data.productName,
-      description: data.description,
+      description: data.description, // Ensure description is set from form
       brand: data.brand,
-      category: product.category,
+      category: data.category, // Ensure this is the correct way to set the category
       regularPrice: data.regularPrice,
       quantity: data.quantity,
       size: data.size,
       color: data.color,
     };
-    if (req.files.length > 0) {
-      updateFields.$push = { productImage: { $each: images } };
+
+    // Check for file uploads (if applicable)
+    const images = [];
+    if (req.files && req.files.length > 0) {
+      for (let i = 0; i < req.files.length; i++) {
+        images.push(req.files[i].filename);
+      }
+      updateFields.$push = { productImage: { $each: images } }; // Push new images
     }
 
+    // Update status based on quantity
     if (data.quantity <= 0) {
-      updateFields.status = "note available";
+      updateFields.status = "not available";
     } else {
       updateFields.status = "Available";
     }
 
+    // Update the product
     await Product.findByIdAndUpdate(id, updateFields, { new: true });
-    console.log('product updateed:',updateFields);
-    
+    console.log("Product updated:", updateFields);
 
-    res.redirect("/admin/products");
+    res.redirect("/admin/products"); // Redirect after successful update
   } catch (error) {
-    console.error(error);
+    console.error("Error updating product:", error);
     res.redirect("/pageerror");
   }
 };
+
+
+
 
 const deletSingleImage = async (req, res) => {
   try {

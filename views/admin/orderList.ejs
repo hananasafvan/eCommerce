@@ -13,7 +13,7 @@
                         <th>Items</th>
                         <th>Total Price</th>
                         <th>Payment Method</th>
-                        <th>Status</th>
+                        
                         <th>Created At</th>
                         <th>Actions</th>
                     </tr>
@@ -24,25 +24,33 @@
                             <tr class="text-center">
                                 <td><%= order._id.toString().slice(-5) %></td>
                                 <td><%= order.userId ? order.userId.name : 'Unknown User' %></td>
-                                <td>
+                                <!-- <td>
                                     <ul class="list-unstyled mb-0">
                                         <% order.items.forEach(item => { %>
                                             <li>Product ID: <%= item.productId.toString().slice(-7)  %>, Quantity: <%= item.quantity %></li>
                                         <% }) %>
 
-                                        <!-- <% order.items.forEach(item => { %>
-                                            <li>
-                                                Product Name: <%= item.productId ? item.productId.productName : 'Unknown Product' %>, 
-                                                Quantity: <%= item.quantity %>
-                                            </li>
-                                        <% }) %> -->
 
                                     </ul>
-                                </td>
+                                </td> -->
+
+                                <!-- In the admin order list -->
+<td>
+    <ul class="list-unstyled mb-0">
+      <% order.items.forEach(item => { %>
+        <li>
+          Product ID: <%= item.productId.toString().slice(-7) %>, 
+          Quantity: <%= item.quantity %>, 
+          Status: <span class="badge <%= item.status === 'Cancelled' ? 'bg-danger' : 'bg-primary' %>"><%= item.status %></span>
+        </li>
+      <% }) %>
+    </ul>
+  </td>
+  
                                 <td><strong>$<%= order.items.reduce((total, item) => total + item.totalPrice, 0).toFixed(2) %></strong></td>
                                 <td><%= order.paymentMethod %></td>
-                                <td>
-                                    <!-- Order Status Dropdown -->
+                                <!-- <td>
+                                    
                                     <form action="/admin/order/update/<%= order._id %>" method="POST" class="d-inline">
                                         <select name="status" class="form-select form-select-sm" aria-label="Order Status">
                                             <option value="Pending" <%= order.status === 'Pending' ? 'selected' : '' %>>Pending</option>
@@ -53,11 +61,11 @@
                                         </select>
                                         <button type="submit" class="btn btn-success btn-sm mt-1">Update</button>
                                     </form>
-                                </td>
+                                </td> -->
                                 <td><%= new Date(order.createdAt).toLocaleString() %></td>
                                 <td>
                                     <a href="/admin/order/view/<%= order._id %>" class="btn btn-primary btn-sm mb-1">View</a>
-                                    <a href="/admin/order/cancel/<%= order._id %>" class="btn btn-danger btn-sm mb-1">Cancel</a>
+                                    <!-- <a href="/admin/order/cancel/<%= order._id %>" class="btn btn-danger btn-sm mb-1">Cancel</a> -->
                                 </td>
                                 
                             </tr>

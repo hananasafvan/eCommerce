@@ -50,13 +50,7 @@ const postEditUser = async (req, res) => {
       });
     }
 
-    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // if (!emailRegex.test(email)) {
-    //   return res.render("editUser", {
-    //     user: req.body,
-    //     error: "Invalid email format.",
-    //   });
-    // }
+    
 
     // Check for existing user with the same name
     const existingProfile = await User.findOne({ name });

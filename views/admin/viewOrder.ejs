@@ -22,26 +22,38 @@
                     <th>Quantity</th>
                     <th>Price</th>
                     <th>Total</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 <% order.items.forEach(item => { %>
                     <tr>
                         <td><%= item.productId.productName %></td>
-                        <td><%= item.productId.quantity %></td>
-                        <td>$<%= item.productId.regularPrice %></td>
-                        <td>$<%= (item.productId.regularPrice * item.productId.quantity).toFixed(2) %></td>
+                        <td><%= item.quantity %></td>
+                         <td>$<%= item.productId.regularPrice %></td>
+                        <td>$<%= item.totalPrice %></td>
+                        <td>
+                                    
+                            <form action="/admin/order/update/<%= order._id %>" method="POST" class="d-inline">
+                                <select name="status" class="form-select form-select-sm" aria-label="Order Status">
+                                    <option value="Pending" <%= item.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                                    <option value="Processing" <%= item.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                                    <option value="Shipped" <%= item.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                                    <option value="Delivered" <%= item.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                                    <option value="Cancelled" <%= item.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                                </select>
+                                <button type="submit" class="btn btn-success btn-sm mt-1">Update</button>
+                            </form>
+                        </td>
                     </tr>
                     
-                        <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail" style="width: 100px; height: auto; margin-right: 15px;">
+                         <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail" style="width: 100px; height: auto; margin-right: 15px;">
                             
                 <% }) %>
             </tbody>
         </table>
 
-        <div class="mt-4">
-            <h4>Total Price: $<%= order.items.reduce((total, item) => total + (item.productId.regularPrice * item.productId.quantity), 0).toFixed(2) %></h4>
-        </div>
+        
 
         
 

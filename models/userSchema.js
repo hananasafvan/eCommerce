@@ -36,6 +36,7 @@ const userSchema = new Schema({
         type: String, 
         required: false
     },
+    
     isBlocked: {
         type: Boolean,
         default: false
@@ -78,23 +79,11 @@ const userSchema = new Schema({
             default: Date.now
         }
     }],
-    address:{
-        type:String,
-        required:false
-
-    },
-    city:{
-        type:String,
-        required:false
-    },
-    postalCode: {
-        type: String,
-        required: false
-    },
-    country: {
-        type: String,
-        required: false
-    }
+    address:[
+        {type:Schema.Types.ObjectId,
+            ref:'Address'
+        }
+    ]
 });
 
 const User = mongoose.model("User", userSchema);

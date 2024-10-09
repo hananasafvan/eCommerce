@@ -1,5 +1,6 @@
 const User = require("../../models/userSchema");
-
+const Category = require('../../models/categorySchema')
+const Product= require("../../models/productShema")
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
@@ -92,11 +93,23 @@ const loadSignup = async (req, res) => {
 const loadHomepage = async (req, res) => {
   try {
     const user = req.session.user;
+    const categories = await Category.find({isListed:true})
+    let productData = await Product.find({
+      isBlocked:false,
+      category:{$in:categories.map(category =>category._id)},
+      quantity:{$gt:0}
+    })
+     
+    productData.sort((a,b)=>(b.createdon)-(a.createdon))
+    productData= productData.slice(0,4)
+
+
+
     if (user) {
       const userData = await User.findById(user);
       if (userData && !userData.isBlocked) {
         res.locals.user = userData;
-        return res.render("home", { user: userData });
+        return res.render("home", { user: userData,products:productData });
       } else {
         // Destroy the session and redirect to login if blocked
         req.session.destroy((err) => {
@@ -109,7 +122,9 @@ const loadHomepage = async (req, res) => {
       }
     } else {
       res.locals.user = null;
-      return res.render("home");
+      return res.render("home",{
+        products:productData
+      });
     }
   } catch (error) {
     console.log("Home page not found:", error);

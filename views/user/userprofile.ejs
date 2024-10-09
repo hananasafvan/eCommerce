@@ -5,35 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+  body{
+    background-color: rgb(221, 163, 86);
+  }
+    .profile-card {
+      width: 300px;
+      margin-left: 250px;
+      margin-top: 10px;
+      border: 4px solid black;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+    }
+    .edit-profile-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.5rem;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      color: #000;
+      transition: color 0.3s, transform 0.3s;
+    }
+    .edit-profile-btn:hover {
+      background-color: #50fc58;
+      transform: scale(1.1);
+       }
+  </style>
 </head>
 <body>
 
-<%- include("../../views/partials/user/header") %>
+<%- include("../../views/partials/user/headerNew") %>
 
-<div class="container mt-5" >
-  <div class="row" >
-    <!-- Sidebar -->
-    <%- include("../../views/partials/user/Sidebar") %>
-
+<div class="container mt-5" style="background-color: rgb(232, 238, 235);  margin-top: 20px;">
+  <div class="row justify-content-center">
     <!-- Main Content -->
-    <div class="col-md-9" >
+    <div class="col-md-9">
       <!-- User Details -->
-      <div id="details" class="card mb-4" style="text-align: center; height: 200px; width: 300px; margin-left: 100px; margin-top: 100px; color: rgb(8, 8, 8);border: 2px solid black; ">
-        <div class="card-body" >
-          <h5 class="card-title" style="text-decoration: underline;">User Details</h5>
-          <p style="color: black;">Name: <%= user.name%></p>
-          <p style="color: black;" >Email:<%= user.email%></p>
-          <p style="color: black;">Phone: <%= user.phone%></p>
-          
-          
-        </div>
+      <div id="details" class="profile-card card mb-4">
+        
 
-        <button style="background-color: white; border: none;" ><a href="/user/editUser?id=<%=user._id%>" style="text-decoration: none; color:rgb(10, 7, 7) ;background-color: white;">edit Profile</a></button>
+        <!-- Profile Icon -->
+        <i class="bi bi-person-circle" style="font-size: 5rem; color: #030303"></i>
+        <button class="edit-profile-btn" title="Edit Profile"></button>
+          <a href="/user/editUser?id=<%=user._id%>" style="text-decoration: none; color: #050505;" class="pen">
+            <i class="bi bi-pencil-fill"></i>
+          </a>
+        </button>
+        <h5 class="card-title mt-3" style="text-decoration: none; font-weight: bold; color: #0a0a0a;">User Details</h5>
+        
+        <!-- User Information -->
+        <p style="color:#070707; font-weight: bold;"> <%= user.name %></p>
+        <p style="color:#0a0a0a; font-weight: bold;"> <%= user.email %></p>
+        <p style="color:#0a0a0a; font-weight: bold;"> <%= user.phone %></p>
       </div>
-
-      
-
     </div>
   </div>
 </div>
@@ -41,6 +69,6 @@
 <%- include("../../views/partials/user/footer") %>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
+

@@ -1,13 +1,11 @@
 const Order = require("../../models/orderSchema");
-const User = require('../../models/userSchema')
+const Product= require('../../models/productShema')
 
 const getOrderList = async (req, res) => {
-  const userId = req.session.user || req.user
   try {
     const perPage = 3;
     const page = parseInt(req.query.page) || 1;
-    let userData = userId ? await User.findById(userId) : null;
-    res.locals.user = userData;
+
     const orders = await Order.find({})
       .skip(perPage * page - perPage)
       .limit(perPage)
@@ -18,7 +16,6 @@ const getOrderList = async (req, res) => {
 
     res.render("orderList", {
       orders,
-      user: userData,
       current: page,
       pages: Math.ceil(totalOrders / perPage),
     });
@@ -32,14 +29,37 @@ const updateOrderStatus = async (req, res) => {
   try {
     const orderId = req.params.id;
     const newStatus = req.body.status;
+    
 
-    await Order.findByIdAndUpdate(orderId, { status: newStatus });
+    // Find the order first to ensure it exists
+    const order = await Order.findById(orderId).populate('userId').populate('items.productId').populate('address');
+    
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    console.log('Current Order:', order);
+
+    // Update the status of all items in the order
+    await Order.updateOne(
+      { _id: orderId },
+      {
+        $set: {
+          'items.$[].status': newStatus // Set the status of all items to the new order status
+        }
+      }
+    );
+
     res.redirect("/admin/orderList");
   } catch (error) {
     console.error("Error updating order status:", error);
     res.status(500).send("Internal Server Error");
   }
 };
+
+
+
+
 
 const cancelOrder = async (req, res) => {
   try {
@@ -64,9 +84,14 @@ const cancelOrder = async (req, res) => {
 const viewOrder = async (req, res) => {
   try {
       const orderId = req.params.id;
+      
+      
+      console.log('vieworder',orderId);
+      
+      
       const order = await Order.findById(orderId)
       .populate('userId','name')
-          .populate( 'items.productId',  'productName')
+          .populate( 'items.productId',  'productName productImage regularPrice')
           .exec(); 
           console.log("Fetched Order:", order);
 
@@ -81,9 +106,11 @@ const viewOrder = async (req, res) => {
       });
   } catch (error) {
       console.error(error);
-      res.status(500).send('Internal server error');
+      res.status(500).send('Internal server error',error);
   }
 };
+
+
 
 module.exports = {
   getOrderList,

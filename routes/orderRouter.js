@@ -9,8 +9,9 @@ router.get('/details/:orderId', orderController.getOrderDetails);
 
 
 router.get("/history", userAuth, orderController.getOrderHistory);
-router.post("/cancel/:orderId", userAuth, orderController.cancelOrder);
-router.post('/cancel-item/:orderId/:productId', orderController.cancelOrder);
+
+router.post("/cancel/:orderId/:itemId", userAuth, orderController.cancelItem);
+
 
 
 

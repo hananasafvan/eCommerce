@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confirm Your Order</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  
   <style>
     body {
       background-color: #f0f2f5; /* Light background for the whole page */
@@ -43,7 +44,7 @@
     }
     
     button[type="submit"] {
-      background-color: #28a745;
+      background-color: #d35400;;
       color: white;
       padding: 0.75rem 2rem;
       font-size: 1.2rem;
@@ -53,7 +54,7 @@
     }
     
     button[type="submit"]:hover {
-      background-color: #218838;
+      background-color:#eb9d6a;
     }
     
     .form-select {
@@ -64,16 +65,18 @@
 </head>
 <body>
 
-  <div class="container mt-5">
-    <h1 class="text-center mb-5">Confirm Your Order</h1>
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
+  <%- include("../../views/partials/user/headerNew") %>
+
+  <div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30PX;">
+    <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
+    <div class="row justify-content-center" ">
+      <div class="col-lg-8" >
         <form action="/order/place" method="POST" class="p-4 border rounded shadow">
           <!-- Address Selection -->
           <div class="mb-4">
-            <h3>Select Delivery Address</h3>
+            <h4>Select Delivery Address</h4>
             <select name="selectedAddress" class="form-select">
-              <% userAddresses.forEach(address => { %>
+              <% addressData.forEach(address => { %>
                 <option value="<%= address._id %>">
                   <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
                 </option>
@@ -83,18 +86,18 @@
 
           <!-- Payment Method Selection -->
           <div class="mb-4">
-            <h3>Select Payment Method</h3>
+            <h4>Select Payment Method</h4>
             <select name="paymentMethod" class="form-select">
               <option value="Cash on Delivery" selected>Cash on Delivery</option>
               <!-- You can add more payment methods here in the future -->
-              <!-- <option value="Credit Card">Credit Card</option>
-              <option value="PayPal">PayPal</option> -->
+               <option value="Credit Card">Credit Card</option>
+              <option value="PayPal">PayPal</option> 
             </select>
           </div>
 
           <!-- Cart Items -->
           <div class="mb-4">
-            <h3>Your Cart Items</h3>
+            <h4>Your Cart Items</h4>
             <ul class="list-group">
               <% cartItems.forEach(item => { %>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -102,7 +105,7 @@
                     <strong><%= item.productId.productName %></strong>
                     <div>Quantity: <%= item.quantity %></div>
                   </div>
-                  <span>Total: <%= item.totalPrice %> $</span>
+                  <span>Total: $ <%= item.totalPrice %> </span>
                 </li>
               <% }) %>
             </ul>
@@ -110,13 +113,17 @@
 
           <!-- Submit Button -->
           <div class="text-center">
-            <button type="submit" class="btn btn-success btn-lg px-5">Place Order</button>
+            <button type="submit" class="btn btn-success btn-lg px-5" style="border: none;">Place Order</button>
+            <button class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;"><a href="/cart" style="color: white;">Back to cart</a></button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
+  <%- include("../../views/partials/user/footer") %>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+

@@ -1,20 +1,32 @@
 const Address = require("../../models/addressSchema");
 const User = require('../../models/userSchema')
 
+
+
+
 const getAddress = async (req, res) => {
   try {
-    const userId = req.session.user || req.user
+    const userId = req.session.user || req.user;
     if (!userId) {
       return res.redirect("/login");
     }
+    let userData = userId ? await User.findById(userId).populate('address') : null;
 
-    const addressData = await Address.findOne({ userId });
-    //const user = req.user;
-    let userData = userId ? await User.findById(userId) : null;
-        res.locals.user = userData;
+    res.locals.user = userData;
+    console.log('userdata',userData);
+    
+    
+    const addressData = userData.address;
+    console.log(addressData);
+    
+    
+    
+    
+
+    // Render the address page
     res.render("address", {
       user: userData,
-      addresses: addressData ? addressData.address : [],
+      addressData: addressData || [],
     });
   } catch (err) {
     console.error(err);
@@ -22,8 +34,9 @@ const getAddress = async (req, res) => {
   }
 };
 
+
 const addAddress = async (req, res) => {
-  const { addressType, name, city, state, pincode, phone, altphone } = req.body;
+  const {  name, city, state, pincode, phone, altphone } = req.body;
   
   // Server-side validation
   if (!name || !city || !state || !pincode || !phone || !altphone) {
@@ -43,19 +56,20 @@ const addAddress = async (req, res) => {
   }
 
   try {
-    const userId = req.session.user;
+    const userId = req.session.user || req.user
     if (!userId) {
       return res.redirect("/login");
     }
-
+    let userData = userId ? await User.findById(userId) : null;
+    res.locals.user = userData;
     let addressData = await Address.findOne({ userId });
 
     if (!addressData) {
-      addressData = new Address({ userId, address: [] });
+      addressData = new Address({ userId, Address });
     }
 
-    addressData.address.push({
-      addressType,
+    addressData = new Address({
+      userId,
       name,
       city,
       state,
@@ -65,7 +79,15 @@ const addAddress = async (req, res) => {
     });
 
     await addressData.save();
+    const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        user.address.push(addressData._id);  
+        await user.save();
     res.redirect("/address");
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");
@@ -75,13 +97,23 @@ const addAddress = async (req, res) => {
 
 const deleteAddress = async (req, res) => {
   try {
-    const userId = req.session.user;
+    const userId = req.session.user || req.user;
+   console.log("userid delet address",userId)
     const addressId = req.params.addressId;
 
-    await Address.updateOne(
-      { userId },
-      { $pull: { address: { _id: addressId } } }
+    const deletedAddress = await Address.findByIdAndDelete(addressId);
+    
+    if (!deletedAddress) {
+      return res.status(404).send("Address not found.");
+    }
+
+    // Remove the address reference from the user
+    const user = await User.updateOne(
+      { _id: userId },
+      { $pull: { address: addressId } }  // Assuming User stores address references
     );
+
+
 
     res.redirect("/address");
   } catch (err) {
@@ -93,16 +125,14 @@ const deleteAddress = async (req, res) => {
 const getEditAddress = async (req, res) => {
   try {
     const userId = req.session.user || req.user
-    const addressId = req.params.addressId;
-    const addressData = await Address.findOne(
-      { userId, "address._id": addressId },
-      { "address.$": 1 }
-    );
-    let userData = userId ? await User.findById(userId) : null;
+    let userData = userId ? await User.findById(userId).populate('address') : null;
     res.locals.user = userData;
+    const addressId = req.params.addressId;
+    const addressData = userData.address.find(address => address._id.toString() === addressId)
+    
     res.render("editAddress", {
       user: userData,
-      address: addressData.address[0],
+      address: addressData,
       //user: req.user,
 
     });
@@ -113,7 +143,7 @@ const getEditAddress = async (req, res) => {
 };
 
 const editAddress = async (req, res) => {
-  const { addressType, name, city, state, pincode, phone, altphone } = req.body;
+  const {  name, city, state, pincode, phone, altphone } = req.body;
   const addressId = req.params.addressId;
 
   // Server-side validation
@@ -135,23 +165,22 @@ const editAddress = async (req, res) => {
 
   try {
     const userId = req.session.user;
+    let userData = userId ? await User.findById(userId).populate('address') : null;
+    res.locals.user = userData;
+    console.log('editadd userdata',userData);
+    
 
-    await Address.updateOne(
-      { userId, "address._id": addressId },
-      {
-        $set: {
-          "address.$.addressType": addressType,
-          "address.$.name": name,
-          "address.$.city": city,
-          "address.$.state": state,
-          "address.$.pincode": pincode,
-          "address.$.phone": phone,
-          "address.$.altphone": altphone,
-        },
-      }
-    );
+const updateAddress =await Address.findByIdAndUpdate(addressId,
+  {$set:{name, city, state, pincode, phone, altphone}},
+  {new:true}
+)
+if (!updateAddress) {
+  return res.status(404).send("Address not found");
+}
 
-    res.redirect("/address");
+// Redirect to address page after successful update
+res.redirect("/address");
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");

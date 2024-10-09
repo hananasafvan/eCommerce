@@ -2,49 +2,88 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Details</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
-</head>
-<body>
-<div class="container">
-    <h1 class="text-center mb-5">Order Details</h1>
-
-    <div class="order-details card p-4">
-        <h5>Order ID: <%= order._id %></h5>
-        <p>Status: <span class="badge <%= order.status === 'Pending' ? 'bg-warning' : 'bg-success' %>"><%= order.status %></span></p>
-        <p>Placed on: <%= order.createdAtFormatted %></p>
+    <style>
+        .order-details {
+            box-shadow: 0 4px 8px rgba(240, 32, 32, 0.1);
+            border-radius: 10px;
         
-        <h6>Delivery Address:</h6>
-        <p>
-            <%= order.address.name %>,
-             <%= order.address.city %>,
-              <%= order.address.state %> -
-               <%= order.address.pincode %>
+        }
+
+        .order-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 10px 10px 0 0;
+            
+        }
+
+        .order-products {
+            border-top: 1px solid #dee2e6;
+            padding-top: 15px;
+        }
+
+        .img-thumbnail {
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .total-price {
+            font-size: 1.25rem;
+            color: #d35400;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Include Header Partial -->
+    <%- include("../../views/partials/user/headerNew") %>
+
+    <div class="container mt-5 mb-5" style="background-color: #00131c; width: 90%;">
+        <h3 class="text-center mb-5" style="color: white;">Order Details</h3>
+
+        <div class="order-details card p-4" style=" width: 90%; margin-left: 55px;">
+            <div class="order-header">
+                <h5>Order ID: <%= order._id %></h5>
+                <p>Placed on: <%= order.createdAtFormatted %></p>
+            </div>
+
+            <h6 class="mt-4">Delivery Address</h6>
+            <p class="mb-4">
+                <%= order.address.name %>, <%= order.address.city %>, <%= order.address.state %> - <%= order.address.pincode %>
             </p>
 
-        <h6>Items:</h6>
-        <ul class="list-unstyled">
-            <% order.items.forEach(item => { %>
-            <li class="d-flex align-items-center mb-3">
-                <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail" style="width: 100px; height: auto; margin-right: 15px;">
-                <div>
-                    <strong><%= item.productId.productName %></strong>
-                    <div>Quantity: <%= item.quantity %></div>
-                    <span>Total: <%= item.totalPrice %> $</span>
-                </div>
-            </li>
-            <% }) %>
-        </ul>
+            <h6>Products</h6>
+            <ul class="list-unstyled order-products">
+                <% order.items.forEach(item => { %>
+                <li class="d-flex align-items-center mb-4 border-bottom pb-3">
+                    <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail me-3" style="width: 100px; height: 100px;">
+                    <div>
+                        <strong><%= item.productId.productName %></strong>
+                        <div>Quantity: <%= item.quantity %></div>
+                        <div>Status: <%= item.status %></div>
+                        <span>Total:$<%= item.totalPrice %> </span>
+                    </div>
+                </li>
+                <% }) %>
+            </ul>
 
-        <p><strong>Total Order Price: <%= order.totalOrderPrice %> $</strong></p>
+            <p class="total-price"><strong>Total Order Price: $<%= order.totalOrderPrice %> </strong></p>
+        </div>
+
+        <a href="/order/history" class="btn btn-secondary mt-4" style="margin-bottom: 20px;margin-left: 55px; border: none; background-color: #d35400;">Back to Order History</a>
     </div>
-    <a href="/order/history" class="btn btn-secondary mt-4">Back to Order History</a>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Include Footer Partial -->
+    <%- include("../../views/partials/user/footer") %>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
