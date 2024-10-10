@@ -5,7 +5,7 @@ const { userAuth } = require("../middleweares/auth");
 
 router.get("/checkout", userAuth, orderController.getOrderPage);
 router.post("/place", userAuth, orderController.placeOrder);
-router.get('/details/:orderId', orderController.getOrderDetails);
+router.get('/details/:orderId',userAuth, orderController.getOrderDetails);
 
 
 router.get("/history", userAuth, orderController.getOrderHistory);

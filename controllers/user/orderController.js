@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const Order = require("../../models/orderSchema");
 const Cart = require("../../models/cartSchema");
 const Address = require("../../models/addressSchema");
@@ -40,23 +41,41 @@ const placeOrder = async (req, res) => {
   const { selectedAddress, paymentMethod } = req.body; // Extract payment method from the request body
 
   try {
+    if (!mongoose.Types.ObjectId.isValid(selectedAddress)) {
+      throw new Error('Invalid address ID');
+    }
+
     const cart = await Cart.findOne({ userId }).populate("items.productId");
+    const address = await Address.findById(selectedAddress);
     let userData = userId ? await User.findById(userId) : null;
     res.locals.user = userData;
     if (!cart || cart.items.length === 0) {
       return res.redirect("/cart", { user: userData });
     }
 
-    const totalOrderPrice = cart.items.reduce((total,item)=>{
-      return total+item.totalPrice
-    },0)
     
+
+    //const totalOrderPrice = cart.items.reduce((total,item)=> {return total+item.totalPrice},0)
+    
+    const totalOrderPrice = cart.items.reduce((total, item) => {
+      console.log(`Item Price: ${item.totalPrice}`);  // Debugging
+      return total + (item.totalPrice || 0);  // Fallback to 0 if undefined
+    }, 0);
+    
+
   console.log('totalOrderPrice',totalOrderPrice);
   
     const newOrder = new Order({
       userId,
       items: cart.items,
-      address: selectedAddress,
+      address: {
+        name: address.name,
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode,
+        phone: address.phone,
+        altphone: address.altphone
+      },
       paymentMethod,
       status: "Processing",
       totalOrderPrice,
@@ -85,7 +104,7 @@ const getOrderHistory = async (req, res) => {
 
   try {
     const orders = await Order.find({ userId }) // Make sure to only get the user's orders
-
+       .sort({createdAt:-1})
       .populate("userId")
       .populate({
         path: "address", // Populates the 'address' field of the order
@@ -116,6 +135,7 @@ const getOrderHistory = async (req, res) => {
 };
 
 const getOrderDetails = async (req, res) => {
+  const userId = req.session.user || req.user;
   try {
     const orderId = req.params.orderId;
     console.log("getorderdetails", orderId);
@@ -133,9 +153,13 @@ const getOrderDetails = async (req, res) => {
 
     // Format the createdAt date (if needed)
     order.createdAtFormatted = order.createdAt.toLocaleDateString(); // Customize date format as needed
-  
+    const userData = await User.findById(userId);
+    res.locals.user = userData;
 
-    res.render("orderdetails", { order });
+
+    res.render("orderdetails", { order,
+      user:userData
+     });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server error");

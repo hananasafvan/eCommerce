@@ -119,6 +119,7 @@ const getProducts = async (req, res, next) => {
 
     // Fetch products and only include those with listed categories
     const products = await Product.find(searchCondition)
+    .sort({createdAt:-1})
       .populate({
         path: "category",
         match: { isListed: true }, // Only include products with listed categories

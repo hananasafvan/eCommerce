@@ -33,9 +33,13 @@
                         <!-- Check if the item status is 'Cancelled' -->
                         <% if (item.status === 'Cancelled') { %>
                           <button type="button" class="btn btn-danger btn-sm" disabled>Cancelled</button>
-                        <% } else if (item.status === 'Processing' || 'Pending') { %>
+                        <% } else if (item.status === 'Processing' || item.status === 'Pending') { %>
                           <button type="button" class="btn btn-danger btn-sm" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', this)">Cancel Item</button>
-                        <% } %>
+                        <% }else if(item.status === 'Delivered') {%>
+                          <button type="button" class="btn btn-primary btn-sm" onclick="returnItem('<%= order._id %>', '<%= item._id %>', this)">Return Item</button>
+                          <%} else if(item.status === 'Shipped') {%>
+
+                            <% }%>
                       </div>
                     </li>
                   <% }) %>
@@ -44,7 +48,7 @@
                 <% } %>
               </ul>
 
-              <p class="text-end" style="color: #d35400;"><strong>Total Order Price: <%= order.totalOrderPrice %> $</strong></p>
+              <!-- <p class="text-end" style="color: #d35400;"><strong>Total Order Price: <%= order.totalOrderPrice %> $</strong></p> -->
               <a href="/order/details/<%= order._id %>" style="background-color: #d35400; border: none;" class="btn btn-dark btn-sm float-end">View Order Details</a>
             </div>
           </div>

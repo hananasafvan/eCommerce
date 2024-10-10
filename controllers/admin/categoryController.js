@@ -79,14 +79,19 @@ const editCategory = async (req, res) => {
     console.log("Updating category:", req.body);
 
     const { categoryname, description } = req.body;
+    if (!/^[a-zA-Z\s]+$/.test(categoryname)) {
+      return res
+        .status(400)
+        .json({ error: "Please enter a valid category name (alphabets only)." });
+    }
 
-    const existingCategory = await Category.findOne({ name: categoryname });
+    const existingCategory = await Category.findOne({ name: new RegExp(`^${categoryname}$`, 'i') });
     if (existingCategory && existingCategory._id.toString() !== id) {
       return res
         .status(400)
         .json({ error: "Category already exists, please choose another name" });
     }
-
+    
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
       {

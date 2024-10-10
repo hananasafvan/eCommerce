@@ -7,6 +7,7 @@ const getOrderList = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
 
     const orders = await Order.find({})
+      .sort({createdAt:-1})
       .skip(perPage * page - perPage)
       .limit(perPage)
       .populate("userId", "name")
@@ -25,39 +26,37 @@ const getOrderList = async (req, res) => {
   }
 };
 
+
+
 const updateOrderStatus = async (req, res) => {
   try {
-    const orderId = req.params.id;
-    const newStatus = req.body.status;
-    
+    const { orderId, itemId } = req.params;  // Extract orderId and itemId from params
+    const { status } = req.body;             // Get the new status from the form
 
-    // Find the order first to ensure it exists
-    const order = await Order.findById(orderId).populate('userId').populate('items.productId').populate('address');
-    
+    // Find the order by its ID
+    const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).send("Order not found");
+      return res.status(404).send('Order not found');
     }
 
-    console.log('Current Order:', order);
+    // Find the item within the order by itemId
+    const itemIndex = order.items.findIndex(item => item.itemId === itemId);
+    if (itemIndex === -1) {
+      return res.status(404).send('Item not found');
+    }
 
-    // Update the status of all items in the order
-    await Order.updateOne(
-      { _id: orderId },
-      {
-        $set: {
-          'items.$[].status': newStatus // Set the status of all items to the new order status
-        }
-      }
-    );
+    // Update the item's status
+    order.items[itemIndex].status = status;
 
-    res.redirect("/admin/orderList");
+    // Save the updated order
+    await order.save();
+
+    res.redirect('/admin/orderList');
   } catch (error) {
-    console.error("Error updating order status:", error);
-    res.status(500).send("Internal Server Error");
+    console.error('Error updating order status:', error);
+    res.status(500).send('Internal Server Error');
   }
 };
-
-
 
 
 

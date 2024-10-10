@@ -1,0 +1,110 @@
+<%- include("../../views/partials/user/headerNew") %>
+
+<div class="container" style="padding-top: 100px; background-color:#00131c; margin-bottom: 30px;margin-top: 30px;">
+  <h3 style="text-align: center; margin-bottom: 20px; color: white">Your Orders</h3>
+  <% if (orders.length > 0) { %>
+    <div class="row justify-content-center">
+      <% orders.forEach(order => { %>
+        <div class="col-lg-8">
+          <div class="card mb-5 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">Order ID: <%= order._id %></h5>
+              <p class="card-text">Placed on: <%= new Date(order.createdAt).toLocaleDateString() %></p>
+              
+              <h6 class="mt-3">Delivery Address:</h6>
+              <p><strong><%= order.address.name %></strong></p>
+              <p><%= order.address.city %>, <%= order.address.state %> - <%= order.address.pincode %></p>
+              <p>Phone: <%= order.address.phone %></p>
+              <p>Alt Phone: <%= order.address.altphone %></p>
+              
+              <h6>Items:</h6>
+              <ul class="list-group mb-3">
+                <% if (Array.isArray(order.items) && order.items.length > 0) { %>
+                  <% order.items.forEach(item => { %>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong><%= item.productId.productName %></strong>
+                        <p class="mb-1">Quantity: <%= item.quantity %></p>
+                        <p>Status: <span class="badge <%= item.status === 'Pending' ? 'bg-warning' : (item.status === 'Delivered' ? 'bg-info' : 'bg-success') %>">
+                          <%= item.status %>
+                        </span></p>
+                      </div>
+                      <div class="text-end">
+                        <p class="mb-1"><strong>Total: $<%= item.totalPrice %></strong></p>
+                        <!-- Button logic based on item status -->
+                        <% if (item.status === 'Cancelled') { %>
+                          <button type="button" class="btn btn-danger btn-sm" disabled>Cancelled</button>
+                        <% } else if (item.status === 'Pending' || item.status === 'Processing') { %>
+                          <button type="button" class="btn btn-danger btn-sm" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', this)">Cancel Item</button>
+                        <% } else if (item.status === 'Delivered') { %>
+                          <button type="button" class="btn btn-primary btn-sm" onclick="returnItem('<%= order._id %>', '<%= item._id %>', this)">Return Item</button>
+                        <% } else if (item.status === 'Shipped') { %>
+                          <!-- No button for shipped items -->
+                        <% } %>
+                      </div>
+                    </li>
+                  <% }) %>
+                <% } else { %>
+                  <li class="list-group-item">No items in this order.</li>
+                <% } %>
+              </ul>
+
+              <p class="text-end" style="color: #d35400;"><strong>Total Order Price: <%= order.totalOrderPrice %> $</strong></p>
+              <a href="/order/details/<%= order._id %>" style="background-color: #d35400; border: none;" class="btn btn-dark btn-sm float-end">View Order Details</a>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <p class="text-center">No orders found.</p>
+  <% } %>
+</div>
+
+<%- include("../../views/partials/user/footer") %>
+
+<script>
+  function cancelItem(orderId, itemId, button) {
+    fetch(`/order/cancel/${orderId}/${itemId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message === "Item cancelled successfully") {
+        button.textContent = "Cancelled";
+        button.disabled = true;
+      } else {
+        alert(data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  function returnItem(orderId, itemId, button) {
+    fetch(`/order/return/${orderId}/${itemId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message === "Item returned successfully") {
+        button.textContent = "Returned";
+        button.disabled = true;
+      } else {
+        alert(data.message);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+</script>
