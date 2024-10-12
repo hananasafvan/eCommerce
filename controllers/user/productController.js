@@ -67,27 +67,29 @@ const getProducts = async (req, res, next) => {
     const limit = 12;
     const skip = (page - 1) * limit;
 
-    // Base search condition to exclude blocked products
+    
     let searchCondition = { isBlocked: false };
 
-    // Apply search query filter if provided
+    
     if (searchQuery) {
-      const regex = new RegExp(searchQuery, "i"); // Case-insensitive search
-      searchCondition.$or = [{ productName: regex }]; // Search by product name
+      const regex = new RegExp(searchQuery, "i"); 
+      searchCondition.$or = [{ productName: regex }]; 
     }
 
-    // Apply category filter if provided
+    
     if (category) {
-      searchCondition.category = category; // Filter by category
+      searchCondition.category = category; 
     }
 
-    // Apply brand filter if provided
+    
     if (brand) {
-      searchCondition.brand = brand; // Filter by brand
+      searchCondition.brand = brand; 
     }
 
     // Sorting logic based on the selected sort option
     let sortCriteria = {};
+if(sortBy){
+
     switch (sortBy) {
       case "popularity":
         sortCriteria = { popularity: -1 };
@@ -116,30 +118,35 @@ const getProducts = async (req, res, next) => {
       default:
         sortCriteria = {};
     }
+  } else {
+    
+    sortCriteria = { createdAt: -1 };
+  }
 
-    // Fetch products and only include those with listed categories
+
+    
     const products = await Product.find(searchCondition)
-    .sort({createdAt:-1})
+    
       .populate({
         path: "category",
-        match: { isListed: true }, // Only include products with listed categories
+        match: { isListed: true }, 
       })
       .populate({
         path: "brand",
-        match: { isListed: true }, // Only include products with listed categories
+        match: { isListed: true }, 
       })
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
       .exec();
 
-    // Filter out products where category is null (unlisted category)
+    
     const filteredProducts = products.filter(product => product.category !== null)  || products.filter(product => product.brand !== null);
     
     
 
 
-    // Count total products with listed categories
+    
     const totalProducts = await Product.countDocuments({
       ...searchCondition,
       category: { $in: await Category.find({ isListed: true }).select('_id') },
@@ -153,9 +160,9 @@ const getProducts = async (req, res, next) => {
     let userId = req.user || req.session.user;
     let userData = userId ? await User.findById(userId) : null;
 
-    // Fetch categories and brands for the dropdowns
+  
     const categories = await Category.find({ isListed: true });
-    const brands = await Brand.find({isListed: true}); // Assuming you have a Brand model
+    const brands = await Brand.find({isListed: true}); 
 
     res.locals.user = userData;
 
@@ -164,11 +171,11 @@ const getProducts = async (req, res, next) => {
       products: filteredProducts,
       
       sortBy: sortBy || "",
-      searchQuery: searchQuery, // Include the search query in the render
-      category: category || "", // Include the category in the render
-      brand: brand || "", // Include the brand in the render
-      categories: categories, // Pass categories to the view
-      brands: brands, // Pass brands to the view
+      searchQuery: searchQuery, 
+      category: category || "", 
+      brand: brand || "", 
+      categories: categories, 
+      brands: brands, 
       currentPage: page,
       totalPages: totalPages,
       totalProducts: totalProducts,
@@ -328,7 +335,6 @@ const postNewPassword = async (req, res) => {
   }
 };
 
-// product show in home page
 
 
 module.exports = {

@@ -1,13 +1,118 @@
 <%- include("../../views/partials/admin/header") %>
 <head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+    <style>
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .pagination-container a,
+        .pagination-container .current-page {
+            margin: 0 5px;
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .pagination-container a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .pagination-container .current-page {
+            background-color: #007bff;
+            color: white;
+            border: 1px solid #007bff;
+        }
+
+        .pagination-container a.disabled {
+            pointer-events: none;
+            color: #ccc;
+            border-color: #ccc;
+        }
+
+        .pagination-container .prev-next {
+            font-weight: bold;
+        }
+
+        /* Header section */
+        .content-header {
+            background-color: white;
+            color: #d35400;
+        }
+
+        .content-title.card-title {
+            color: #d35400;
+        }
+
+        .content-header h2 {
+            background-color: white;
+            color: #d35400;
+        }
+
+        /* Search section */
+        .input-group-sm .form-control {
+            border-color: #00131c;
+        }
+
+        .btn {
+            background-color: white;
+            color: #d35400;
+        }
+
+        .btn:hover {
+            background-color: #00131c;
+        }
+
+        /* Table styles */
+        table.table-striped thead {
+            background-color: #00131c;
+            color: white;
+        }
+
+        table.table-striped tbody tr:hover {
+            background-color: #d35400;
+            color: white;
+        }
+
+        /* Action buttons */
+        .btn-danger, .btn-success, .btn-info {
+            background-color: #00131c;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger:hover, .btn-success:hover, .btn-info:hover {
+            background-color: #d35400;
+            color: white;
+        }
+
+        /* Pagination */
+        .pagination-container a,
+        .pagination-container .current-page {
+            color: black;
+            border-color: #d35400;
+        }
+
+        .pagination-container a:hover,
+        .pagination-container .current-page {
+            background-color: #d35400;
+            color: white;
+        }
+    </style>
 </head>
-<div class="content-header">
-    <div>
+<div class="content-header" style=" color: #d35400; margin-bottom: 0px;">
+    <div style="margin-left: 400px; margin-top: 20px;">
         <h2 class="content-title card-title">Products</h2>
     </div>
 </div>
-<header class="card-header text-center mb-20">
+<header class="card-header text-center mb-20" style=" margin-top: 0px; margin-bottom: 0px;">
     <form action="" method="get" class="d-inline">
         <div class="input-group input-group-sm border border-1 border-grey rounded-pill" style="width: 500px; margin-left: 230px;">
             <input type="text" class="form-control border-0 rounded-pill" placeholder="Search products or brands" name="search">
@@ -15,7 +120,7 @@
         </div>
     </form>
 </header>
-<div class="right mt-5">
+<div class="right mt-5" style="margin-top: 0px;">
     <table class="table table-striped">
         <thead>
             <tr>
@@ -24,9 +129,6 @@
                 <th scope="col"><b>Brand</b></th>
                 <th scope="col"><b>Category</b></th>
                 <th scope="col"><b>Quantity</b></th>
-                <th scope="col"><b></b></th>
-                <th scope="col"><b></b></th>
-                <th scope="col"><b></b></th>
                 <th scope="col"><b>Action</b></th>
                 <th scope="col"><b>Edit</b></th>
             </tr>
@@ -34,7 +136,6 @@
         <tbody>
             <% for(let i = data.length - 1; i >= 0; i--) { %>
             <tr>
-            
                 <td>
                     <img src="/uploads/product-imgs/<%= data[i].productImage[0] %>" alt="Product Image" style="width: 50px; height: 50px; object-fit: cover;">
                 </td>
@@ -48,8 +149,6 @@
                     <% } %>
                 </td>
                 <td><%= data[i].quantity %></td>
-                <td></td>
-                <td></td>
                 <td>
                     <% if (data[i].isBlocked === false) { %>
                     <button class="btn btn-danger" style="width: 80px;">
@@ -74,15 +173,19 @@
 </div>
 </div>
 
-<div class="container mt-3">
-    <div class="pagination-container">
+<div class="container mt-3" >
+    <div class="pagination-container" style="margin-bottom: 20px;">
         <% if (currentPage > 1) { %>
         <a href="?page=<%= currentPage - 1 %>">&laquo; Previous</a>
-        <% } %> <% for (let i = 1; i <= totalPages; i++) { %> <% if (i === currentPage) { %>
+        <% } %> 
+        <% for (let i = 1; i <= totalPages; i++) { %> 
+        <% if (i === currentPage) { %>
         <span class="current-page"><%= i %></span>
         <% } else { %>
         <a href="?page=<%= i %>"><%= i %></a>
-        <% } %> <% } %> <% if (currentPage < totalPages) { %>
+        <% } %> 
+        <% } %> 
+        <% if (currentPage < totalPages) { %>
         <a href="?page=<%= currentPage + 1 %>">Next &raquo;</a>
         <% } %>
     </div>
@@ -91,3 +194,4 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <%- include("../../views/partials/admin/footer") %>
+

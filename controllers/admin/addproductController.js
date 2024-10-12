@@ -102,7 +102,7 @@ const productInfo = async (req, res) => {
     const search = req.query.search || "";
 
     const page = req.query.page || 1;
-    const limit = 4;
+    const limit = 10;
 
     const productData = await Product.find({
       $or: [
@@ -110,6 +110,7 @@ const productInfo = async (req, res) => {
         { brand: { $regex: new RegExp(".*" + search + ".*", "i") } },
       ],
     })
+      .sort({createdAt:-1})
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .populate("category")

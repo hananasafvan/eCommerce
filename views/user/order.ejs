@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confirm Your Order</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
   
   <style>
     body {
@@ -71,7 +72,7 @@
     <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
     <div class="row justify-content-center" ">
       <div class="col-lg-8" >
-        <form action="/order/place" method="POST" class="p-4 border rounded shadow">
+        <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
           <!-- Address Selection -->
           <div class="mb-4">
             <h4>Select Delivery Address</h4>
@@ -113,11 +114,14 @@
             
           </div>
 
-          <!-- Submit Button -->
-          <div class="text-center">
-            <button type="submit" class="btn btn-success btn-lg px-5" style="border: none;">Place Order</button>
-            <button class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;"><a href="/cart" style="color: white;">Back to cart</a></button>
-          </div>
+          
+<div class="text-center">
+  <button type="button" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">Place Order</button>
+  <button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
+    <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
+  </button>
+</div>
+
         </form>
       </div>
     </div>
@@ -126,6 +130,25 @@
   <%- include("../../views/partials/user/footer") %>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.getElementById('placeOrderBtn').addEventListener('click', function() {
+      Swal.fire({
+        title: 'Confirm Order',
+        text: "Are you sure you want to place this order?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, place it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Submit the form
+          document.getElementById('orderForm').submit();
+        }
+      })
+    });
+  </script>
 </body>
 </html>
 

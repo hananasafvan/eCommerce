@@ -15,7 +15,7 @@ const getOrderPage = async (req, res) => {
     res.locals.user = userData;
     const cart = await Cart.findOne({ userId }).populate("items.productId");
     const addressData = userData.address;
-    const userAddresses = []; // Ensure this is an array
+    const userAddresses = []; 
     console.log("Addresses: ", addressData);
     if (!cart || cart.items.length === 0) {
       return res.redirect("/cart");
@@ -25,7 +25,7 @@ const getOrderPage = async (req, res) => {
       user: userData,
       cartItems: cart.items,
       addressData: addressData,
-      userAddresses: userAddresses, // Use userAddresses directly
+      userAddresses: userAddresses, 
     });
   } catch (error) {
     console.error("Error retrieving order page:", error);
@@ -38,7 +38,8 @@ const placeOrder = async (req, res) => {
 
   console.log("order", userId);
 
-  const { selectedAddress, paymentMethod } = req.body; // Extract payment method from the request body
+  const { selectedAddress, paymentMethod } = req.body; 
+  
 
   try {
     if (!mongoose.Types.ObjectId.isValid(selectedAddress)) {
@@ -58,8 +59,8 @@ const placeOrder = async (req, res) => {
     //const totalOrderPrice = cart.items.reduce((total,item)=> {return total+item.totalPrice},0)
     
     const totalOrderPrice = cart.items.reduce((total, item) => {
-      console.log(`Item Price: ${item.totalPrice}`);  // Debugging
-      return total + (item.totalPrice || 0);  // Fallback to 0 if undefined
+      
+      return total + (item.totalPrice || 0);  
     }, 0);
     
 
@@ -89,6 +90,7 @@ const placeOrder = async (req, res) => {
     console.log("Cart cleared");
 
     res.redirect("/order/checkout");
+  
   } catch (error) {
     console.error("Error placing order:", error);
     res.status(500).send("Internal server error");
@@ -103,11 +105,12 @@ const getOrderHistory = async (req, res) => {
   }
 
   try {
-    const orders = await Order.find({ userId }) // Make sure to only get the user's orders
+    const orders = await Order.find({ userId }) 
+    
        .sort({createdAt:-1})
       .populate("userId")
       .populate({
-        path: "address", // Populates the 'address' field of the order
+        path: "address", 
         model: "Address",
       })
       // .populate({
@@ -151,8 +154,8 @@ const getOrderDetails = async (req, res) => {
       return res.status(404).send("Order not found");
     }
 
-    // Format the createdAt date (if needed)
-    order.createdAtFormatted = order.createdAt.toLocaleDateString(); // Customize date format as needed
+    
+    order.createdAtFormatted = order.createdAt.toLocaleDateString(); 
     const userData = await User.findById(userId);
     res.locals.user = userData;
 
@@ -166,19 +169,19 @@ const getOrderDetails = async (req, res) => {
   }
 };
 
-// In controllers/user/orderController.js
+
 
 const cancelItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
 
-    // Find the order by ID
+    
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Find the item in the order and update its status to 'Cancelled'
+    
     const item = order.items.id(itemId);
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
@@ -208,6 +211,38 @@ const cancelItem = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+const returnItem = async (req,res) =>{
+  try {
+    const {orderId,itemId} = req.params
+    const order = await Order.findById(orderId)
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const item = order.items.id(itemId)
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+    if(item.status === 'Delivered' ){
+      item.status = 'Request to return'
+      await order.save()
+
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+    
+ return res.status(200).json({message:'item return requested successfully'})
+    }else{
+
+      return res.status(400).json({ message: "Item cannot be returned" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
 
 module.exports = {
   getOrderPage,
@@ -215,4 +250,5 @@ module.exports = {
   getOrderHistory,
   getOrderDetails,
   cancelItem,
+  returnItem,
 };

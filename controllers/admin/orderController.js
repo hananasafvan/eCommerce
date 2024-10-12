@@ -3,7 +3,7 @@ const Product= require('../../models/productShema')
 
 const getOrderList = async (req, res) => {
   try {
-    const perPage = 3;
+    const perPage = 10;
     const page = parseInt(req.query.page) || 1;
 
     const orders = await Order.find({})
@@ -31,8 +31,10 @@ const getOrderList = async (req, res) => {
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;  // Extract orderId and itemId from params
-    const { status } = req.body;             // Get the new status from the form
-
+    const { status } = req.body;    
+    const productId = req.params
+console.log('get product id',productId);
+    
     // Find the order by its ID
     const order = await Order.findById(orderId);
     if (!order) {
@@ -47,8 +49,43 @@ const updateOrderStatus = async (req, res) => {
 
     // Update the item's status
     order.items[itemIndex].status = status;
+    
+    
 
-    // Save the updated order
+    if(status === 'Returned'){
+     const productId = order.items[itemIndex].productId
+     const product = await Product.findById(productId)
+     if (!product) {
+      return res.status(404).send('Product not found');
+    }
+    
+    
+    const qua = order.items[itemIndex].quantity
+  
+    
+     product.quantity += qua
+     await product.save()
+     
+     
+
+    }
+
+
+    if(status === 'Cancelled'){
+      const productId = order.items[itemIndex].productId
+      const product = await Product.findById(productId)
+      if (!product) {
+       return res.status(404).send('Product not found');
+     }
+     const qua = order.items[itemIndex].quantity
+     console.log('quantity',qua);
+     
+      product.quantity += qua
+      await product.save()
+      
+ 
+     }
+
     await order.save();
 
     res.redirect('/admin/orderList');
@@ -66,6 +103,8 @@ const cancelOrder = async (req, res) => {
     console.log("Cancelling Order ID:", orderId);
     const updatedOrder = await Order.findByIdAndUpdate(orderId, {
       status: "Cancelled",
+    
+      
     });
 
     if (!updatedOrder) {
@@ -73,6 +112,7 @@ const cancelOrder = async (req, res) => {
       return res.status(404).send("Order not found");
     }
 
+    
     res.redirect("/admin/orderList");
   } catch (error) {
     console.error("Error cancelling order:", error);
@@ -91,6 +131,7 @@ const viewOrder = async (req, res) => {
       const order = await Order.findById(orderId)
       .populate('userId','name')
           .populate( 'items.productId',  'productName productImage regularPrice')
+                             
           .exec(); 
           console.log("Fetched Order:", order);
 
