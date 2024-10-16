@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Coupon</title>
+    <!-- Adjust the path as needed -->
+    <link rel="shortcut icon" type="image/x-icon" href="#" />
+    <link href="/admin-assets/css/main.css" rel="stylesheet" type="text/css" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <style>
+      /* Reset some default styles */
+      /* body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+        } */
+
+      .container {
+        max-width: 600px; /* Maximum width for the form */
+        /* Center the container with margin */
+        padding: 30px; /* Add padding inside the container */
+        background-color: #ffffff; /* White background */
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Enhanced shadow for depth */
+        border: 1px solid #e1e1e1; /* Subtle border */
+      }
+
+      h2 {
+        text-align: center; /* Center the heading */
+        color: #333; /* Dark gray color for text */
+        margin-bottom: 20px; /* Space below the heading */
+      }
+
+      form {
+        display: flex; /* Use flexbox for layout */
+        flex-direction: column; /* Stack form elements vertically */
+      }
+
+      label {
+        margin: 10px 0 5px; /* Spacing for labels */
+        font-weight: bold; /* Make labels bold */
+        color: #555; /* Darker gray color for labels */
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input[type="date"],
+      select {
+        padding: 12px; /* More padding for better touch target */
+        border: 1px solid #ccc; /* Light gray border */
+        border-radius: 6px; /* Rounded corners */
+        margin-bottom: 15px; /* Space below inputs */
+        font-size: 16px; /* Consistent font size */
+        transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+      }
+
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      input[type="date"]:focus,
+      select:focus {
+        border-color: #007bff; /* Blue border on focus */
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Blue shadow on focus */
+        outline: none; /* Remove default outline */
+      }
+
+      button {
+        padding: 12px; /* Adjust button padding */
+        border: none; /* Remove default border */
+        border-radius: 6px; /* Rounded corners */
+        background-color: #007bff; /* Blue background */
+        color: white; /* White text */
+        font-size: 16px; /* Consistent font size */
+        cursor: pointer; /* Pointer cursor on hover */
+        transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+      }
+
+      button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        transform: translateY(-2px); /* Lift effect on hover */
+      }
+
+      button:disabled {
+        background-color: #cccccc; /* Gray background when disabled */
+        cursor: not-allowed; /* Not allowed cursor */
+      }
+
+      /* Responsive Design */
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px; /* Adjust padding for smaller screens */
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+          font-size: 14px; /* Slightly smaller font size */
+        }
+
+        button {
+          font-size: 14px; /* Slightly smaller button font */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <%- include("../../views/partials/admin/header") %>
+
+    <div class="container">
+      <h2>Add Coupon</h2>
+      <div
+        style="
+          background-color: #00131c;
+          padding: 50px;
+          width: 70%;
+          margin-left: 15%;
+          border-radius: 10px;
+        "
+      >
+        <form action="/admin/coupons" method="POST" onsubmit="return validSubmit(event)">
+          <div>
+            <div style="margin-bottom: 20px; width: 250px; float: left">
+              <label for="code">Coupon Code:</label>
+              <br>
+              <input type="text" id="code" name="code" required />
+            </div>
+            <div style="width: 50%; float: left">
+              <label for="description">Description:</label>
+              <br>
+              <input type="text" id="description" name="description" required/>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <label for="discountType">Discount Type:</label>
+            <br>
+            <select id="discountType" name="discountType" required>
+              <option value="percentage">Percentage</option>
+              <option value="fixed">Fixed Amount</option>
+            </select>
+          </div>
+          <div>
+            <div style="margin-bottom: 20px; width: 40%; float: left;">
+              <label for="startDate">Start Date:</label>
+              <br>
+              <input type="date" id="startDate" name="startDate" required />
+            </div>
+            <div style="width:50%; float: left;" >
+              <label for="endDate" ">End Date:</label>
+<br>
+              <input type="date" id="endDate" name="endDate" required />
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <label for="discountValue">Discount Value:</label>
+            <br>
+            <input
+              type="number"
+              id="discountValue"
+              name="discountValue"
+              required
+            />
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <label for="minPurchase">Min Purchase Amount:</label>
+            <br>
+            <input
+              type="number"
+              id="minPurchase"
+              name="minPurchase"
+              placeholder="Optional"
+            />
+            <label for="maxPurchase">Max Purchase Amount:</label>
+            <br>
+            <input
+              type="number"
+              id="maxPurchase"
+              name="maxPurchase"
+              placeholder="Optional"
+            />
+          </div>
+
+          <div style="margin-bottom: 20px">
+            <label for="usageLimit">Usage Limit:</label>
+            <br>
+            <input
+              type="number"
+              id="usageLimit"
+              name="usageLimit"
+              placeholder="Optional"
+            />
+          </div>
+
+          <!-- <div style="margin-bottom: 20px">
+            <label for="discountType">Status:</label>
+            <br>
+            <select id="status" name="status" required>
+              <option value="exist">exist</option>
+              <option value="expair">expired</option>
+            </select>
+          </div> -->
+
+          <button type="submit" style="width: 200px; border-radius: 10px">
+            Add Coupon
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <%- include("../../views/partials/admin/footer") %>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      function validSubmit(event){
+      
+
+      const code = document.getElementsByName("code")[0].value;
+      const description = document.getElementsByName("description")[0].value;
+      const  discountType = document.getElementsByName("discountType")[0].value;
+      const startDate = document.getElementsByName("startDate")[0].value;
+      const endDate = document.getElementsByName("endDate")[0].value;
+      const discountValue = document.getElementsByName("discountValue")[0].value;
+      const minPurchase = document.getElementsByName("minPurchase")[0].value;
+      const maxPurchase = document.getElementsByName("maxPurchase")[0].value;
+      const usageLimit = document.getElementsByName("usageLimit")[0].value;
+      //const status = document.getElementsByName("status")[0].value
+      
+      if (startDate > endDate) {
+         Swal.fire({
+          icon:'error',
+          title:'Invalid Dates',
+          text: 'End date must be after start date.',
+         })
+    return false;
+  }
+
+  if (discountValue <= 0) {
+    Swal.fire({
+      icon:'error',
+      title:'Invalid Discount',
+      text:'discount value must graterthan zero'
+    })
+    return false;
+  }
+
+      fetch("/admin/coupons",{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+      code,
+      description,
+      discountType,
+      startDate,
+      endDate,
+      discountValue,
+      minPurchase: document.getElementById("minPurchase").value || null,
+      maxPurchase: document.getElementById("maxPurchase").value || null,
+      usageLimit: document.getElementById("usageLimit").value || null,
+        }),
+      })
+
+      .then((response) => response.json())
+  .then((data) => {
+    Swal.fire({
+      icon :'success',
+      title:'Coupon Added',
+      text:'Coupon added successfully!',
+       confirmButtonText: 'OK'
+    }).then((result) => {
+         if (result.isConfirmed) {
+           window.location.reload(); 
+         }
+       });
+  })
+  .catch((error) => {
+    Swal.fire({
+         icon: 'error',
+         title: 'Error',
+         text: 'An error occurred: ' + error.message,
+       });
+       console.log(error);
+    
+  });
+    }
+    </script>
+  </body>
+</html>

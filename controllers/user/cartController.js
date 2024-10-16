@@ -2,6 +2,7 @@ const Cart = require("../../models/cartSchema");
 const Product = require("../../models/productShema");
 
 const User = require('../../models/userSchema')
+const Wishlist = require('../../models/wishlistSchema')
 
 const addToCart = async (req, res) => {
   try {
@@ -212,7 +213,115 @@ const updateQuantity = async (req, res, next) => {
   }
 };
 
+// const addToWishlist = (req, res) => {
+//   const { productId } = req.body;
+//   const userId = req.session.user || req.user ; // Assuming you're using session-based authentication
 
+//   // Find the user's wishlist or create a new one if it doesn't exist
+//   Wishlist.findOne({ userId: userId })
+//       .then(wishlist => {
+//           if (wishlist) {
+//               // Check if the product is already in the wishlist
+//               const productExists = wishlist.products.some(item => item.productId.toString() === productId);
+              
+//               if (productExists) {
+//                   return res.status(400).json({ message: 'Product is already in your wishlist!' });
+//               }
+              
+//               // Add the new product to the user's existing wishlist
+//               wishlist.products.push({ productId });
+
+//           } else {
+//               // Create a new wishlist if it doesn't exist
+//             const newwishlist = new Wishlist({
+//                   userId: userId,
+//                   products: [{ productId }]
+//               });
+//               return newwishlist.save();
+//           }
+
+//           // Save the updated or newly created wishlist
+         
+//       })
+//       .then(() => {
+//           res.json({ message: 'Product added to your wishlist!' });
+//       })
+//       .catch(error => {
+//           console.error('Error adding product to wishlist:', error);
+//           if(!res.headersSent)
+//           {res.status(500).json({ message: 'Error adding product to wishlist' });}
+
+//       });
+// };
+
+const addToWishlist = async (req, res) => {
+  const userId = req.session.user || req.user;
+  const productId = req.body.productId; // Get the product ID from the request body
+
+  try {
+    // Find the user's wishlist
+    let wishlist = await Wishlist.findOne({ userId });
+
+    // If no wishlist exists, create a new one
+    if (!wishlist) {
+      wishlist = new Wishlist({ userId, products: [] });
+    }
+
+    // Check if the product is already in the wishlist
+    const productExists = wishlist.products.some(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (productExists) {
+      // Product is already in the wishlist, send an appropriate response
+      return res.status(200).json({ message: 'Product is already in your wishlist!' });
+    }
+
+    // If product is not in wishlist, add it
+    wishlist.products.push({ productId });
+    await wishlist.save();
+
+    return res.status(200).json({ message: 'Product added to wishlist!' });
+
+  } catch (error) {
+    console.error("Error adding to wishlist:", error.message, error.stack);
+    if (!res.headersSent) {
+      return res.status(500).send("Internal server error");
+    }
+  }
+};
+
+
+
+const getWishlist = async (req,res)=>{
+  const userId = req.session.user || req.user
+  console.log('cart userid',userId);
+  
+
+  try {
+    const wishlist = await Wishlist.findOne({ userId }).populate("products.productId");
+
+    let userData = userId ? await User.findById(userId) : null;
+    res.locals.user = userData;
+
+    if (!wishlist || wishlist.products.length === 0) {
+      
+      return res.render("wishlist", { user: userData, wishlistItems: [] })
+    }
+    console.log('Wishlist products:', wishlist.products);
+
+
+   return res.render("wishlist", {
+      user: userData,
+       wishlistItems: wishlist.products
+      });
+
+  } catch (error) {
+    console.error("Error retrieving cart:", error.message, error.stack);
+    if(!res.headersSent)
+    {res.status(500).send("Internal server error");}
+  }
+}
 
 
 module.exports = {
@@ -220,4 +329,6 @@ module.exports = {
   getCart,
   removeFromCart,
   updateQuantity,
+  addToWishlist,
+  getWishlist
 };

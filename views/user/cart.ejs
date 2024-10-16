@@ -30,8 +30,8 @@
                         <!-- Product Details -->
                         <div class="col-md-6">
                           <h5 class="card-title"><%= item.productId.productName %></h5>
-                          <p class="text-muted">Price per unit: $<%= item.productId.regularPrice %></p>
-                          <p class="text-muted total-price">Total Price: $<%= item.totalPrice %></p>
+                          <p class="text-muted">Price per unit:&#8377; <%= item.productId.regularPrice %></p>
+                          <p class="text-muted total-price">Total Price:&#8377; <%= item.totalPrice %></p>
                           <!-- Quantity Control -->
                           <form id="updateQuantityForm-<%= item.productId._id %>" onsubmit="return false;">
                             <input type="hidden" name="productId" value="<%= item.productId._id %>">
@@ -58,12 +58,12 @@
      <div style=" width: 50%; text-align: center; background-color: rgb(251, 251, 252); border: solid 1px rgb(182, 176, 176); margin-left: 230px; margin-bottom: 50px;">
     <h5 style="margin-top: 10px;">PRICE DETAILS</h5>
     <p>Price (<%= cartItems.length %> items): $<%= totalAmount %></p>
-    <p>Discount: $0.00</p>
-    <p>Platform Fee: $0.00</p>
-    <p>Delivery Charges: $0.00</p>
+    <p>Discount: &#8377;0.00</p>
+    <p>Platform Fee: &#8377;0.00</p>
+    <p>Delivery Charges: &#8377;0.00</p>
     <hr>
-    <h6>Total Amount: $<%= totalAmount %></h6>
-    <p class="text-success">You will save $0.00 on this order</p>
+    <h6>Total Amount: &#8377; <%= totalAmount %></h6>
+    <p class="text-success">You will save &#8377;0.00 on this order</p>
     <a href="/order/checkout" class="btn btn-success w-100" style="background-color: #d35400; border: none; margin-bottom: 10px;"><i class="bi bi-bag-check" ></i> Checkout</a>
    </div>
 

@@ -319,23 +319,12 @@
             <% }) %>
           </select>
           
-          <!-- <select name="brand">
-            <option value="">Select Brand</option>
-            <% brands.forEach(brand => { %>
-              <option value="<%= brand._id %>" <%= brand === brand._id ? 'selected' : '' %>><%= brand.name %></option>
-            <% }) %>
-          </select> -->
+          
           
 
         <button type="submit">Search</button>
     </form>
-    <!-- <div class="text" ><h5 style="color:white;font-family: fantasy; ">"Elevate Your Everyday<br>Look"</h5><br>
-    <h6 style="color: white; font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">"Discover timeless styles<br> and premium quality<br> fashion for the <br>modern man.<br> From casual to formal, <br>find your perfect fit <br>and elevate your<br> wardrobe with <br>confidence and style."</h6>
-    <br>
-    <p style="color: white;font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;">
-        "Thank you for choosing <br> us!We appreciate your<br> trust and look<br> forward to being <br>a part of your<br> style journey."
-    </p>
-    <i class="fas fa-seedling" style="color: white; margin-left: 10px;"></i> -->
+    
 </div>
 <div class="container">
         <div class="products-list" >
@@ -352,7 +341,7 @@
                     <% } %>
                     <h3><%= product.productName %></3>
 
-                    <p><%= product.regularPrice %>$</p>
+                    <p> &#8377; <%= product.regularPrice %> </p>
                     <div class="star-rating">
                         <span class="star" data-value="1">&#9733;</span>
                         <span class="star" data-value="2">&#9733;</span>
@@ -364,15 +353,15 @@
 
                     <% if (product.quantity > 0) { %>
                         <a href="#" class="btn  add-to-cart" data-product-id="<%= product._id %>" style="margin-bottom: 10px;">
-                            <i class="fas fa-shopping-cart"></i> 
+                            <i class="fas fa-shopping-cart" ></i> 
                         </a>
                     <% } else { %>
                         <p class="out-of-stock">Out of Stock</p>
                     <% } %>
                     
 
-                    <a href="" class="wishlist-btn" >
-                        <i class="fas fa-heart" ></i>
+                    <a href="#" class="wishlist-btn" data-product-id="<%= product._id %>" style="margin-bottom: 10px;">
+                        <i class="fas fa-heart"></i>
                     </a>
             
                 </div>
@@ -429,4 +418,33 @@
             });
         });
     });
+
+
+
+$(document).ready(function() {
+    $(".wishlist-btn").click(function(e) {
+        e.preventDefault();
+        const productId = $(this).data("product-id");
+
+        $.ajax({
+            url: '/wishlist/add',
+            method: 'POST',
+            data: { productId: productId },
+            success: function(response) {
+                if (response.message === 'Product is already in your wishlist!') {
+                    Swal.fire('Already Added!', response.message, 'info'); // Show info if already in wishlist
+                } else {
+                    Swal.fire('Added to Wishlist!', response.message, 'success'); // Show success if newly added
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error details:", xhr.responseText); // Log the detailed error response
+                Swal.fire('Oops!', 'Something went wrong! ' + xhr.responseText, 'error'); // Include detailed error in the message
+            }
+        });
+    });
+});
+
+
+
 </script>

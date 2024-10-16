@@ -4,6 +4,7 @@ const addressController = require("../controllers/user/addressController");
 const profileController = require("../controllers/user/profileController");
 const cartController = require("../controllers/user/cartController");
 
+
 const { userAuth } = require("../middleweares/auth");
 
 router.get("/userProfile", userAuth, profileController.getProfile);
@@ -13,9 +14,10 @@ router.post("/user/editUser/:id", userAuth, profileController.postEditUser);
 router.post("/cart/add", userAuth, cartController.addToCart);
 router.get("/cart", userAuth, cartController.getCart);
 router.get("/cart/remove/:productId", userAuth, cartController.removeFromCart);
+router.post("/cart/update-quantity",userAuth,cartController.updateQuantity);
 
-router.post("/cart/update-quantity",userAuth,cartController.updateQuantity)
-
+router.post("/wishlist/add", userAuth,cartController.addToWishlist);
+router.get('/wishlist',userAuth,cartController.getWishlist)
 
 router.get("/address", userAuth, addressController.getAddress);
 router.post("/addAddress", userAuth, addressController.addAddress);

@@ -4,6 +4,7 @@ const Cart = require("../../models/cartSchema");
 const Address = require("../../models/addressSchema");
 const Product = require("../../models/productShema");
 const User = require("../../models/userSchema");
+const Coupon = require('../../models/couponSchema')
 
 const getOrderPage = async (req, res) => {
   const userId = req.session.user || req.user;
@@ -14,18 +15,53 @@ const getOrderPage = async (req, res) => {
       : null;
     res.locals.user = userData;
     const cart = await Cart.findOne({ userId }).populate("items.productId");
-    const addressData = userData.address;
-    const userAddresses = []; 
-    console.log("Addresses: ", addressData);
+    
     if (!cart || cart.items.length === 0) {
       return res.redirect("/cart");
     }
+    const addressData = userData.address;
+    const userAddresses = []; 
+    const usedCoupons = await Order.find({ userId }).distinct("coupon");
+    const totalOrderPrice = cart.items.reduce((total, item) => {
+      
+      return total + (item.totalPrice || 0);  
+    }, 0);
+
+    
+    const couponData = await Coupon.aggregate([
+      {
+        $match: {
+          status: 'Active',
+          _id: { $nin: usedCoupons },
+          minPurchase: { $lte: totalOrderPrice } ,
+        }
+      },
+      {
+        $addFields: {
+          canUse: { $lte: ['$count', '$usageLimit'] }
+        }
+      },
+      {
+        $match: {
+          canUse: true
+        }
+      }
+    ]);
+    
+    
+    console.log("Addresses: ", addressData);
+    console.log('coupon data',couponData)
+    console.log('total order price checkout',totalOrderPrice);
+    
+    
 
     res.render("order", {
       user: userData,
       cartItems: cart.items,
       addressData: addressData,
-      userAddresses: userAddresses, 
+      userAddresses: userAddresses,
+      couponData:couponData,
+      totalOrderPrice
     });
   } catch (error) {
     console.error("Error retrieving order page:", error);
@@ -33,13 +69,23 @@ const getOrderPage = async (req, res) => {
   }
 };
 
+
+
+
 const placeOrder = async (req, res) => {
   const userId = req.session.user || req.user;
 
   console.log("order", userId);
 
-  const { selectedAddress, paymentMethod } = req.body; 
+  const selectedAddress = req.body.selectedAddress;
+const paymentMethod = req.body.paymentMethod;
+const coupon = req.body.coupon;
+
+
   
+console.log('coupon id',coupon);
+console.log('req.body add,method,coupon', req.body);
+
 
   try {
     if (!mongoose.Types.ObjectId.isValid(selectedAddress)) {
@@ -58,13 +104,29 @@ const placeOrder = async (req, res) => {
 
     //const totalOrderPrice = cart.items.reduce((total,item)=> {return total+item.totalPrice},0)
     
-    const totalOrderPrice = cart.items.reduce((total, item) => {
+    let totalOrderPrice = cart.items.reduce((total, item) => {
       
       return total + (item.totalPrice || 0);  
     }, 0);
-    
-
   console.log('totalOrderPrice',totalOrderPrice);
+
+  if(coupon){
+    const couponData = await Coupon.findById(coupon)
+    if(couponData){
+      const discountValue = couponData.discountValue;
+      console.log('discountValue',discountValue);
+      
+
+      if (couponData.discountType === 'percentage') {
+        totalOrderPrice = totalOrderPrice - (totalOrderPrice * (discountValue / 100));
+      } else {
+        totalOrderPrice = totalOrderPrice - discountValue;
+      }
+    }
+  }
+
+  console.log('Final total price after coupon:', totalOrderPrice);
+
   
     const newOrder = new Order({
       userId,
@@ -80,6 +142,7 @@ const placeOrder = async (req, res) => {
       paymentMethod,
       status: "Processing",
       totalOrderPrice,
+      coupon,
       
     });
 
@@ -89,7 +152,7 @@ const placeOrder = async (req, res) => {
     await Cart.findByIdAndDelete(cart._id);
     console.log("Cart cleared");
 
-    res.redirect("/order/checkout");
+    res.redirect("/shop");
   
   } catch (error) {
     console.error("Error placing order:", error);
@@ -113,15 +176,10 @@ const getOrderHistory = async (req, res) => {
         path: "address", 
         model: "Address",
       })
-      // .populate({
-      //   path: "items.productId",
-      //   model: "Product",
-
-      //   select: "name price",
-      // })
-.populate('items.productId')
+      
+    .populate('items.productId')
       .exec();
-    console.log("my orders", orders);
+    //console.log("my orders", orders);
 
     // Fetching user data
     const userData = await User.findById(userId);

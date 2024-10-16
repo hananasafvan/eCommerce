@@ -66,3 +66,6 @@ app.listen(PORT, () => {
 //git add --all
 //git commit -m "message"
 //git push
+
+// KEY ID rzp_test_kPNgq4T5ArRlHs
+//SECRET KEY X1qoflIJTJxlFfE8Xaq7o72L

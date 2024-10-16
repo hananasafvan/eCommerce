@@ -42,3 +42,135 @@ function cancelItem(orderId, itemId, button) {
     });
   }
 
+
+
+
+
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <%- include("../../views/partials/user/headerNew") %>
+</head>
+<body>
+  <div class="container mt-5" style="background-color:#00131c; margin-bottom: 50px; margin-top: 150px;">
+    <div class="row">
+      <div class="col-lg-10 mx-auto">
+        <h2 class="text-center mb-4" style="color: white;">Your Wishlist</h2>
+        
+        <% if (wishlistItems.length === 0) { %>
+          <div class="alert alert-warning text-center">
+            <strong>Your wishlist is empty!</strong>
+          </div>
+        <% } else { %>
+          <div class="row">
+            <!-- Wishlist Items Section -->
+            <div class="col-md-8" style="margin-left: 150px;">
+              <% wishlistItems.forEach(function(item) { %>
+                <div class="card mb-4 shadow-sm">
+                  <div class="card-body">
+                    <div class="row align-items-center">
+                      <!-- Product Image -->
+                      <div class="col-md-3 text-center">
+                        <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid rounded">
+                      </div>
+                      <!-- Product Details -->
+                      <div class="col-md-6">
+                        <h5 class="card-title"><%= item.productId.productName %></h5>
+                        <p class="text-muted">Price: &#8377;<%= item.productId.regularPrice %></p>
+                      </div>
+                      <!-- Action Buttons -->
+                      <div class="col-md-3 text-end">
+                        <a href="/product/<%= item.productId._id %>" class="btn btn-primary mb-2"><i class="bi bi-eye"></i> View</a>
+                        <a href="/wishlist/remove/<%= item.productId._id %>" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Remove</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <%- include("../../views/partials/user/headerNew") %>
+</head>
+<body>
+  <div class="container mt-5" style="background-color:#00131c; margin-bottom: 50px; margin-top: 150px;">
+    <div class="row" style=" align-items: center;">
+      <div class="col-lg-10 mx-auto" style="align-items: center;">
+        <h2 class="text-center mb-4" style="color: white;">Your Wishlist</h2>
+        
+        <% if (wishlistItems.length === 0) { %>
+          <div class="alert alert-warning text-center">
+            <strong>Your wishlist is empty!</strong>
+          </div>
+        <% } else { %>
+          <div class="row" style="align-items: center;">
+            <!-- Wishlist Items Section -->
+            <% wishlistItems.forEach(function(item) { %>
+              <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <div class="row align-items-center">
+                      <!-- Product Image -->
+                      <div class="col-12 text-center mb-2">
+                        <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid rounded">
+                      </div>
+                      <!-- Product Details -->
+                      <div class="col-12 text-center">
+                        <h5 class="card-title"><%= item.productId.productName %></h5>
+                        <p class="text-muted">Price: &#8377;<%= item.productId.regularPrice %></p>
+                      </div>
+                      <!-- Action Buttons -->
+                      <div class="col-12 text-center">
+                        <a href="/product/<%= item.productId._id %>" class="btn btn-primary mb-2" style="background-color:#d35400; border: none;margin-top: 5px;"><i class="bi bi-eye"></i> View</a>
+                        <a href="/wishlist/remove/<%= item.productId._id %>" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Remove</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <%- include("../../views/partials/user/footer") %>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

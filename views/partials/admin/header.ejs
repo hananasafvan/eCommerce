@@ -26,8 +26,10 @@ body {
 }
 .navbar-aside {
     background-color: #00131c;
+    padding-top: 70px;
 }
 .menu-item a.menu-link {
+    word-spacing: 2px;
     color: white;
 }
 
@@ -45,6 +47,14 @@ body {
     color: #ffffff;
 }
 
+ul {
+    list-style-type: none; /* Remove default bullet points if desired */
+    padding: 0; /* Remove default padding */
+}
+
+ul li {
+    margin-bottom: 15px; /* Adjust this value to increase/decrease space */
+}
 </style>
 </head>
 <body>
@@ -52,7 +62,7 @@ body {
     <aside class="navbar-aside" id="offcanvas_aside">
        
         <nav>
-            <ul class="menu-aside">
+            <ul class="menu-aside" style="margin-bottom: 15px;">
                 <!-- <li class="menu-item">
                     <a class="menu-link" href="/admin"> <i class="icon material-icons md-home"></i>
                         

@@ -72,7 +72,8 @@
     <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
     <div class="row justify-content-center" ">
       <div class="col-lg-8" >
-        <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
+        
+          <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
           <!-- Address Selection -->
           <div class="mb-4">
             <h4>Select Delivery Address</h4>
@@ -92,10 +93,25 @@
               <option value="Cash on Delivery" selected>Cash on Delivery</option>
               <!-- You can add more payment methods here in the future -->
                <option value="Credit Card">Credit Card</option>
-              <option value="PayPal">PayPal</option> 
+              <option value="PayPal">Online payment</option> 
             </select>
           </div>
+             
 
+          <div class="mb-4">
+            <h4>Select Coupon</h4>
+            <select name="coupon" id="couponSelect" class="form-select">
+              <option value="" data-discount=""0>No Coupon</option>
+              <% couponData.forEach(coupon =>{ %>
+                <option value="<%= coupon._id%>" data-discount="<%= coupon.discountValue%>">
+                  <%= coupon.description %> - Discount: <%= coupon.discountValue %>
+      </option>
+                <% }) %>
+            </select>
+
+          </div>
+
+          
           <!-- Cart Items -->
           <div class="mb-4">
             <h4>Your Cart Items</h4>
@@ -106,21 +122,25 @@
                     <strong><%= item.productId.productName %></strong>
                     <div>Quantity: <%= item.quantity %></div>
                   </div>
-                  <span>Total: $ <%= item.totalPrice %> </span>
+                  <span>Total: &#8377; <%= item.totalPrice %> </span>
                 </li>
                 
               <% }) %>
+              
             </ul>
             
+            <p style="text-align: right;">Original Total: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
+            <p style="text-align: right;" id="discountAmount">Discount: &#8377; 0.00</p>
+            <p style="text-align: right;" id="finalTotalPrice">Final Price: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
           </div>
 
           
 <div class="text-center">
-  <button type="button" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">Place Order</button>
+  <button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">Place Order</button>
   <button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
     <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
   </button>
-</div>
+         </div>
 
         </form>
       </div>
@@ -132,6 +152,21 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
+
+
+document.getElementById('couponSelect').addEventListener('change',function(){
+  const selectedOption = this.options[this.selectedIndex];
+  const discountValue = parseFloat(selectedOption.getAttribute('data-discount'));
+  const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+
+  const finalPrice = originalPrice - discountValue;
+  document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
+    document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
+ 
+})
+
+
+
     document.getElementById('placeOrderBtn').addEventListener('click', function() {
       Swal.fire({
         title: 'Confirm Order',
@@ -149,6 +184,7 @@
       })
     });
   </script>
+  
 </body>
 </html>
 

@@ -33,7 +33,7 @@
                         <p>Status: <span class="badge <%= item.status === 'Pending' ? 'bg-warning' : 'bg-success' %>"><%= item.status %></span></p>
                       </div>
                       <div class="text-end">
-                        <p class="mb-1"><strong>Total:$ <%= item.totalPrice %> </strong></p>
+                        <p class="mb-1"><strong>Total:&#8377; <%= item.totalPrice %> </strong></p>
                         <!-- Check if the item status is 'Cancelled' -->
                         <% if (item.status === 'Cancelled') { %>
                           <button type="button" class="btn btn-danger btn-sm" disabled>Cancelled</button>
@@ -52,7 +52,7 @@
                 <% } %>
               </ul>
 
-              <!-- <p class="text-end" style="color: #d35400;"><strong>Total Order Price: <%= order.totalOrderPrice %> $</strong></p> -->
+               <p class="text-end" style="color: #d35400;"><strong>Total Order Price: <%= order.totalOrderPrice %> $</strong></p> 
               <a href="/order/details/<%= order._id %>" style="background-color: #d35400; border: none;" class="btn btn-dark btn-sm float-end">View Order Details</a>
             </div>
           </div>
