@@ -24,14 +24,14 @@ const productSchema = new Schema({
         type : Number,
         required : true,
     },
-    // salePrice :{ 
-    //     type : Number,
-    //     required : true
-    // },
-    // productOffer : {
-    //     type : Number,
-    //     default : 0,
-    // },
+    salePrice :{ 
+        type : Number,
+        required : true
+    },
+    productOffer : {
+        type : Number,
+        default : 0,
+    },
     quantity : {
         type : Number,
         default : 0
@@ -60,14 +60,14 @@ const productSchema = new Schema({
     },
     rating: {
         type: Number,
-        default: 0, // Store average ratings
+        default: 0, 
     },
     isFeatured: {
         type: Boolean,
         default: false,
     },
 },
-{timestamps:true});  //enabling automatic time-stamping for your MongoDB documents.
+{timestamps:true});  
 
 const Product = mongoose.model("Product",productSchema);
 

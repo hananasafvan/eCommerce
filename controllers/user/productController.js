@@ -1,7 +1,7 @@
 const Product = require("../../models/productShema");
 const User = require("../../models/userSchema");
-const Category = require('../../models/categorySchema');
-const Brand = require('../../models/brandSchema')
+const Category = require("../../models/categorySchema");
+const Brand = require("../../models/brandSchema");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const env = require("dotenv").config();
@@ -54,128 +54,109 @@ const securePassword = async (password) => {
   }
 };
 
-
-
-
-
 const getProducts = async (req, res, next) => {
   try {
-    const searchQuery = req.query.searchQuery || ""; // Get the search query
+    const searchQuery = req.query.searchQuery || "";
     const { sortBy, category, brand } = req.query;
 
     const page = parseInt(req.query.page) || 1;
     const limit = 12;
     const skip = (page - 1) * limit;
 
-    
     let searchCondition = { isBlocked: false };
 
-    
     if (searchQuery) {
-      const regex = new RegExp(searchQuery, "i"); 
-      searchCondition.$or = [{ productName: regex }]; 
+      const regex = new RegExp(searchQuery, "i");
+      searchCondition.$or = [{ productName: regex }];
     }
 
-    
     if (category) {
-      searchCondition.category = category; 
+      searchCondition.category = category;
     }
 
-    
     if (brand) {
-      searchCondition.brand = brand; 
+      searchCondition.brand = brand;
     }
 
     // Sorting logic based on the selected sort option
     let sortCriteria = {};
-if(sortBy){
-
-    switch (sortBy) {
-      case "popularity":
-        sortCriteria = { popularity: -1 };
-        break;
-      case "priceLowToHigh":
-        sortCriteria = { regularPrice: 1 };
-        break;
-      case "priceHighToLow":
-        sortCriteria = { regularPrice: -1 };
-        break;
-      case "averageRatings":
-        sortCriteria = { averageRating: -1 };
-        break;
-      case "featured":
-        sortCriteria = { isFeatured: -1 };
-        break;
-      case "newArrivals":
-        sortCriteria = { createdAt: -1 };
-        break;
-      case "aToZ":
-        sortCriteria = { productName: 1 };
-        break;
-      case "zToA":
-        sortCriteria = { productName: -1 };
-        break;
-      default:
-        sortCriteria = {};
+    if (sortBy) {
+      switch (sortBy) {
+        case "popularity":
+          sortCriteria = { popularity: -1 };
+          break;
+        case "priceLowToHigh":
+          sortCriteria = { regularPrice: 1 };
+          break;
+        case "priceHighToLow":
+          sortCriteria = { regularPrice: -1 };
+          break;
+        case "averageRatings":
+          sortCriteria = { averageRating: -1 };
+          break;
+        case "featured":
+          sortCriteria = { isFeatured: -1 };
+          break;
+        case "newArrivals":
+          sortCriteria = { createdAt: -1 };
+          break;
+        case "aToZ":
+          sortCriteria = { productName: 1 };
+          break;
+        case "zToA":
+          sortCriteria = { productName: -1 };
+          break;
+        default:
+          sortCriteria = {};
+      }
+    } else {
+      sortCriteria = { createdAt: -1 };
     }
-  } else {
-    
-    sortCriteria = { createdAt: -1 };
-  }
 
-
-    
     const products = await Product.find(searchCondition)
-    
+
       .populate({
         path: "category",
-        match: { isListed: true }, 
+        match: { isListed: true },
       })
       .populate({
         path: "brand",
-        match: { isListed: true }, 
+        match: { isListed: true },
       })
       .sort(sortCriteria)
       .skip(skip)
       .limit(limit)
       .exec();
 
-    
-    const filteredProducts = products.filter(product => product.category !== null)  || products.filter(product => product.brand !== null);
-    
-    
+    const filteredProducts =
+      products.filter((product) => product.category !== null) ||
+      products.filter((product) => product.brand !== null);
 
-
-    
     const totalProducts = await Product.countDocuments({
       ...searchCondition,
-      category: { $in: await Category.find({ isListed: true }).select('_id') },
-      
-      
+      category: { $in: await Category.find({ isListed: true }).select("_id") },
     });
 
-    
     const totalPages = Math.ceil(totalProducts / limit);
 
     let userId = req.user || req.session.user;
     let userData = userId ? await User.findById(userId) : null;
 
-  
     const categories = await Category.find({ isListed: true });
-    const brands = await Brand.find({isListed: true}); 
+    const brands = await Brand.find({ isListed: true });
 
     res.locals.user = userData;
 
     return res.render("shop", {
       user: userData,
       products: filteredProducts,
-      
+
       sortBy: sortBy || "",
-      searchQuery: searchQuery, 
-      category: category || "", 
-      brand: brand || "", 
-      categories: categories, 
-      brands: brands, 
+      searchQuery: searchQuery,
+      category: category || "",
+      brand: brand || "",
+      categories: categories,
+      brands: brands,
       currentPage: page,
       totalPages: totalPages,
       totalProducts: totalProducts,
@@ -186,19 +167,16 @@ if(sortBy){
   }
 };
 
-
-
 // Get product details by ID
 const getProductDetails = async (req, res) => {
   const userId = req.session.user || req.user;
   try {
-    const user = req.session.user || null
+    const user = req.session.user || null;
     let userData = userId ? await User.findById(userId) : null;
     res.locals.user = userData;
     const productId = req.params.id;
     const product = await Product.findById(productId);
-    
-   
+
     if (!product) {
       return res.status(404).send("Product not found");
     }
@@ -214,16 +192,17 @@ const getProductDetails = async (req, res) => {
           product: null,
         });
       });
-
-
     } else {
       const relatedProducts = await Product.find({
-        category:product.category,
-        _id:{$ne:productId},
-        isBlocked:false,
-        
-      }).limit(4)
-      res.render("productDetails", { product, user:userData, relatedProducts });
+        category: product.category,
+        _id: { $ne: productId },
+        isBlocked: false,
+      }).limit(4);
+      res.render("productDetails", {
+        product,
+        user: userData,
+        relatedProducts,
+      });
     }
   } catch (error) {
     console.error("Error fetching product details:", error);
@@ -334,8 +313,6 @@ const postNewPassword = async (req, res) => {
     console.log(error);
   }
 };
-
-
 
 module.exports = {
   getProducts,

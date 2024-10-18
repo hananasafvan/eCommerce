@@ -19,6 +19,7 @@
               <!-- Cart Items Section -->
               <div class="col-md-8" style="margin-left: 150px;">
                 <% let totalAmount = 0; %>
+                <% let totalOriginalPrice = 0; %>
                 <% cartItems.forEach(item => { %>
                   <div class="card mb-4 shadow-sm">
                     <div class="card-body">
@@ -30,8 +31,9 @@
                         <!-- Product Details -->
                         <div class="col-md-6">
                           <h5 class="card-title"><%= item.productId.productName %></h5>
-                          <p class="text-muted">Price per unit:&#8377; <%= item.productId.regularPrice %></p>
-                          <p class="text-muted total-price">Total Price:&#8377; <%= item.totalPrice %></p>
+                          <p class="text-muted">Original Price per unit: &#8377;<%= item.productId.regularPrice %></p>
+                          <p class="text-muted">Sale Price per unit: &#8377;<%= item.productId.salePrice %></p>
+                          <p class="text-muted total-price">Total Price: &#8377;<%= item.totalPrice %></p>
                           <!-- Quantity Control -->
                           <form id="updateQuantityForm-<%= item.productId._id %>" onsubmit="return false;">
                             <input type="hidden" name="productId" value="<%= item.productId._id %>">
@@ -49,30 +51,31 @@
                       </div>
                     </div>
                   </div>
-                  <% totalAmount += item.totalPrice; %>
+                  <% 
+                    totalAmount += item.totalPrice;
+                    totalOriginalPrice += (item.productId.regularPrice * item.quantity); // Original total price for each item
+                  %>
                 <% }) %>
               </div>
 
-              
-    <!-- Content will be dynamically updated -->
-     <div style=" width: 50%; text-align: center; background-color: rgb(251, 251, 252); border: solid 1px rgb(182, 176, 176); margin-left: 230px; margin-bottom: 50px;">
-    <h5 style="margin-top: 10px;">PRICE DETAILS</h5>
-    <p>Price (<%= cartItems.length %> items): $<%= totalAmount %></p>
-    <p>Discount: &#8377;0.00</p>
-    <p>Platform Fee: &#8377;0.00</p>
-    <p>Delivery Charges: &#8377;0.00</p>
-    <hr>
-    <h6>Total Amount: &#8377; <%= totalAmount %></h6>
-    <p class="text-success">You will save &#8377;0.00 on this order</p>
-    <a href="/order/checkout" class="btn btn-success w-100" style="background-color: #d35400; border: none; margin-bottom: 10px;"><i class="bi bi-bag-check" ></i> Checkout</a>
-   </div>
+              <!-- Price Details Section -->
+              <div style="width: 50%; text-align: center; background-color: rgb(251, 251, 252); border: solid 1px rgb(182, 176, 176); margin-left: 230px; margin-bottom: 50px;">
+                <h5 style="margin-top: 10px;">PRICE DETAILS</h5>
+                <p>Price (<%= cartItems.length %> items): &#8377;<%= totalOriginalPrice %></p>
+                <p>Discount: &#8377;<%= totalOriginalPrice - totalAmount %></p> 
+                <p>Platform Fee: &#8377;0.00</p>
+                <hr>
+                <h6>Total Amount: &#8377;<%= totalAmount %></h6>
+                <p class="text-success">You will save &#8377;<%= totalOriginalPrice - totalAmount %> on this order</p>
+                <a href="/order/checkout" class="btn btn-success w-100" style="background-color: #d35400; border: none; margin-bottom: 10px;"><i class="bi bi-bag-check"></i> Checkout</a>
+              </div>
 
-          <% } else { %>
-            <div class="alert alert-warning text-center" role="alert" >
-              Your cart is empty.
-            </div>
-          <% } %>
-        </div> 
+            <% } else { %>
+              <div class="alert alert-warning text-center" role="alert">
+                Your cart is empty.
+              </div>
+            <% } %>
+        </div>
       </div>
     </div>
   </div>
@@ -106,61 +109,32 @@
       });
     }
   </script>
+
+  <!-- Script for removing an item -->
   <script>
     $(document).ready(function() {
+      $(".btn-outline-danger").click(function(e) {
+        e.preventDefault();
+        const removeUrl = $(this).attr('href');
+        const productCard = $(this).closest(".card");
 
-    // Remove product from cart
-    $(".btn-outline-danger").click(function(e) {
-      e.preventDefault();
-      const removeUrl = $(this).attr('href');
-      const productCard = $(this).closest(".card");
-
-      $.ajax({
-        url: removeUrl,
-        method: 'GET',
-        success: function(response) {
-          Swal.fire('Removed!', response.message, 'success').then(() => {
-            productCard.remove();
-            if ($(".cart-items .card").length === 0) {
-              $(".cart-items").html('<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>');
-            }
-          });
-        },
-        error: function(error) {
-          Swal.fire('Oops!', 'Something went wrong!', 'error');
-        }
+        $.ajax({
+          url: removeUrl,
+          method: 'GET',
+          success: function(response) {
+            Swal.fire('Removed!', response.message, 'success').then(() => {
+              productCard.remove();
+              if ($(".cart-items .card").length === 0) {
+                $(".cart-items").html('<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>');
+              }
+            });
+          },
+          error: function(error) {
+            Swal.fire('Oops!', 'Something went wrong!', 'error');
+          }
+        });
       });
     });
-  
-
-
-
-  function updatePriceDetails() {
-      let totalAmount = 0;
-      let totalItems = 0;
-
-      // Recalculate total price and number of items
-      $(".cart-items .card").each(function () {
-        const itemPrice = parseFloat($(this).find('.total-price').text().replace('₹', ''));
-        const itemQuantity = parseInt($(this).find('.btn-light').text());
-        totalAmount += itemPrice;
-        totalItems += itemQuantity;
-      });
-
-      // Update the price details section
-      $(".price-details").html(`
-        <h5>PRICE DETAILS</h5>
-        <p>Price (${totalItems} items): ₹${totalAmount.toFixed(2)}</p>
-        <p>Discount: ₹0.00</p>
-        <p>Platform Fee: ₹0.00</p>
-        <p>Delivery Charges: ₹0.00</p>
-        <hr>
-        <h6>Total Amount: ₹${totalAmount.toFixed(2)}</h6>
-        <p class="text-success">You will save ₹0.00 on this order</p>
-        <a href="/order/checkout" class="btn btn-success w-100"><i class="bi bi-bag-check"></i> PLACE ORDER</a>
-      `);
-    }
-  });
   </script>
 </body>
 </html>

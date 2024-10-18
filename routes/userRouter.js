@@ -13,10 +13,6 @@ router.post("/signup", userController.signup);
 router.post("/verify-otp", userController.verifyOtp);
 router.post("/resend-otp", userController.resendOtp);
 
-
-
-
-//google auth routes
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] })

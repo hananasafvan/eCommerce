@@ -238,27 +238,24 @@
 }
 
 .star {
-    transition: color 0.2s ease; /* Smooth color transition */
+    transition: color 0.2s ease; 
 }
 
-/* .star.selected,
-.star:hover {
-    color: #ffcc00; 
-} */
 
-/* Initially set the first three stars to yellow */
+
+
 .star:nth-child(-n+3) {
-    color: #ffcc00; /* Yellow color for the first three stars */
+    color: #ffcc00;
 }
 
-        /* Responsive adjustments */
+        
         @media (max-width: 768px) {
             .product-item {
                 width: 48%;
             }
 
             .search-container {
-                align-items: center; /* Center search on smaller screens */
+                align-items: center; 
             }
         }
 
@@ -268,21 +265,21 @@
             }
 
             form input[type="text"], form select {
-                width: 100%; /* Full width on small screens */
+                width: 100%; 
             }
         }
         @media (max-width: 768px) {
     .search-container {
-        flex-direction: column; /* Stack items on smaller screens */
+        flex-direction: column; 
         align-items: flex-start;
     }
     form {
-        flex-direction: column; /* Stack search and sort vertically */
-        width: 100%; /* Make form take full width */
+        flex-direction: column;
+        width: 100%; 
     }
 
     form input[type="text"], form select {
-        width: 100%; /* Full width on small screens */
+        width: 100%; 
     }
 }
     </style>
@@ -340,8 +337,14 @@
                         <img src="/uploads/product-imgs/no-image.jpg" alt="No image available">
                     <% } %>
                     <h3><%= product.productName %></3>
-
-                    <p> &#8377; <%= product.regularPrice %> </p>
+                     
+                    <% if (product.salePrice < product.regularPrice) { %>
+                        <p style="text-decoration: line-through; margin-bottom: 0.1px;">&#8377; <%= product.regularPrice %> </p>
+                        <p style="color: rgb(12, 197, 12); margin-top: 1px;">&#8377; <%= product.salePrice %></p>
+                    <% } else { %>
+                        <p>&#8377; <%= product.regularPrice %></p>
+                    <% } %>
+                    
                     <div class="star-rating">
                         <span class="star" data-value="1">&#9733;</span>
                         <span class="star" data-value="2">&#9733;</span>
@@ -432,14 +435,14 @@ $(document).ready(function() {
             data: { productId: productId },
             success: function(response) {
                 if (response.message === 'Product is already in your wishlist!') {
-                    Swal.fire('Already Added!', response.message, 'info'); // Show info if already in wishlist
+                    Swal.fire('Already Added!', response.message, 'info'); 
                 } else {
-                    Swal.fire('Added to Wishlist!', response.message, 'success'); // Show success if newly added
+                    Swal.fire('Added to Wishlist!', response.message, 'success'); 
                 }
             },
             error: function(xhr, status, error) {
-                console.error("Error details:", xhr.responseText); // Log the detailed error response
-                Swal.fire('Oops!', 'Something went wrong! ' + xhr.responseText, 'error'); // Include detailed error in the message
+                console.error("Error details:", xhr.responseText);
+                Swal.fire('Oops!', 'Something went wrong! ' + xhr.responseText, 'error'); 
             }
         });
     });

@@ -1,112 +1,122 @@
-function cancelItem(orderId, itemId, button) {
-    fetch(`/order/cancel/${orderId}/${itemId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.message === "Item cancelled successfully") {
-        button.textContent = "Cancelled";
-        button.disabled = true;
-      } else {
-        alert(data.message);
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-  }
+<div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30PX;">
+  <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
+  <div class="row justify-content-center" ">
+    <div class="col-lg-8" >
+      
+        <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
+        <!-- Address Selection -->
+        <div class="mb-4">
+          <h4>Select Delivery Address</h4>
+          <select name="selectedAddress" class="form-select">
+            <% addressData.forEach(address => { %>
+              <option value="<%= address._id %>">
+                <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
 
-  function returnItem(orderId,itemId,button){
-    fetch(`/order/return/${orderId}/${itemId}`,{
-      method:"POST",
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    })
-    .then(response => response.json())
-    .then(data =>{
-      if(data.message === 'item return requested successfully'){
-        button.textContent = 'Return requested';
-        button.disabled = true
-      }else{
-        alert(data.message)
-      }
-    })
-    .catch.catch(error => {
-      console.error('Error:', error);
-    });
-  }
+        <!-- Payment Method Selection -->
+        <div class="mb-4">
+          <h4>Select Payment Method</h4>
+          <select name="paymentMethod" class="form-select">
+            <option value="Cash on Delivery" selected>Cash on Delivery</option>
+            <!-- You can add more payment methods here in the future -->
+             <option value="Credit Card">Credit Card</option>
+            <option value="PayPal">Online payment</option> 
+          </select>
+        </div>
+           
 
-
-
-
-
-  <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Wishlist</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <%- include("../../views/partials/user/headerNew") %>
-</head>
-<body>
-  <div class="container mt-5" style="background-color:#00131c; margin-bottom: 50px; margin-top: 150px;">
-    <div class="row">
-      <div class="col-lg-10 mx-auto">
-        <h2 class="text-center mb-4" style="color: white;">Your Wishlist</h2>
-        
-        <% if (wishlistItems.length === 0) { %>
-          <div class="alert alert-warning text-center">
-            <strong>Your wishlist is empty!</strong>
-          </div>
-        <% } else { %>
-          <div class="row">
-            <!-- Wishlist Items Section -->
-            <div class="col-md-8" style="margin-left: 150px;">
-              <% wishlistItems.forEach(function(item) { %>
-                <div class="card mb-4 shadow-sm">
-                  <div class="card-body">
-                    <div class="row align-items-center">
-                      <!-- Product Image -->
-                      <div class="col-md-3 text-center">
-                        <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid rounded">
-                      </div>
-                      <!-- Product Details -->
-                      <div class="col-md-6">
-                        <h5 class="card-title"><%= item.productId.productName %></h5>
-                        <p class="text-muted">Price: &#8377;<%= item.productId.regularPrice %></p>
-                      </div>
-                      <!-- Action Buttons -->
-                      <div class="col-md-3 text-end">
-                        <a href="/product/<%= item.productId._id %>" class="btn btn-primary mb-2"><i class="bi bi-eye"></i> View</a>
-                        <a href="/wishlist/remove/<%= item.productId._id %>" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Remove</a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+        <div class="mb-4">
+          <h4>Select Coupon</h4>
+          <select name="coupon" id="couponSelect" class="form-select">
+            <option value="" data-discount=""0>No Coupon</option>
+            <% couponData.forEach(coupon =>{ %>
+              <option value="<%= coupon._id%>" data-discount="<%= coupon.discountValue%>">
+                <%= coupon.description %> - Discount: <%= coupon.discountValue %>
+    </option>
               <% }) %>
-            </div>
-          </div>
-        <% } %>
-      </div>
+          </select>
+
+        </div>
+
+        
+        <!-- Cart Items -->
+        <div class="mb-4">
+          <h4>Your Cart Items</h4>
+          <ul class="list-group">
+            <% cartItems.forEach(item => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <strong><%= item.productId.productName %></strong>
+                  <div>Quantity: <%= item.quantity %></div>
+                </div>
+                <span>Total: &#8377; <%= item.totalPrice %> </span>
+              </li>
+              
+            <% }) %>
+            
+          </ul>
+          
+          <p style="text-align: right;">Original Total: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
+          <p style="text-align: right;" id="discountAmount">Discount: &#8377; 0.00</p>
+          <p style="text-align: right;" id="finalTotalPrice">Final Price: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
+        </div>
+
+        
+<div class="text-center">
+<button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">Place Order</button>
+<button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
+  <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
+</button>
+       </div>
+
+      </form>
     </div>
   </div>
+</div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<%- include("../../views/partials/user/footer") %>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+
+
+document.getElementById('couponSelect').addEventListener('change',function(){
+const selectedOption = this.options[this.selectedIndex];
+const discountValue = parseFloat(selectedOption.getAttribute('data-discount'));
+const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+
+const finalPrice = originalPrice - discountValue;
+document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
+  document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
+
+})
+
+
+
+  document.getElementById('placeOrderBtn').addEventListener('click', function() {
+    Swal.fire({
+      title: 'Confirm Order',
+      text: "Are you sure you want to place this order?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, place it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Submit the form
+        document.getElementById('orderForm').submit();
+      }
+    })
+  });
+</script>
+
 </body>
 </html>
-
-
-
 
 
 
@@ -119,58 +129,141 @@ function cancelItem(orderId, itemId, button) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Wishlist</title>
-    <link rel="stylesheet" href="/css/styles.css">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <%- include("../../views/partials/user/headerNew") %>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <%- include("../../views/partials/user/headerNew") %>
 </head>
 <body>
   <div class="container mt-5" style="background-color:#00131c; margin-bottom: 50px; margin-top: 150px;">
-    <div class="row" style=" align-items: center;">
-      <div class="col-lg-10 mx-auto" style="align-items: center;">
-        <h2 class="text-center mb-4" style="color: white;">Your Wishlist</h2>
-        
-        <% if (wishlistItems.length === 0) { %>
-          <div class="alert alert-warning text-center">
-            <strong>Your wishlist is empty!</strong>
-          </div>
-        <% } else { %>
-          <div class="row" style="align-items: center;">
-            <!-- Wishlist Items Section -->
-            <% wishlistItems.forEach(function(item) { %>
-              <div class="col-md-4 mb-4">
-                <div class="card shadow-sm">
-                  <div class="card-body">
-                    <div class="row align-items-center">
-                      <!-- Product Image -->
-                      <div class="col-12 text-center mb-2">
-                        <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid rounded">
-                      </div>
-                      <!-- Product Details -->
-                      <div class="col-12 text-center">
-                        <h5 class="card-title"><%= item.productId.productName %></h5>
-                        <p class="text-muted">Price: &#8377;<%= item.productId.regularPrice %></p>
-                      </div>
-                      <!-- Action Buttons -->
-                      <div class="col-12 text-center">
-                        <a href="/product/<%= item.productId._id %>" class="btn btn-primary mb-2" style="background-color:#d35400; border: none;margin-top: 5px;"><i class="bi bi-eye"></i> View</a>
-                        <a href="/wishlist/remove/<%= item.productId._id %>" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Remove</a>
+    <div class="row">
+      <div class="col-lg-10 mx-auto">
+        <h2 class="text-center mb-4" style="color: white;">Your Shopping Cart</h2>
+        <div class="cart-items">
+          <% if (cartItems.length > 0) { %>
+            <div class="row">
+              <!-- Cart Items Section -->
+              <div class="col-md-8" style="margin-left: 150px;">
+                <% let totalAmount = 0; %>
+                <% let totalOriginalPrice = 0; %>
+                <% cartItems.forEach(item => { %>
+                  <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                      <div class="row align-items-center">
+                        <!-- Product Image -->
+                        <div class="col-md-3 text-center">
+                          <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid rounded">
+                        </div>
+                        <!-- Product Details -->
+                        <div class="col-md-6">
+                          <h5 class="card-title"><%= item.productId.productName %></h5>
+                          <p class="text-muted">Original Price per unit: &#8377;<%= item.productId.regularPrice %></p>
+                          <p class="text-muted">Sale Price per unit: &#8377;<%= item.productId.salePrice %></p>
+                          <p class="text-muted total-price">Total Price: &#8377;<%= item.totalPrice %></p>
+                          <!-- Quantity Control -->
+                          <form id="updateQuantityForm-<%= item.productId._id %>" onsubmit="return false;">
+                            <input type="hidden" name="productId" value="<%= item.productId._id %>">
+                            <div class="quantity-buttons d-flex">
+                              <button type="button" class="btn btn-primary me-2" onclick="updateQuantity('<%= item.productId._id %>', -1)">-</button>
+                              <button type="button" class="btn btn-light" disabled><%= item.quantity %></button>
+                              <button type="button" class="btn btn-primary ms-2" onclick="updateQuantity('<%= item.productId._id %>', 1)">+</button>
+                            </div>
+                          </form>
+                        </div>
+                        <!-- Remove Button -->
+                        <div class="col-md-3 text-end">
+                          <a href="/cart/remove/<%= item.productId._id %>" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Remove</a>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                  <% 
+                    totalAmount += item.totalPrice;
+                    totalOriginalPrice += (item.productId.regularPrice * item.quantity); // Original total price for each item
+                  %>
+                <% }) %>
               </div>
-            <% }) %>
-          </div>
-        <% } %>
+
+              <!-- Price Details Section -->
+              <div style="width: 50%; text-align: center; background-color: rgb(251, 251, 252); border: solid 1px rgb(182, 176, 176); margin-left: 230px; margin-bottom: 50px;">
+                <h5 style="margin-top: 10px;">PRICE DETAILS</h5>
+                <p>Price (<%= cartItems.length %> items): &#8377;<%= totalOriginalPrice %></p> 
+                <p>Discount: &#8377;<%= totalOriginalPrice - totalAmount %></p> 
+                                <p>Platform Fee: &#8377;0.00</p>
+                <hr>
+                <h6>Total Amount: &#8377;<%= totalAmount %></h6>
+                <p class="text-success">You will save &#8377;<%= totalOriginalPrice - totalAmount %> on this order</p>
+                <a href="/order/checkout" class="btn btn-success w-100" style="background-color: #d35400; border: none; margin-bottom: 10px;"><i class="bi bi-bag-check"></i> Checkout</a>
+              </div>
+
+            <% } else { %>
+              <div class="alert alert-warning text-center" role="alert">
+                Your cart is empty.
+              </div>
+            <% } %>
+        </div>
       </div>
     </div>
   </div>
+
   <%- include("../../views/partials/user/footer") %>
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+
+  <script>
+    function updateQuantity(productId, change) {
+      fetch('/cart/update-quantity', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ productId, change })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire('Updated', 'Cart updated successfully', 'success').then(() => {
+            location.reload(); 
+          });
+        } else {
+          Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
+        }
+      })
+      .catch(error => {
+        Swal.fire('Error', error.message || 'An error occurred', 'error');
+      });
+    }
+  </script>
+
+  
+  <script>
+    $(document).ready(function() {
+      $(".btn-outline-danger").click(function(e) {
+        e.preventDefault();
+        const removeUrl = $(this).attr('href');
+        const productCard = $(this).closest(".card");
+
+        $.ajax({
+          url: removeUrl,
+          method: 'GET',
+          success: function(response) {
+            Swal.fire('Removed!', response.message, 'success').then(() => {
+              productCard.remove();
+              if ($(".cart-items .card").length === 0) {
+                $(".cart-items").html('<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>');
+              }
+            });
+          },
+          error: function(error) {
+            Swal.fire('Oops!', 'Something went wrong!', 'error');
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
+

@@ -12,12 +12,14 @@ router.get("/user/editUser", userAuth, profileController.getEditUser);
 router.post("/user/editUser/:id", userAuth, profileController.postEditUser);
 
 router.post("/cart/add", userAuth, cartController.addToCart);
+router.post('/cart/addWish',cartController.addToCartWish);
 router.get("/cart", userAuth, cartController.getCart);
 router.get("/cart/remove/:productId", userAuth, cartController.removeFromCart);
 router.post("/cart/update-quantity",userAuth,cartController.updateQuantity);
 
 router.post("/wishlist/add", userAuth,cartController.addToWishlist);
 router.get('/wishlist',userAuth,cartController.getWishlist)
+router.get('/wishlist/remove/:productId',cartController.removeFromWishlist);
 
 router.get("/address", userAuth, addressController.getAddress);
 router.post("/addAddress", userAuth, addressController.addAddress);

@@ -40,9 +40,8 @@ const getEditUser = async (req, res) => {
 const postEditUser = async (req, res) => {
   try {
     const id = req.params.id;
-    const { name,  phone } = req.body;
+    const { name, phone } = req.body;
 
-    // Validate input
     if (!name || !phone) {
       return res.render("editUser", {
         user: req.body,
@@ -50,9 +49,6 @@ const postEditUser = async (req, res) => {
       });
     }
 
-    
-
-    // Check for existing user with the same name
     const existingProfile = await User.findOne({ name });
     if (existingProfile && existingProfile._id.toString() !== id) {
       return res.render("editUser", {
@@ -63,7 +59,7 @@ const postEditUser = async (req, res) => {
 
     const updateProfile = await User.findByIdAndUpdate(
       id,
-      { $set: { name,  phone } },
+      { $set: { name, phone } },
       { new: true }
     );
 

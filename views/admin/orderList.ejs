@@ -1,84 +1,92 @@
 <%- include("../../views/partials/admin/header") %>
 <main>
-    <div class="container mt-4">
-        <h1 class="mb-4">Customer Orders</h1>
-        
-        <!-- Orders Table -->
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-dark text-center">
-                    <tr>
-                        <th>Order ID</th>
-                        <th>User ID</th>
-                        <th>Items</th>
-                        <th>Total Price</th>
-                        <th>Payment Method</th>
-                        
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if (orders.length > 0) { %>
-                        <% orders.forEach(order => { %>
-                            <tr class="text-center">
-                                <td><%= order._id.toString().slice(-5) %></td>
-                                <td><%= order.userId ? order.userId.name : 'Unknown User' %></td>
-                                
-<td>
-    <ul class="list-unstyled mb-0">
-      <% order.items.forEach(item => { %>
-        <li>
-          
-            Product ID: <%= item.productId.toString().slice(-7)  %>,  Quantity: <%= item.quantity %>, 
-          Status: <span class="badge <%= item.status === 'Cancelled' ? 'bg-danger' : 'bg-primary' %>"><%= item.status %></span>
-        </li>
-      <% }) %>
-    </ul>
-  </td>
-  
-                                <td><strong>$<%= order.items.reduce((total, item) => total + item.totalPrice, 0).toFixed(2) %></strong></td>
-                                <td><%= order.paymentMethod %></td>
-                                
-                                <td><%= new Date(order.createdAt).toLocaleString() %></td>
-                                <td>
-                                    <a href="/admin/order/view/<%= order._id %>" class="btn btn-primary btn-sm mb-1">View</a>
-                                    <!-- <a href="/admin/order/cancel/<%= order._id %>" class="btn btn-danger btn-sm mb-1">Cancel</a> -->
-                                </td>
-                                
-                            </tr>
-                        <% }) %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="8" class="text-center">No orders found</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
-        </div>
+  <div class="container mt-4">
+    <h1 class="mb-4">Customer Orders</h1>
 
-        <!-- Pagination Links -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mt-3">
-                <% if (current > 1) { %>
-                    <li class="page-item">
-                        <a class="page-link" href="/admin/orderList?page=<%= current - 1 %>">Previous</a>
-                    </li>
-                <% } %>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle">
+        <thead class="table-dark text-center">
+          <tr>
+            <th>Order ID</th>
+            <th>User ID</th>
+            <th>Items</th>
+            <th>Total Price</th>
+            <th>Payment Method</th>
 
-                <% for (let i = 1; i <= pages; i++) { %>
-                    <li class="page-item <%= current === i ? 'active' : '' %>">
-                        <a class="page-link" href="/admin/orderList?page=<%= i %>"><%= i %></a>
-                    </li>
-                <% } %>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (orders.length > 0) { %> <% orders.forEach(order => { %>
+          <tr class="text-center">
+            <td><%= order._id.toString().slice(-5) %></td>
+            <td><%= order.userId ? order.userId.name : 'Unknown User' %></td>
 
-                <% if (current < pages) { %>
-                    <li class="page-item">
-                        <a class="page-link" href="/admin/orderList?page=<%= current + 1 %>">Next</a>
-                    </li>
-                <% } %>
-            </ul>
-        </nav>
+            <td>
+              <ul class="list-unstyled mb-0">
+                <% order.items.forEach(item => { %>
+                <li>
+                  Product ID: <%= item.productId.toString().slice(-7) %>,
+                  Quantity: <%= item.quantity %>, Status:
+                  <span
+                    class="badge <%= item.status === 'Cancelled' ? 'bg-danger' : 'bg-primary' %>"
+                    ><%= item.status %></span
+                  >
+                </li>
+                <% }) %>
+              </ul>
+            </td>
+
+            <td>
+              <strong
+                >$<%= order.items.reduce((total, item) => total +
+                item.totalPrice, 0).toFixed(2) %></strong
+              >
+            </td>
+            <td><%= order.paymentMethod %></td>
+
+            <td><%= new Date(order.createdAt).toLocaleString() %></td>
+            <td>
+              <a
+                href="/admin/order/view/<%= order._id %>"
+                class="btn btn-primary btn-sm mb-1"
+                >View</a
+              >
+            </td>
+          </tr>
+          <% }) %> <% } else { %>
+          <tr>
+            <td colspan="8" class="text-center">No orders found</td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
     </div>
+
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center mt-3">
+        <% if (current > 1) { %>
+        <li class="page-item">
+          <a class="page-link" href="/admin/orderList?page=<%= current - 1 %>"
+            >Previous</a
+          >
+        </li>
+        <% } %> <% for (let i = 1; i <= pages; i++) { %>
+        <li class="page-item <%= current === i ? 'active' : '' %>">
+          <a class="page-link" href="/admin/orderList?page=<%= i %>"
+            ><%= i %></a
+          >
+        </li>
+        <% } %> <% if (current < pages) { %>
+        <li class="page-item">
+          <a class="page-link" href="/admin/orderList?page=<%= current + 1 %>"
+            >Next</a
+          >
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+  </div>
 </main>
 <%- include("../../views/partials/admin/footer") %>

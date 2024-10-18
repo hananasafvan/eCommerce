@@ -154,14 +154,24 @@
                     <td></td>
                     <td class="text-start"><%=category.name%></td>
                     <td class="text-start"><%=category.description%></td>
-                    <td></td>
+                    <td><%if(category.categoryOffer){%>
+                      <%=category.categoryOffer%>
+                    <%}else{%>
+                      0%
+                      <%}%>
+                    </td>
+
+                    <td>100</td>
                     <td class="text-start">
+                      <%if(category.categoryOffer === 0){ %>
                       <button class="btn btn-info" style="width: 100px">
-                        <a href="#" class="text-white">Add Offer</a>
+                        <a href="#" class="text-white" onclick="addOffer('<%=category._id%>')">Add Offer</a>
                       </button>
+                      <%}else{%>
                       <button class="btn btn-info" style="width: 100px">
-                        <a href="#" class="text-white">Remove</a>
+                        <a href="#" class="text-white" onclick="removeOffer('<%=category._id%>')">Remove</a>
                       </button>
+                      <%}%>
                     </td>
                     <td class="text-start">
                       <span
@@ -190,13 +200,7 @@
                         >Edit</a
                       >
                     </td>
-                    <!-- <td class="text-start">
-                      <a
-                        href="/admin/deleteCategory/<%= category._id %>"
-                        class="btn btn-info text-white"
-                        >Delete</a
-                      >
-                    </td> -->
+                   
                   </tr>
                   <%})%>
                 </tbody>
@@ -275,7 +279,7 @@
   const description = document.getElementById("descriptionId").value.trim();
   let isValid = true;
 
-  // Name validation (alphabets only)
+  
   if (name === "") {
     displayErrorMessage("name-error", "Please enter a name.");
     isValid = false;
@@ -284,7 +288,7 @@
     isValid = false;
   }
 
-  // Description validation (alphabets only)
+  
   if (description === "") {
     displayErrorMessage("description-error", "Please enter a description.");
     isValid = false;
@@ -310,5 +314,78 @@ function clearErrorMessage() {
   });
 }
 
+
+async function addOffer(categoryId){
+  const {value:amount} = await swal.fire({
+    title:'offer in percentage',
+    input:'number',
+    inputLabel:'Percentage',
+    inputPlaceholder:'%',
+
+  });
+
+  if(amount){
+    try {
+    const response = await fetch('/admin/addCategoryOffer',{
+      method:"POST",
+      headers:{
+       ' content-type':"application/json",
+
+      },
+      body:JSON.stringify({
+        percentage:amount,
+        categoryId:categoryId,
+
+      }),
+    });
+const data = await response.json();
+if(response.ok && data.status === true){
+   swal.fire(
+    "offer added",
+    "the offer has been added",
+    "success"
+).then(()=>{
+      location.reload();
+   })
+}else{
+  swal.fire('failed',data.message || 'adding offer failed','error')
+}
+
+    } catch (error) {
+      swal.fire('error','an error occure wile adding the offer','error')
+    };
+    console.log('error adding offer,',error)
+  }
+}
+
+async function removeOffer(categoryId){
+  try {
+    const response = await fetch('/admin/removeCategoryOffer',{
+      method:"POST",
+      headers:{
+       ' content-type':"application/json",
+      },
+      body:JSON.stringify({
+        
+        categoryId:categoryId,
+
+      }),
+    })
+
+const data = await response.json()
+if(response.ok && data.status === true){
+swal.fire('offer removed', 'the offer hasbeen removed','success')
+.then(()=>{
+  location.reload()
+})
+}else{
+  swal.fire('failed',data.message || 'removing offer failed')
+}
+
+  } catch (error) {
+    swal.fire('Error','an error occure by removing the offer','error')
+  }
+  console.error('error removing offer',error)
+}
   </script>
 </body>

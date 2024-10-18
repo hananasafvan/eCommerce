@@ -1,8 +1,5 @@
 const Address = require("../../models/addressSchema");
-const User = require('../../models/userSchema')
-
-
-
+const User = require("../../models/userSchema");
 
 const getAddress = async (req, res) => {
   try {
@@ -10,20 +7,16 @@ const getAddress = async (req, res) => {
     if (!userId) {
       return res.redirect("/login");
     }
-    let userData = userId ? await User.findById(userId).populate('address') : null;
+    let userData = userId
+      ? await User.findById(userId).populate("address")
+      : null;
 
     res.locals.user = userData;
-    console.log('userdata',userData);
-    
-    
+    console.log("userdata", userData);
+
     const addressData = userData.address;
     console.log(addressData);
-    
-    
-    
-    
 
-    // Render the address page
     res.render("address", {
       user: userData,
       addressData: addressData || [],
@@ -34,11 +27,9 @@ const getAddress = async (req, res) => {
   }
 };
 
-
 const addAddress = async (req, res) => {
-  const {  name, city, state, pincode, phone, altphone } = req.body;
-  
-  // Server-side validation
+  const { name, city, state, pincode, phone, altphone } = req.body;
+
   if (!name || !city || !state || !pincode || !phone || !altphone) {
     return res.status(400).send("All fields are required.");
   }
@@ -56,7 +47,7 @@ const addAddress = async (req, res) => {
   }
 
   try {
-    const userId = req.session.user || req.user
+    const userId = req.session.user || req.user;
     if (!userId) {
       return res.redirect("/login");
     }
@@ -80,41 +71,36 @@ const addAddress = async (req, res) => {
 
     await addressData.save();
     const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-        user.address.push(addressData._id);  
-        await user.save();
+    user.address.push(addressData._id);
+    await user.save();
     res.redirect("/address");
-
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");
   }
 };
 
-
 const deleteAddress = async (req, res) => {
   try {
     const userId = req.session.user || req.user;
-   console.log("userid delet address",userId)
+    console.log("userid delet address", userId);
     const addressId = req.params.addressId;
 
     const deletedAddress = await Address.findByIdAndDelete(addressId);
-    
+
     if (!deletedAddress) {
       return res.status(404).send("Address not found.");
     }
 
-    // Remove the address reference from the user
     const user = await User.updateOne(
       { _id: userId },
-      { $pull: { address: addressId } }  // Assuming User stores address references
+      { $pull: { address: addressId } }
     );
 
-
-  
     res.redirect("/address");
   } catch (err) {
     console.error(err);
@@ -124,17 +110,19 @@ const deleteAddress = async (req, res) => {
 
 const getEditAddress = async (req, res) => {
   try {
-    const userId = req.session.user || req.user
-    let userData = userId ? await User.findById(userId).populate('address') : null;
+    const userId = req.session.user || req.user;
+    let userData = userId
+      ? await User.findById(userId).populate("address")
+      : null;
     res.locals.user = userData;
     const addressId = req.params.addressId;
-    const addressData = userData.address.find(address => address._id.toString() === addressId)
-    
+    const addressData = userData.address.find(
+      (address) => address._id.toString() === addressId
+    );
+
     res.render("editAddress", {
       user: userData,
       address: addressData,
-      //user: req.user,
-
     });
   } catch (err) {
     console.error(err);
@@ -143,10 +131,9 @@ const getEditAddress = async (req, res) => {
 };
 
 const editAddress = async (req, res) => {
-  const {  name, city, state, pincode, phone, altphone } = req.body;
+  const { name, city, state, pincode, phone, altphone } = req.body;
   const addressId = req.params.addressId;
 
-  // Server-side validation
   if (!name || !city || !state || !pincode || !phone || !altphone) {
     return res.status(400).send("All fields are required.");
   }
@@ -165,28 +152,27 @@ const editAddress = async (req, res) => {
 
   try {
     const userId = req.session.user;
-    let userData = userId ? await User.findById(userId).populate('address') : null;
+    let userData = userId
+      ? await User.findById(userId).populate("address")
+      : null;
     res.locals.user = userData;
-    console.log('editadd userdata',userData);
-    
+    console.log("editadd userdata", userData);
 
-const updateAddress =await Address.findByIdAndUpdate(addressId,
-  {$set:{name, city, state, pincode, phone, altphone}},
-  {new:true}
-)
-if (!updateAddress) {
-  return res.status(404).send("Address not found");
-}
+    const updateAddress = await Address.findByIdAndUpdate(
+      addressId,
+      { $set: { name, city, state, pincode, phone, altphone } },
+      { new: true }
+    );
+    if (!updateAddress) {
+      return res.status(404).send("Address not found");
+    }
 
-// Redirect to address page after successful update
-res.redirect("/address");
-
+    res.redirect("/address");
   } catch (err) {
     console.error(err);
     res.status(500).send("Server Error");
   }
 };
-
 
 module.exports = {
   getAddress,

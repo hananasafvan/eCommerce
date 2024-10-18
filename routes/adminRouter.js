@@ -50,6 +50,14 @@ router.post('/deleteImage',adminAuth,addproductController.deletSingleImage)
 router.get('/coupon',adminAuth,couponController.getCoupon)
 router.get('/addCoupon',adminAuth,couponController.getAddCoupon)
 router.post('/coupons',adminAuth,couponController.postAddCoupon)
+router.get('/editCoupon',adminAuth,couponController.getEditCoupon)
+router.post('/editCoupons/:id',adminAuth,couponController.editCoupon)
+router.delete('/deleteCoupon/:id',adminAuth, couponController.deleteCoupon);
+
+
+
+router.post('/addCategoryOffer',adminAuth,categoryController.addCategoryOffer)
+router.post('/removeCategoryOffer',adminAuth,categoryController.removeCategoryOffer)
 
 module.exports = router
 
