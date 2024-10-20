@@ -267,3 +267,364 @@ document.getElementById('discountAmount').innerText = 'Discount: ₹' + discount
 </body>
 </html>
 
+
+///////////////////////////////////////////////
+<head>
+  <%- include("../../views/partials/user/headerNew") %>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/style.css.map">
+  
+  
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+  
+    .product-container {
+      display: flex;
+      flex-direction: row; /* Arrange side by side */
+      justify-content: space-between;
+      max-width: 100%;
+      margin-left: 50px;
+      padding-top: 50px;
+      background-color: #00131c;
+      color: white;
+      margin-bottom: 20px;
+    
+    }
+    
+    .product-details {
+      flex: 1; 
+      padding-top: 50px;
+    }
+  
+    .product-images {
+      flex: 1; 
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+    }
+  
+    .product-images img {
+      max-width: 300px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+      background-color: #007bff;
+    }
+  
+    .image-container {
+      text-align: center;
+      
+    }
+  
+    .price {
+      font-size: 1.5rem;
+      color: white;
+      font-weight: 700;
+    }
+  
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 20px;
+    }
+  
+    button:hover {
+      background-color: #0056b3;
+    }
+  
+    .img {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background-image: url('https://www.shutterstock.com/image-photo/group-successful-confident-business-people-260nw-2044374842.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+  
+    .breadcrumb-container {
+      position: absolute;
+      margin-left: 10px;
+      margin-top: 350px;
+      width: 100%;
+      color: white;
+      padding: 20px;
+      background-color: transparent;
+      border-radius: 10px;
+    }
+  
+  
+    .star-rating {
+      font-size: 15px; /* Size of the stars */
+      color: white; /* Black color for unselected stars */
+      cursor: pointer; /* Change cursor to pointer */
+  }
+  
+  .star {
+      transition: color 0.2s ease; /* Smooth color transition */
+  }
+  
+  /* .star.selected,
+  .star:hover {
+      color: #ffcc00;
+  } */
+  
+  
+  .star:nth-child(-n+3) {
+      color: #ffcc00; /* Yellow color for the first three stars */
+  }
+  
+  
+  
+  
+  
+  .related-products {
+      padding: 50px 20px;
+      background-color: #00131c
+      
+    }
+  
+  .related-products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid */
+      gap: 40px; /* Space between items */
+    
+      margin-left: 70px;
+      margin-right: 70px;
+      padding-left: 30px;
+      
+  }
+  
+  .product-item {
+     /* White background for product items */
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s; /* Smooth hover effect */
+      display: flex; /* Enable flexbox */
+      flex-direction: column; /* Align items in a column */
+      align-items: center;
+    }
+  
+  .product-item:hover {
+      transform: translateY(-5px); /* Lift effect */
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+  }
+  
+  .product-image {
+      width: 100%; /* Full width */
+      height: auto; /* Maintain aspect ratio */
+      border-bottom: 2px solid #d35400; /* Highlight with a border */
+    }
+  
+  .product-title {
+      font-size: 1.2rem; /* Font size for title */
+      margin: 10px 0; /* Margin for spacing */
+      color: #333; /* Dark color for contrast */
+  }
+  
+  .product-price {
+      font-size: 1rem; /* Font size for price */
+      color: #d35400; /* Use primary color for price */
+      margin-bottom: 10px; /* Space below price */
+  }
+  
+  .view-details-btn {
+      background-color: #007bff; /* Button background color */
+      color: white; /* Button text color */
+      padding: 10px 15px; /* Padding for button */
+      border-radius: 5px; /* Rounded corners */
+      text-decoration: none; /* No underline */
+      transition: background-color 0.3s; /* Smooth transition */
+  }
+  
+  .view-details-btn:hover {
+      background-color: #0056b3; /* Darker shade on hover */
+  }
+  
+  
+  
+  
+  
+  </style>
+  
+  </head>
+  
+  <body>
+    <div class="img">
+      <div class="breadcrumb-container">
+        <a href="/" style="color:white">Home</a> / <a href="/shop" style="color: white;">Shop</a> /
+        <% if (product) { %>
+          <a href="/category/<%= product.category %>"><%= product.category.name %></a>  <%= product.productName %>
+        <% } else { %>
+          <span>Product not available</span>
+        <% } %>
+      </div>
+    </div>
+  
+    <% if (product) { %>
+      <div class="product-container">
+        <!-- Product Images with Click-to-Zoom -->
+        <div class="product-images">
+          <% product.productImage.forEach(image => { %>
+            <div class="image-container">
+              <img src="/uploads/product-imgs/<%= image %>" alt="<%= product.productName %>" class="zoomable-image">
+            </div>
+          <% }) %>
+        </div>
+  
+        <!-- Product Details -->
+        <div class="product-details">
+          <h5 style="color: white; font-family: fantasy;"><%= product.productName %></h5>
+          <br>
+          <p class="price" style="font-size: 14px;">$<%= product.regularPrice %></p>
+          
+          <p style="color: white;">inclusive of all taxes</p>
+          
+          <div class="star-rating">
+            <span class="star" data-value="1">&#9733;</span>
+            <span class="star" data-value="2">&#9733;</span>
+            <span class="star" data-value="3">&#9733;</span>
+            <span class="star" data-value="4">&#9733;</span>
+            <span class="star" data-value="5">&#9733;</span>
+            
+        </div>
+  
+        
+  
+          <p style="color: white;"><%= product.description %></p>
+          
+          
+          <p>
+            <% if (product.quantity > 0) { %>
+              <span style="color: rgb(248, 248, 248);">Available</span>
+            <% } else { %>
+              <span style="color: rgb(252, 249, 249);">Sorry, This product is unavailable now</span>
+            <% } %>
+          </p>
+          
+        
+          
+  
+        <% if (product.quantity > 0) { %>
+          
+          <a  href="#" class="btn  add-to-cart" data-product-id="<%= product._id %>" style="margin-bottom: 10px;">
+              <i class="fas fa-shopping-cart" style="color: white;"></i> 
+          </a>
+          
+      <% } else { %>
+          <p class="out-of-stock" style="color: white;">Out of Stock</p>
+      <% } %>
+      <a href="" class="wishlist-btn" ></a>
+      <i class="fas fa-heart" style="color: white;" ></i>
+  </a>
+    </div>
+    
+     </div>
+     <div class="relatedprodect"></div>
+    <% } else { %>
+      <p style="text-align: center;">This product is currently unavailable.</p>
+    <% } %>
+  
+    
+  
+  <div class="related-products">
+    <h3 style="text-align: center; color: #d35400; margin-bottom: 20px;">Related Products</h3>
+    <div class="related-products-grid">
+        <% relatedProducts.forEach(product => { %>
+            <div class="product-item">
+                <a href="/product/<%= product._id %>">
+                    <img src="/uploads/product-imgs/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
+                </a>
+                <h4 class="product-title" style="color: #d35400;;"><%= product.productName %></h4>
+                <p class="product-price">$<%= product.regularPrice %></p>
+                
+            </div>
+        <% }) %>
+    </div>
+  </div>
+  
+  
+     
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+  
+    <%- include("../../views/partials/user/footer") %>
+    
+  
+    
+    <script>
+      document.querySelectorAll('.zoomable-image').forEach(img => {
+        let isZoomed = false;
+  
+        img.addEventListener('click', () => {
+          if (!isZoomed) {
+            img.style.transform = 'scale(2)';
+            img.style.cursor = 'move';
+            isZoomed = true;
+            img.addEventListener('mousemove', panImage);
+          } else {
+            img.style.transform = 'scale(1)';
+            img.style.cursor = 'zoom-in';
+            isZoomed = false;
+            img.removeEventListener('mousemove', panImage);
+          }
+        });
+  
+        function panImage(e) {
+          if (isZoomed) {
+            const rect = img.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+  
+            const moveX = ((x / rect.width) - 0.5) * 100;
+            const moveY = ((y / rect.height) - 0.5) * 100;
+  
+            img.style.transform = `scale(2) translate(${moveX}%, ${moveY}%)`;
+          }
+        }
+      });
+   
+  
+  
+      $(document).ready(function() {
+          $(".add-to-cart").click(function(e) {
+              e.preventDefault();
+              const productId = $(this).data("product-id");
+  
+              $.ajax({
+                  url: '/cart/add',
+                  method: 'POST',
+                  data: { productId: productId
+                  },
+                  success: function(response) {
+                      Swal.fire('Added!', response.message, 'success');
+                  },
+                  error: function(error) {
+                      Swal.fire('Oops!', 'Something went wrong!', 'error');
+                  }
+              });
+          });
+      });
+  </script>
+  
+  

@@ -1,5 +1,6 @@
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productShema");
+const User = require('../../models/userSchema')
 
 const getOrderList = async (req, res) => {
   try {
@@ -26,59 +27,72 @@ const getOrderList = async (req, res) => {
   }
 };
 
+
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
     const { status } = req.body;
-    const productId = req.params;
-    console.log("get product id", productId);
 
+    // Find the order by orderId
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).send("Order not found");
     }
 
+    // Find the item in the order
     const itemIndex = order.items.findIndex((item) => item.itemId === itemId);
     if (itemIndex === -1) {
       return res.status(404).send("Item not found");
     }
 
+    // Update the status of the item
     order.items[itemIndex].status = status;
 
+    // If status is "Returned", update the product quantity and wallet balance
     if (status === "Returned") {
-      const productId = order.items[itemIndex].productId;
+      const productId = order.items[itemIndex].productId._id; // Ensure this is correct
       const product = await Product.findById(productId);
       if (!product) {
         return res.status(404).send("Product not found");
       }
 
-      const qua = order.items[itemIndex].quantity;
+      const quantity = order.items[itemIndex].quantity;
+      const itemPrice = product.salePrice; // Get the correct price from the product
 
-      product.quantity += qua;
-      await product.save();
-    }
-
-    if (status === "Cancelled") {
-      const productId = order.items[itemIndex].productId;
-      const product = await Product.findById(productId);
-      if (!product) {
-        return res.status(404).send("Product not found");
+      console.log(`Item Price: ${itemPrice}`);
+      if (typeof itemPrice !== 'number' || isNaN(itemPrice)) {
+        return res.status(400).send("Invalid item price");
       }
-      const qua = order.items[itemIndex].quantity;
-      console.log("quantity", qua);
 
-      product.quantity += qua;
+      product.quantity += quantity;
       await product.save();
+
+      // Update the user's wallet balance
+      const user = await User.findById(order.userId);
+      if (!user) {
+        return res.status(404).send("User not found");
+      }
+
+      if (typeof user.walletBalance !== 'number' || isNaN(user.walletBalance)) {
+        user.walletBalance = 0; // Set to 0 if not a number
+      }
+
+      console.log(`Current Wallet Balance: ${user.walletBalance}`);
+      user.walletBalance += itemPrice; // Add the price of the returned item to the user's wallet
+      console.log(`Updated Wallet Balance: ${user.walletBalance}`);
+      await user.save();
     }
 
     await order.save();
-
     res.redirect("/admin/orderList");
   } catch (error) {
     console.error("Error updating order status:", error);
     res.status(500).send("Internal Server Error");
   }
 };
+
+
+
 
 const cancelOrder = async (req, res) => {
   try {

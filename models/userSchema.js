@@ -83,7 +83,11 @@ const userSchema = new Schema({
         {type:Schema.Types.ObjectId,
             ref:'Address'
         }
-    ]
+    ],
+    walletBalance: {
+        type: Number,
+        default: 0
+      },
 });
 
 const User = mongoose.model("User", userSchema);

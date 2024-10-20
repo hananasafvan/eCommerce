@@ -248,6 +248,40 @@ const cancelItem = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+// const returnItem = async (req, res) => {
+//   try {
+//     const { orderId, itemId } = req.params;
+//     const order = await Order.findById(orderId);
+//     if (!order) {
+//       return res.status(404).json({ message: "Order not found" });
+//     }
+
+//     const item = order.items.id(itemId);
+//     if (!item) {
+//       return res.status(404).json({ message: "Item not found" });
+//     }
+//     if (item.status === "Delivered") {
+//       item.status = "Request to return";
+//       await order.save();
+
+//       const product = await Product.findById(item.productId);
+//       if (!product) {
+//         return res.status(404).json({ message: "Product not found" });
+//       }
+
+//       return res
+//         .status(200)
+//         .json({ message: "item return requested successfully" });
+//     } else {
+//       return res.status(400).json({ message: "Item cannot be returned" });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
+
 const returnItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -269,9 +303,20 @@ const returnItem = async (req, res) => {
         return res.status(404).json({ message: "Product not found" });
       }
 
+      // Once the product is marked as returned, update wallet balance
+      if (item.status === "Returned") {
+        const user = await User.findById(order.userId); // Assuming order has a userId field
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        user.walletBalance += item.price; // Add the price of the returned item to the wallet
+        await user.save();
+      }
+
       return res
         .status(200)
-        .json({ message: "item return requested successfully" });
+        .json({ message: "Item return requested successfully, wallet updated" });
     } else {
       return res.status(400).json({ message: "Item cannot be returned" });
     }
@@ -281,6 +326,8 @@ const returnItem = async (req, res) => {
   }
 };
 
+
+
 module.exports = {
   getOrderPage,
   placeOrder,
@@ -288,4 +335,5 @@ module.exports = {
   getOrderDetails,
   cancelItem,
   returnItem,
+  
 };

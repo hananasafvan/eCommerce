@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Wallet</title>
+  <link rel="stylesheet" href="styles.css"> <!-- Link to an external stylesheet for better organization -->
+  <%- include("../../views/partials/user/headerNew") %>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-top: 150px;
+      margin-bottom: 50px;
+    }
+    h1 {
+      color: #d35400;
+      text-align: center;
+    }
+    p {
+      font-size: 20px;
+      text-align: center;
+    }
+    .button {
+      display: inline-block;
+      background-color:#d35400;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .transaction-history {
+      margin-top: 40px;
+      border-top: 1px solid #e0e0e0;
+      padding-top: 20px;
+    }
+    .transaction {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .transaction:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+    <div class="container">
+      <h1>Your Wallet Balance</h1>
+      <p>Balance: &#8377;<%= walletBalance %></p>
+      <a class="button" href="/shop">Continue Shopping</a>
+
+      <div class="transaction-history">
+        <h2>Transaction History</h2>
+        <div class="transaction">
+          <span>Order #12345</span>
+          <span>&#8377; -500</span>
+        </div>
+        <div class="transaction">
+          <span>Order #12346</span>
+          <span>&#8377; -300</span>
+        </div>
+        <div class="transaction">
+          <span>Order #12347</span>
+          <span>&#8377; +200</span>
+        </div>
+        <div class="transaction">
+          <span>Order #12348</span>
+          <span>&#8377; -150</span>
+        </div>
+        <div class="transaction">
+          <span>Order #12349</span>
+          <span>&#8377; +1000</span>
+        </div>
+      </div>
+    </div>
+  <%- include("../../views/partials/user/footer") %>
+</body>
+</html>
+
