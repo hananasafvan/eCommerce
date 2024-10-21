@@ -15,7 +15,7 @@ router.post(
   razorpayController.createRazorpayOrder
 );
 
-router.post("/razorpay/verify", razorpayController.verifyPayment);
+router.post("/razorpay/verify",userAuth, razorpayController.verifyPayment);
 
 router.get("/history", userAuth, orderController.getOrderHistory);
 

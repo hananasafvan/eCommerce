@@ -4,18 +4,18 @@ const { unlock } = require('../../routes/adminOrderRouter');
 
 
 const showWallet = async (req, res) => {
-    // Access userId from session
+    
     const userId = req.session.user || req.user;
   console.log('showwallet',userId);
   
     try {
-      // Fetch the user by their ID from the session
+      
       const user = await User.findById(userId);
       if (!user) {
         return res.status(404).send("User not found");
       }
   
-      // Render the wallet view with wallet balance and user data
+  
       res.render('wallet', { walletBalance: user.walletBalance, user });
     } catch (error) {
       console.error("Error displaying wallet:", error);
@@ -25,7 +25,7 @@ const showWallet = async (req, res) => {
   
 
   const updateWallet = async (req, res) => {
-    // Access userId from session
+  
     const userId = req.session.user || req.user;
   
     console.log('user id wallet', userId);
@@ -35,7 +35,7 @@ const showWallet = async (req, res) => {
     }
   
     try {
-      // Fetch the user by their ID
+  
       const user = await User.findById(userId);
       console.log(user);
   
@@ -43,13 +43,13 @@ const showWallet = async (req, res) => {
         return res.status(404).send("User not found");
       }
   
-      // Amount to be added to the wallet
+      
       const { amount } = req.body;
       if (!amount) {
         return res.status(400).send("Invalid amount");
       }
   
-      // Update user's wallet balance
+    
       user.walletBalance += amount;
       console.log(`Updated wallet balance for user ${user._id}: New Balance ${user.walletBalance}`);
       await user.save();

@@ -627,4 +627,40 @@ document.getElementById('discountAmount').innerText = 'Discount: ₹' + discount
       });
   </script>
   
-  
+  ///////////////////////////////
+  const options = {
+    "key": "<%= process.env.RAZORPAY_KEY_ID %>", // Razorpay Key ID
+    "amount": data.amount,
+    "currency": data.currency,
+    "order_id": data.orderId,
+    "handler": function (response) {
+      // Verify the payment after Razorpay callback
+      fetch('/razorpay/verify', {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+        }),
+      })
+      .then(res => res.json())
+      .then(() => {
+        window.location.href = '/shop'; // Redirect to shop on success
+      })
+      .catch(err => {
+        alert('Payment verification failed');
+        console.error(err);
+      });
+    },
+    "prefill": {
+      "name": "<%= user.name %>",
+      "email": "<%= user.email %>",
+      "contact": "<%= user.phone %>",
+    },
+    "theme": {
+      "color": "#3399cc"
+    }
+  };

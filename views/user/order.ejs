@@ -162,10 +162,29 @@
   <script>
 
 
+
+document.addEventListener("DOMContentLoaded", function () {
+    const orderId = '<%= orderId %>'; 
+
+    fetch(`/razorpay/create-order/${orderId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        
+      }),
+    }).then(response => response.json())
+      .then(data => {
+        
+      })
+      .catch(error => console.error('Error:', error));
+  });
+
 document.getElementById('couponSelect').addEventListener('change',function(){
   const couponSelect = document.getElementById('couponSelect');
     if (couponSelect.value === "") {
-        couponSelect.disabled = true; // Temporarily disable the field so it's not submitted
+        couponSelect.disabled = true; 
     }
   const selectedOption = this.options[this.selectedIndex];
   const discountValue = parseFloat(selectedOption.getAttribute('data-discount')) || 0
@@ -190,7 +209,7 @@ document.getElementById('couponSelect').addEventListener('change',function(){
         confirmButtonText: 'Yes, place it!'
       }).then((result) => {
         if (result.isConfirmed) {
-          // Submit the form
+          
           document.getElementById('orderForm').submit();
         }
       })
@@ -198,60 +217,59 @@ document.getElementById('couponSelect').addEventListener('change',function(){
 
 
 
+    document.getElementById('placeOrderBtn').addEventListener('click', function () {
+    
+        placeOrder();
+      });
 
-
-
-
-    document.getElementById('placeOrderBtn').addEventListener('click', function(e) {
-    const paymentMethod = document.getElementById('paymentMethod').value;
-
-    if (paymentMethod === 'Online payment') {
-      e.preventDefault(); // Stop the form from submitting
-      fetch('/order/razorpay/create-order')
-        .then(res => res.json())
-        .then(data => {
-          const options = {
-            "key": "<%= process.env.RAZORPAY_KEY_ID %>", // Enter your Razorpay Key ID
-            "amount": data.amount,
-            "currency": data.currency,
-            "order_id": data.orderId,
-            "handler": function (response) {
-              fetch('/order/razorpay/verify', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                }),
-              }).then(() => {
-                window.location.href = '/shop';
-              }).catch((err) => {
-                alert('Payment verification failed');
-              });
-            },
-            "prefill": {
-              "name": "<%= user.name %>",
-              "email": "<%= user.email %>",
-              "contact": "<%= user.phone %>",
-            },
-            "theme": {
-              "color": "#3399cc"
-            }
-          };
-          const rzp1 = new Razorpay(options);
-          rzp1.open();
+      function placeOrder() {
+        
+        fetch("/razorpay/create-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            
+            amount: 2999, 
+            userId: '<%= user._id %>' 
+          }),
         })
-        .catch(err => {
-          console.error('Error creating Razorpay order:', err);
+        .then(response => response.json()) 
+        .then(data => {
+          if (data.orderId) {
+          
+            Swal.fire({
+              title: 'Order Placed!',
+              text: `Your order has been placed successfully. Order ID: ${data.orderId}`,
+              icon: 'success',
+              confirmButtonText: 'OK'
+            }).then(() => {
+              
+              window.location.href = '/order/success';
+            });
+          } else {
+            
+            Swal.fire({
+              title: 'Error',
+              text: 'There was a problem placing your order. Please try again.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'There was a problem placing your order. Please try again later.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
         });
-    }
-  });
-
+      }
   document.addEventListener("DOMContentLoaded", function () {
-    const orderId = "67120d4e2c1d2cfab61d8dd7"; // Use the dynamic value here
+    const orderId = "67120d4e2c1d2cfab61d8dd7"; 
     
     fetch(`/razorpay/create-order/${orderId}`, {
       method: "POST",

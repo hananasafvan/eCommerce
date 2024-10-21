@@ -7,62 +7,39 @@ const User = require("../../models/userSchema");
 const Coupon = require("../../models/couponSchema");
 
 const getOrderPage = async (req, res) => {
-  const userId = req.session.user || req.user;
-
   try {
-    let userData = userId
-      ? await User.findById(userId).populate("address")
-      : null;
-    res.locals.user = userData;
-    const cart = await Cart.findOne({ userId }).populate("items.productId");
+    const userId = req.session.user || req.user;
+    const user = await User.findById(userId);
+    const cart = await Cart.findOne({ userId }).populate('items.productId');
+    const addressData = await Address.find({ userId });
+    const couponData = await Coupon.find();
 
-    if (!cart || cart.items.length === 0) {
-      return res.redirect("/cart");
+    
+    const order = await Order.findOne({ userId, status: "Processing" }); 
+    if (!order) {
+      return res.redirect('/cart');
     }
-    const addressData = userData.address;
-    const userAddresses = [];
-    const usedCoupons = await Order.find({ userId }).distinct("coupon");
+
+    const orderId = order._id;  
     const totalOrderPrice = cart.items.reduce((total, item) => {
       return total + (item.totalPrice || 0);
     }, 0);
 
-    const couponData = await Coupon.aggregate([
-      {
-        $match: {
-          status: "Active",
-          _id: { $nin: usedCoupons },
-          minPurchase: { $lte: totalOrderPrice },
-        },
-      },
-      {
-        $addFields: {
-          canUse: { $lte: ["$count", "$usageLimit"] },
-        },
-      },
-      {
-        $match: {
-          canUse: true,
-        },
-      },
-    ]);
-
-    console.log("Addresses: ", addressData);
-    console.log("coupon data", couponData);
-    console.log("total order price checkout", totalOrderPrice);
-
-    res.render("order", {
-      user: userData,
+    res.render('order', {
       cartItems: cart.items,
-      addressData: addressData,
-      userAddresses: userAddresses,
-      couponData: couponData,
       totalOrderPrice,
+      addressData,
+      couponData,
+      user,  
+      orderId,  
     });
   } catch (error) {
-    console.error("Error retrieving order page:", error);
-    res.status(500).send("Internal server error");
+    console.error('Error rendering order page:', error);
+    res.status(500).send('Internal server error');
   }
 };
+
+
 
 const getOrderHistory = async (req, res) => {
   const userId = req.session.user || req.user;
@@ -248,38 +225,6 @@ const cancelItem = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-// const returnItem = async (req, res) => {
-//   try {
-//     const { orderId, itemId } = req.params;
-//     const order = await Order.findById(orderId);
-//     if (!order) {
-//       return res.status(404).json({ message: "Order not found" });
-//     }
-
-//     const item = order.items.id(itemId);
-//     if (!item) {
-//       return res.status(404).json({ message: "Item not found" });
-//     }
-//     if (item.status === "Delivered") {
-//       item.status = "Request to return";
-//       await order.save();
-
-//       const product = await Product.findById(item.productId);
-//       if (!product) {
-//         return res.status(404).json({ message: "Product not found" });
-//       }
-
-//       return res
-//         .status(200)
-//         .json({ message: "item return requested successfully" });
-//     } else {
-//       return res.status(400).json({ message: "Item cannot be returned" });
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
 
 
 const returnItem = async (req, res) => {
@@ -303,14 +248,14 @@ const returnItem = async (req, res) => {
         return res.status(404).json({ message: "Product not found" });
       }
 
-      // Once the product is marked as returned, update wallet balance
+      
       if (item.status === "Returned") {
-        const user = await User.findById(order.userId); // Assuming order has a userId field
+        const user = await User.findById(order.userId); 
         if (!user) {
           return res.status(404).json({ message: "User not found" });
         }
 
-        user.walletBalance += item.price; // Add the price of the returned item to the wallet
+        user.walletBalance += item.price; 
         await user.save();
       }
 

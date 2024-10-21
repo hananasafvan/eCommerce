@@ -3,55 +3,9 @@ const ejs = require("ejs");
 const path = require("path");
 const ExcelJS = require('exceljs');
 const puppeteer = require("puppeteer");
-const Order = require("../../models/orderSchema"); // Make sure this is the correct path
-
-// const getSalesReport = async (req, res) => {
-//   try {
-//     // Fetch total order count
-//     const totalOrderCount = await Order.countDocuments();
-
-//     // Fetch sum of totalOrderPrice for all orders
-//     const totalSales = await Order.aggregate([
-//       {
-//         $group: {
-//           _id: null,
-//           totalRevenue: { $sum: "$totalOrderPrice" },
-//         },
-//       },
-//     ]);
-
-//     // Fetch total orders where payment is completed
-//     const paymentCompletedOrders = await Order.countDocuments({ status: "Completed" });
-
-//     // Fetch sum of offer prices (for orders with coupons)
-//     const totalOfferPrices = await Order.aggregate([
-//       { 
-//         $match: { coupon: { $ne: null } } 
-//       },
-//       {
-//         $group: {
-//           _id: null,
-//           totalOfferPrice: { $sum: "$totalOrderPrice" }, // Change this if you track offer prices separately
-//         },
-//       },
-//     ]);
-
-//     // Render data to EJS
-//     res.render("salesReport", {
-//       totalOrderCount,
-//       totalRevenue: totalSales[0]?.totalRevenue || 0,
-//       paymentCompletedOrders,
-//       totalOfferPrice: totalOfferPrices[0]?.totalOfferPrice || 0,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).send("Server Error");
-//   }
-// };
+const Order = require("../../models/orderSchema"); 
 
 
-
-// 
 const getSalesReport = async (req, res) => {
   try {
     const { dateRange, startDate, endDate } = req.query;
@@ -59,7 +13,7 @@ const getSalesReport = async (req, res) => {
     let matchCondition = {};
     const now = new Date();
 
-    // Handle date range filters
+    
     switch (dateRange) {
       case "daily":
         matchCondition.createdAt = {
@@ -158,10 +112,9 @@ const getSalesReport = async (req, res) => {
 
 const getSalesReportPDF = async (req, res) => {
   try {
-    // Fetch total order count
+    
     const totalOrderCount = await Order.countDocuments();
 
-    // Fetch sum of totalOrderPrice for all orders
     const totalSales = await Order.aggregate([
       {
         $group: {
@@ -171,11 +124,11 @@ const getSalesReportPDF = async (req, res) => {
       },
     ]);
 
-    // Fetch total orders where payment is completed
+  
     const paymentCompletedOrders = await Order.countDocuments({ status: "Pending" });
 console.log('paymentCompletedOrders',paymentCompletedOrders);
 
-    // Fetch sum of offer prices (for orders with coupons)
+    
     const totalOfferPrices = await Order.aggregate([
       { 
         $match: { coupon: { $ne: null } } 
@@ -183,12 +136,12 @@ console.log('paymentCompletedOrders',paymentCompletedOrders);
       {
         $group: {
           _id: null,
-          totalOfferPrice: { $sum: "$totalOrderPrice" }, // Change this if you track offer prices separately
+          totalOfferPrice: { $sum: "$totalOrderPrice" }, 
         },
       },
     ]);
 
-    // Render the EJS template to HTML
+  
     const html = await ejs.renderFile(path.join(__dirname, "../../views/admin/salesReport.ejs"), {
       totalOrderCount,
       totalRevenue: totalSales[0]?.totalRevenue || 0,
@@ -196,10 +149,10 @@ console.log('paymentCompletedOrders',paymentCompletedOrders);
       totalOfferPrice: totalOfferPrices[0]?.totalOfferPrice || 0,
     });
 
-    // Debugging: Check generated HTML
+    
     console.log(html);
 
-    // Launch Puppeteer with no-sandbox options (if needed)
+
     
     const browser = await puppeteer.launch({
       headless: true,
@@ -209,10 +162,9 @@ console.log('paymentCompletedOrders',paymentCompletedOrders);
 
     const page = await browser.newPage();
 
-    // Set the content of the page to the rendered HTML
     await page.setContent(html, { waitUntil: 'load', timeout: 0 });
 
-    // Create the PDF
+    
     const pdf = await page.pdf({ format: "A4" });
 if (!pdf || pdf.length === 0) {
   throw new Error("PDF generation failed");
@@ -221,7 +173,7 @@ if (!pdf || pdf.length === 0) {
     await browser.close();
     console.log('PDF size:', pdf.length);
 
-    // Send the PDF as a response
+  
     
 
     res.setHeader("Content-Type", "application/pdf");
@@ -236,31 +188,31 @@ res.send(pdf);
 
 const getSalesReportExcel = async (req, res) => {
   try {
-    // Fetch data
+    
     const totalOrderCount = await Order.countDocuments();
     const totalSales = await Order.aggregate([{ $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } }]);
     const paymentCompletedOrders = await Order.countDocuments({ status: "Completed" });
     const totalOfferPrices = await Order.aggregate([{ $match: { coupon: { $ne: null } } }, { $group: { _id: null, totalOfferPrice: { $sum: "$totalOrderPrice" } } }]);
 
-    // Prepare data for Excel
+    
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Sales Report');
 
-    // Add header row
+    
     worksheet.addRow(['Metric', 'Value']);
     worksheet.addRow(['Total Order Count', totalOrderCount]);
     worksheet.addRow(['Total Revenue', totalSales[0]?.totalRevenue || 0]);
     worksheet.addRow(['Payment Completed Orders', paymentCompletedOrders]);
     worksheet.addRow(['Total Offer Price', totalOfferPrices[0]?.totalOfferPrice || 0]);
 
-    // Write to buffer
+  
     const excelBuffer = await workbook.xlsx.writeBuffer();
 
-    // Set response headers
+  
     res.setHeader("Content-Disposition", "attachment; filename=salesReport.xlsx");
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-    // Send the Excel file as a response
+  
     res.send(excelBuffer);
   } catch (err) {
     console.error("Error generating Excel report:", err);
