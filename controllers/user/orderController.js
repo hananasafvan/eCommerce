@@ -107,25 +107,23 @@ const placeOrder = async (req, res) => {
 
     console.log("totalOrderPrice", totalOrderPrice);
 
-    if (coupon) {
-      const couponData = await Coupon.findById(coupon);
-      if (couponData) {
-        const discountValue = couponData.discountValue;
-        console.log("discountValue", discountValue);
+  
+    const couponData = coupon ? await Coupon.findOne({ _id: coupon, status: "Active" }) : null;
 
-        if (couponData.discountType === "percentage") {
-          totalOrderPrice =
-            totalOrderPrice - totalOrderPrice * (discountValue / 100);
-        } else {
-          totalOrderPrice = totalOrderPrice - discountValue;
-        }
+    if (couponData) {
+      const discountValue = couponData.discountValue;
+      console.log("discountValue", discountValue);
+
+      if (couponData.discountType === "percentage") {
+        totalOrderPrice = totalOrderPrice - totalOrderPrice * (discountValue / 100);
+      } else {
+        totalOrderPrice = totalOrderPrice - discountValue;
       }
     }
 
     console.log("Final total price after coupon:", totalOrderPrice);
 
-    let orderStatus =
-      paymentMethod === "Online payment" ? "Pending" : "Processing";
+    let orderStatus = paymentMethod === "Online payment" ? "Pending" : "Processing";
 
     const newOrder = new Order({
       userId,
@@ -159,6 +157,7 @@ const placeOrder = async (req, res) => {
     res.status(500).send("Internal server error");
   }
 };
+
 
 const getOrderDetails = async (req, res) => {
   const userId = req.session.user || req.user;
@@ -204,7 +203,7 @@ const cancelItem = async (req, res) => {
 
     if (order.status === "Processing" && item.status !== "Cancelled") {
       item.status = "Cancelled";
-      order.totalOrderPrice -= item.totalPrice;
+      //order.totalOrderPrice -= item.totalPrice;
       await order.save();
 
       const product = await Product.findById(item.productId);

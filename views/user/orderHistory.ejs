@@ -98,7 +98,10 @@ function cancelItem(orderId, itemId, button) {
             'Cancelled!',
             'Your item has been cancelled.',
             'success'
-          );
+          ).then(() => {
+            // Reload the page after showing the success message
+            window.location.reload();
+          });
           button.textContent = "Cancelled";
           button.disabled = true;
         } else {

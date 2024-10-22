@@ -33,8 +33,8 @@
                         </td>
                         <td><%= item.productId.productName %></td>
                         <td><%= item.quantity %></td>
-                         <td>$<%= item.productId.regularPrice %></td>
-                        <td>$<%= item.totalPrice %></td>
+                         <td>&#8377;<%= item.productId.regularPrice %></td>
+                        <td>&#8377;<%= item.totalPrice %></td>
                         
                                                     <td >
                                                         <% if (item.status !== 'Cancelled' && item.status !== 'Request to return' && item.status !== 'Request Accept' && item.status !== 'Request Reject' && item.status !== 'Returned' ) { %>   

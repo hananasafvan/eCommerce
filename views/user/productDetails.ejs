@@ -223,7 +223,7 @@
       <div class="product-details">
         <h5 style="color: white; font-family: fantasy;"><%= product.productName %></h5>
         <br>
-        <p class="price" style="font-size: 14px;">$<%= product.regularPrice %></p>
+        <p class="price" style="font-size: 14px;">&#8377;<%= product.regularPrice %></p>
         
         <p style="color: white;">inclusive of all taxes</p>
         
@@ -283,7 +283,7 @@
                   <img src="/uploads/product-imgs/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
               </a>
               <h4 class="product-title" style="color: #d35400;;"><%= product.productName %></h4>
-              <p class="product-price">$<%= product.regularPrice %></p>
+              <p class="product-price">&#8377; <%= product.regularPrice %></p>
               
           </div>
       <% }) %>
