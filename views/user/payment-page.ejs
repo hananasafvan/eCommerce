@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<h1>Complete Payment</h1>
+
+<button id="rzp-button">Pay Now</button>
+
+<script>
+  const options = {
+    "key": "<%= razorpayKey %>", // Razorpay API Key ID
+    "amount": "<%= amount * 100 %>", // Amount is in paise
+    "currency": "INR",
+    "name": "Your Store",
+    "description": "Test Transaction",
+    "order_id": "<%= orderId %>", // Pass the Razorpay order ID
+    "handler": function (response){
+      // Handle the payment success, send payment details to server
+      const paymentId = response.razorpay_payment_id;
+      const orderId = response.razorpay_order_id;
+      const signature = response.razorpay_signature;
+
+      // Redirect to a success page with payment info or send data to server via Ajax
+      window.location.href = `/order/payment-success?payment_id=${paymentId}&order_id=${orderId}&signature=${signature}`;
+    },
+    "prefill": {
+      "name": "<%= user.name %>",
+      "email": "<%= user.email %>",
+      "contact": "<%= user.phone %>"
+    },
+    "theme": {
+      "color": "#3399cc"
+    }
+  };
+  
+  const rzp1 = new Razorpay(options);
+
+  document.getElementById('rzp-button').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+  }
+</script>
+
+</body>
+</html>

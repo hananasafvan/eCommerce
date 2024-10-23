@@ -12,6 +12,7 @@ const productRouter = require("./routes/productRouter");
 const orderRouter = require("./routes/orderRouter");
 const profile = require("./routes/profile");
 const adminOrderRouter = require("./routes/adminOrderRouter");
+const razorpayRoutes = require('./routes/razorpayRoutes')
 db();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -49,6 +50,7 @@ app.use("/", productRouter);
 app.use("/", profile);
 app.use("/order", orderRouter);
 app.use("/admin", adminOrderRouter);
+app.use('/razorpay', razorpayRoutes);
 
 //app.set("view cache", false);
 

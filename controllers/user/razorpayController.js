@@ -1,69 +1,48 @@
 const Razorpay = require('razorpay');
-const crypto = require('crypto');
-const Order = require("../../models/orderSchema");
-const Cart = require("../../models/cartSchema");
+const mongoose = require('mongoose');
+const Order = require('../../models/orderSchema'); 
+const env = require("dotenv").config();
+const {RAZORPAY_KEY_ID,RAZORPAY_SECRET_KEY} = process.env
 
-// Initialize Razorpay instance with your credentials
-const razorpayInstance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_SECRET_KEY,
+const razorpay = new Razorpay({
+  key_id: RAZORPAY_KEY_ID,
+  key_secret: RAZORPAY_SECRET_KEY,
 });
 
-
-
-// Verify the payment after Razorpay callback
-const verifyPayment = async (req, res) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-
-  const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_SECRET_KEY);
-  hmac.update(razorpay_order_id + '|' + razorpay_payment_id);
-  const generated_signature = hmac.digest('hex');
-
-  if (generated_signature === razorpay_signature) {
-    // Payment successful, update order status to 'Paid'
-    await Order.findOneAndUpdate(
-      { 'razorpayOrderId': razorpay_order_id },
-      { status: 'Paid' }
-    );
-    res.redirect('/shop');
-  } else {
-    // Payment failed
-    res.status(400).send('Payment verification failed');
-  }
-};
-
-
-const createRazorpayOrder = async (req, res) => {
-  const { orderId } = req.params;
-  console.log("Razorpay route hit!", orderId);
-
-  // Fetch the order using the orderId
-  const order = await Order.findById(orderId);
-  if (!order) {
-    return res.status(404).send('Order not found');
-  }
-
-  // Proceed with Razorpay order creation as before
-  const razorpayOrderOptions = {
-    amount: order.totalOrderPrice * 100, // in paise
-    currency: 'INR',
-    receipt: `rcpt_${order.userId}_${Date.now()}`
-  };
+const createOrder = async (req, res) => {
+  const userId = req.session.user || req.user;
+  const orderData = req.body;
+  const totalAmount = orderData.totalAmount;
 
   try {
-    const razorpayOrder = await razorpayInstance.orders.create(razorpayOrderOptions);
-    console.log("Razorpay Order created:", razorpayOrder);
+    const options = {
+      amount: totalAmount * 100,
+      currency: "INR",
+      receipt: `receipt_order_${Math.random()}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    if (!order) {
+      console.log("Razorpay order creation failed");
+      return res.status(500).send("Failed to create order in Razorpay");
+    }
+
+    console.log("Razorpay order created:", order); // Debugging output
 
     res.json({
-      orderId: razorpayOrder.id,
-      currency: razorpayOrder.currency,
-      amount: razorpayOrder.amount,
+      id: order.id,
+      currency: order.currency,
+      amount: order.amount,
     });
   } catch (error) {
-    console.error('Error creating Razorpay order:', error);
-    res.status(500).send('Error creating Razorpay order');
+    console.error("Error creating Razorpay order:", error);
+    res.status(500).send("Internal server error");
   }
 };
 
 
-module.exports = { createRazorpayOrder, verifyPayment };
+
+module.exports = {
+  createOrder,
+}

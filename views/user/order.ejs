@@ -67,7 +67,6 @@
 <body>
 
 <%- include("../../views/partials/user/headerNew") %>
-  
 <div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30px;">
   <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
   <div class="row justify-content-center">
@@ -88,11 +87,20 @@
         <!-- Payment Method Selection -->
         <div class="mb-4">
           <h4>Select Payment Method</h4>
-          <select name="paymentMethod" id="paymentMethod" class="form-select">
-            <option value="Cash on Delivery" selected>Cash on Delivery</option>
-            <option value="Online payment">Online payment</option>
-          </select>
+          <label>
+            <input type="radio" name="paymentMethod" value="Cash on Delivery" checked> Cash on Delivery
+          </label>
+          <label>
+            <input type="radio" name="paymentMethod" value="Online Payment"> Online Payment
+          </label>
+          <label>
+            <input type="radio" name="paymentMethod" value="Wallet"> Wallet
+          </label>
+          <div id="walletErrorMessage" style="color: red; display: none;"></div> <!-- Error message container -->
         </div>
+
+        <!-- Hidden field for wallet balance -->
+        <input type="hidden" id="userWalletBalance" value="<%= user ? user.walletBalance : 0 %>">
 
         <!-- Coupon Selection -->
         <div class="mb-4">
@@ -139,7 +147,11 @@
   </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+  // Update discount and final price based on selected coupon
   document.getElementById('couponSelect').addEventListener('change', function () {
     const selectedOption = this.options[this.selectedIndex];
     const discountValue = parseFloat(selectedOption.getAttribute('data-discount')) || 0;
@@ -149,19 +161,77 @@
     document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
   });
 
-  document.getElementById('placeOrderBtn').addEventListener('click', function () {
-    Swal.fire({
-      title: 'Confirm Order',
-      text: "Are you sure you want to place this order?",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#28a745',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, place it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        document.getElementById('orderForm').submit();
-      }
-    });
+  // Validate wallet payment option
+  const walletRadioButton = document.querySelector('input[name="paymentMethod"][value="Wallet"]');
+  const userWalletBalance = parseFloat(document.getElementById('userWalletBalance').value);
+  
+  walletRadioButton.addEventListener('change', function() {
+    const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+    
+    if (userWalletBalance < totalOrderPrice) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Insufficient Wallet Balance',
+        text: 'Your wallet balance is insufficient. Please choose another payment method.',
+        confirmButtonColor: '#d33'
+      });
+    }
   });
+
+  // Handle place order button click
+  document.getElementById('placeOrderBtn').addEventListener('click', async function (event) {
+  event.preventDefault();
+  
+  const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+  const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+  if (selectedPaymentMethod === 'Online Payment') {
+    try {
+      const orderResponse = await fetch('/razorpay/create_order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ totalAmount: totalOrderPrice }),
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error("Failed to create Razorpay order");
+      }
+
+      const orderData = await orderResponse.json();
+      console.log("Order Data:", orderData); // Debugging output
+
+      const options = {
+        key: '<%= razorpayKey %>',
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'Your Store Name',
+        description: 'Order Payment',
+        order_id: orderData.id,
+        handler: async function (response) {
+          const successResponse = await fetch('/razorpay/success', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: orderData.id,
+              paymentId: response.razorpay_payment_id,
+            }),
+          });
+          window.location.href = '/order/success';
+        },
+        theme: {
+          color: '#d35400',
+        },
+      };
+
+      const razorpay = new Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error("Error during Razorpay process:", error);
+    }
+  } else {
+    document.getElementById('orderForm').submit();
+  }
+});
+
 </script>
+

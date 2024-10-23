@@ -1,680 +1,8 @@
-<div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30PX;">
-  <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
-  <div class="row justify-content-center" ">
-    <div class="col-lg-8" >
-      
-        <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
-        <!-- Address Selection -->
-        <div class="mb-4">
-          <h4>Select Delivery Address</h4>
-          <select name="selectedAddress" class="form-select">
-            <% addressData.forEach(address => { %>
-              <option value="<%= address._id %>">
-                <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
-              </option>
-            <% }) %>
-          </select>
-        </div>
-
-        <!-- Payment Method Selection -->
-        <div class="mb-4">
-          <h4>Select Payment Method</h4>
-          <select name="paymentMethod" class="form-select">
-            <option value="Cash on Delivery" selected>Cash on Delivery</option>
-            <!-- You can add more payment methods here in the future -->
-             <option value="Credit Card">Credit Card</option>
-            <option value="PayPal">Online payment</option> 
-          </select>
-        </div>
-           
-
-        <div class="mb-4">
-          <h4>Select Coupon</h4>
-          <select name="coupon" id="couponSelect" class="form-select">
-            <option value="" data-discount=""0>No Coupon</option>
-            <% couponData.forEach(coupon =>{ %>
-              <option value="<%= coupon._id%>" data-discount="<%= coupon.discountValue%>">
-                <%= coupon.description %> - Discount: <%= coupon.discountValue %>
-    </option>
-              <% }) %>
-          </select>
-
-        </div>
-
-        
-        <!-- Cart Items -->
-        <div class="mb-4">
-          <h4>Your Cart Items</h4>
-          <ul class="list-group">
-            <% cartItems.forEach(item => { %>
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                  <strong><%= item.productId.productName %></strong>
-                  <div>Quantity: <%= item.quantity %></div>
-                </div>
-                <span>Total: &#8377; <%= item.totalPrice %> </span>
-              </li>
-              
-            <% }) %>
-            
-          </ul>
-          
-          <p style="text-align: right;">Original Total: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
-          <p style="text-align: right;" id="discountAmount">Discount: &#8377; 0.00</p>
-          <p style="text-align: right;" id="finalTotalPrice">Final Price: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
-        </div>
-
-        
-<div class="text-center">
-<button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">Place Order</button>
-<button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
-  <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
-</button>
-       </div>
-
-      </form>
-    </div>
-  </div>
-</div>
-
-<%- include("../../views/partials/user/footer") %>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-
-
-document.getElementById('couponSelect').addEventListener('change',function(){
-const selectedOption = this.options[this.selectedIndex];
-const discountValue = parseFloat(selectedOption.getAttribute('data-discount'));
-const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
-
-const finalPrice = originalPrice - discountValue;
-document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
-  document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
-
-})
-
-
-
-  document.getElementById('placeOrderBtn').addEventListener('click', function() {
-    Swal.fire({
-      title: 'Confirm Order',
-      text: "Are you sure you want to place this order?",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#28a745',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, place it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Submit the form
-        document.getElementById('orderForm').submit();
-      }
-    })
-  });
-</script>
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Cart</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
-  <%- include("../../views/partials/user/headerNew") %>
-</head>
-<body>
-  <div class="container mt-5" style="background-color:#00131c; margin-bottom: 50px; margin-top: 150px;">
-    <div class="row">
-      <div class="col-lg-10 mx-auto">
-        <h2 class="text-center mb-4" style="color: white;">Your Shopping Cart</h2>
-        <div class="cart-items">
-          <% if (cartItems.length > 0) { %>
-            <div class="row">
-              <!-- Cart Items Section -->
-              <div class="col-md-8" style="margin-left: 150px;">
-                <% let totalAmount = 0; %>
-                <% let totalOriginalPrice = 0; %>
-                <% cartItems.forEach(item => { %>
-                  <div class="card mb-4 shadow-sm">
-                    <div class="card-body">
-                      <div class="row align-items-center">
-                        <!-- Product Image -->
-                        <div class="col-md-3 text-center">
-                          <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-fluid rounded">
-                        </div>
-                        <!-- Product Details -->
-                        <div class="col-md-6">
-                          <h5 class="card-title"><%= item.productId.productName %></h5>
-                          <p class="text-muted">Original Price per unit: &#8377;<%= item.productId.regularPrice %></p>
-                          <p class="text-muted">Sale Price per unit: &#8377;<%= item.productId.salePrice %></p>
-                          <p class="text-muted total-price">Total Price: &#8377;<%= item.totalPrice %></p>
-                          <!-- Quantity Control -->
-                          <form id="updateQuantityForm-<%= item.productId._id %>" onsubmit="return false;">
-                            <input type="hidden" name="productId" value="<%= item.productId._id %>">
-                            <div class="quantity-buttons d-flex">
-                              <button type="button" class="btn btn-primary me-2" onclick="updateQuantity('<%= item.productId._id %>', -1)">-</button>
-                              <button type="button" class="btn btn-light" disabled><%= item.quantity %></button>
-                              <button type="button" class="btn btn-primary ms-2" onclick="updateQuantity('<%= item.productId._id %>', 1)">+</button>
-                            </div>
-                          </form>
-                        </div>
-                        <!-- Remove Button -->
-                        <div class="col-md-3 text-end">
-                          <a href="/cart/remove/<%= item.productId._id %>" class="btn btn-outline-danger"><i class="bi bi-trash"></i> Remove</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <% 
-                    totalAmount += item.totalPrice;
-                    totalOriginalPrice += (item.productId.regularPrice * item.quantity); // Original total price for each item
-                  %>
-                <% }) %>
-              </div>
-
-              <!-- Price Details Section -->
-              <div style="width: 50%; text-align: center; background-color: rgb(251, 251, 252); border: solid 1px rgb(182, 176, 176); margin-left: 230px; margin-bottom: 50px;">
-                <h5 style="margin-top: 10px;">PRICE DETAILS</h5>
-                <p>Price (<%= cartItems.length %> items): &#8377;<%= totalOriginalPrice %></p> 
-                <p>Discount: &#8377;<%= totalOriginalPrice - totalAmount %></p> 
-                                <p>Platform Fee: &#8377;0.00</p>
-                <hr>
-                <h6>Total Amount: &#8377;<%= totalAmount %></h6>
-                <p class="text-success">You will save &#8377;<%= totalOriginalPrice - totalAmount %> on this order</p>
-                <a href="/order/checkout" class="btn btn-success w-100" style="background-color: #d35400; border: none; margin-bottom: 10px;"><i class="bi bi-bag-check"></i> Checkout</a>
-              </div>
-
-            <% } else { %>
-              <div class="alert alert-warning text-center" role="alert">
-                Your cart is empty.
-              </div>
-            <% } %>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <%- include("../../views/partials/user/footer") %>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-
-
-  <script>
-    function updateQuantity(productId, change) {
-      fetch('/cart/update-quantity', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ productId, change })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          Swal.fire('Updated', 'Cart updated successfully', 'success').then(() => {
-            location.reload(); 
-          });
-        } else {
-          Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
-        }
-      })
-      .catch(error => {
-        Swal.fire('Error', error.message || 'An error occurred', 'error');
-      });
-    }
-  </script>
-
-  
-  <script>
-    $(document).ready(function() {
-      $(".btn-outline-danger").click(function(e) {
-        e.preventDefault();
-        const removeUrl = $(this).attr('href');
-        const productCard = $(this).closest(".card");
-
-        $.ajax({
-          url: removeUrl,
-          method: 'GET',
-          success: function(response) {
-            Swal.fire('Removed!', response.message, 'success').then(() => {
-              productCard.remove();
-              if ($(".cart-items .card").length === 0) {
-                $(".cart-items").html('<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>');
-              }
-            });
-          },
-          error: function(error) {
-            Swal.fire('Oops!', 'Something went wrong!', 'error');
-          }
-        });
-      });
-    });
-  </script>
-</body>
-</html>
-
-
-///////////////////////////////////////////////
-<head>
-  <%- include("../../views/partials/user/headerNew") %>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/public/css/style.css.map">
-  
-  
-  <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 0;
-    }
-  
-    .product-container {
-      display: flex;
-      flex-direction: row; /* Arrange side by side */
-      justify-content: space-between;
-      max-width: 100%;
-      margin-left: 50px;
-      padding-top: 50px;
-      background-color: #00131c;
-      color: white;
-      margin-bottom: 20px;
-    
-    }
-    
-    .product-details {
-      flex: 1; 
-      padding-top: 50px;
-    }
-  
-    .product-images {
-      flex: 1; 
-      display: flex;
-      flex-direction: row-reverse;
-      align-items: center;
-      gap: 20px;
-      padding: 20px;
-    }
-  
-    .product-images img {
-      max-width: 300px;
-      height: auto;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      cursor: zoom-in;
-      transition: transform 0.3s ease;
-      background-color: #007bff;
-    }
-  
-    .image-container {
-      text-align: center;
-      
-    }
-  
-    .price {
-      font-size: 1.5rem;
-      color: white;
-      font-weight: 700;
-    }
-  
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      margin-top: 20px;
-    }
-  
-    button:hover {
-      background-color: #0056b3;
-    }
-  
-    .img {
-      position: relative;
-      width: 100%;
-      height: 400px;
-      background-image: url('https://www.shutterstock.com/image-photo/group-successful-confident-business-people-260nw-2044374842.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-    }
-  
-    .breadcrumb-container {
-      position: absolute;
-      margin-left: 10px;
-      margin-top: 350px;
-      width: 100%;
-      color: white;
-      padding: 20px;
-      background-color: transparent;
-      border-radius: 10px;
-    }
-  
-  
-    .star-rating {
-      font-size: 15px; /* Size of the stars */
-      color: white; /* Black color for unselected stars */
-      cursor: pointer; /* Change cursor to pointer */
-  }
-  
-  .star {
-      transition: color 0.2s ease; /* Smooth color transition */
-  }
-  
-  /* .star.selected,
-  .star:hover {
-      color: #ffcc00;
-  } */
-  
-  
-  .star:nth-child(-n+3) {
-      color: #ffcc00; /* Yellow color for the first three stars */
-  }
-  
-  
-  
-  
-  
-  .related-products {
-      padding: 50px 20px;
-      background-color: #00131c
-      
-    }
-  
-  .related-products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive grid */
-      gap: 40px; /* Space between items */
-    
-      margin-left: 70px;
-      margin-right: 70px;
-      padding-left: 30px;
-      
-  }
-  
-  .product-item {
-     /* White background for product items */
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      text-align: center;
-      transition: transform 0.3s, box-shadow 0.3s; /* Smooth hover effect */
-      display: flex; /* Enable flexbox */
-      flex-direction: column; /* Align items in a column */
-      align-items: center;
-    }
-  
-  .product-item:hover {
-      transform: translateY(-5px); /* Lift effect */
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
-  }
-  
-  .product-image {
-      width: 100%; /* Full width */
-      height: auto; /* Maintain aspect ratio */
-      border-bottom: 2px solid #d35400; /* Highlight with a border */
-    }
-  
-  .product-title {
-      font-size: 1.2rem; /* Font size for title */
-      margin: 10px 0; /* Margin for spacing */
-      color: #333; /* Dark color for contrast */
-  }
-  
-  .product-price {
-      font-size: 1rem; /* Font size for price */
-      color: #d35400; /* Use primary color for price */
-      margin-bottom: 10px; /* Space below price */
-  }
-  
-  .view-details-btn {
-      background-color: #007bff; /* Button background color */
-      color: white; /* Button text color */
-      padding: 10px 15px; /* Padding for button */
-      border-radius: 5px; /* Rounded corners */
-      text-decoration: none; /* No underline */
-      transition: background-color 0.3s; /* Smooth transition */
-  }
-  
-  .view-details-btn:hover {
-      background-color: #0056b3; /* Darker shade on hover */
-  }
-  
-  
-  
-  
-  
-  </style>
-  
-  </head>
-  
-  <body>
-    <div class="img">
-      <div class="breadcrumb-container">
-        <a href="/" style="color:white">Home</a> / <a href="/shop" style="color: white;">Shop</a> /
-        <% if (product) { %>
-          <a href="/category/<%= product.category %>"><%= product.category.name %></a>  <%= product.productName %>
-        <% } else { %>
-          <span>Product not available</span>
-        <% } %>
-      </div>
-    </div>
-  
-    <% if (product) { %>
-      <div class="product-container">
-        <!-- Product Images with Click-to-Zoom -->
-        <div class="product-images">
-          <% product.productImage.forEach(image => { %>
-            <div class="image-container">
-              <img src="/uploads/product-imgs/<%= image %>" alt="<%= product.productName %>" class="zoomable-image">
-            </div>
-          <% }) %>
-        </div>
-  
-        <!-- Product Details -->
-        <div class="product-details">
-          <h5 style="color: white; font-family: fantasy;"><%= product.productName %></h5>
-          <br>
-          <p class="price" style="font-size: 14px;">$<%= product.regularPrice %></p>
-          
-          <p style="color: white;">inclusive of all taxes</p>
-          
-          <div class="star-rating">
-            <span class="star" data-value="1">&#9733;</span>
-            <span class="star" data-value="2">&#9733;</span>
-            <span class="star" data-value="3">&#9733;</span>
-            <span class="star" data-value="4">&#9733;</span>
-            <span class="star" data-value="5">&#9733;</span>
-            
-        </div>
-  
-        
-  
-          <p style="color: white;"><%= product.description %></p>
-          
-          
-          <p>
-            <% if (product.quantity > 0) { %>
-              <span style="color: rgb(248, 248, 248);">Available</span>
-            <% } else { %>
-              <span style="color: rgb(252, 249, 249);">Sorry, This product is unavailable now</span>
-            <% } %>
-          </p>
-          
-        
-          
-  
-        <% if (product.quantity > 0) { %>
-          
-          <a  href="#" class="btn  add-to-cart" data-product-id="<%= product._id %>" style="margin-bottom: 10px;">
-              <i class="fas fa-shopping-cart" style="color: white;"></i> 
-          </a>
-          
-      <% } else { %>
-          <p class="out-of-stock" style="color: white;">Out of Stock</p>
-      <% } %>
-      <a href="" class="wishlist-btn" ></a>
-      <i class="fas fa-heart" style="color: white;" ></i>
-  </a>
-    </div>
-    
-     </div>
-     <div class="relatedprodect"></div>
-    <% } else { %>
-      <p style="text-align: center;">This product is currently unavailable.</p>
-    <% } %>
-  
-    
-  
-  <div class="related-products">
-    <h3 style="text-align: center; color: #d35400; margin-bottom: 20px;">Related Products</h3>
-    <div class="related-products-grid">
-        <% relatedProducts.forEach(product => { %>
-            <div class="product-item">
-                <a href="/product/<%= product._id %>">
-                    <img src="/uploads/product-imgs/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
-                </a>
-                <h4 class="product-title" style="color: #d35400;;"><%= product.productName %></h4>
-                <p class="product-price">$<%= product.regularPrice %></p>
-                
-            </div>
-        <% }) %>
-    </div>
-  </div>
-  
-  
-     
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-  
-    <%- include("../../views/partials/user/footer") %>
-    
-  
-    
-    <script>
-      document.querySelectorAll('.zoomable-image').forEach(img => {
-        let isZoomed = false;
-  
-        img.addEventListener('click', () => {
-          if (!isZoomed) {
-            img.style.transform = 'scale(2)';
-            img.style.cursor = 'move';
-            isZoomed = true;
-            img.addEventListener('mousemove', panImage);
-          } else {
-            img.style.transform = 'scale(1)';
-            img.style.cursor = 'zoom-in';
-            isZoomed = false;
-            img.removeEventListener('mousemove', panImage);
-          }
-        });
-  
-        function panImage(e) {
-          if (isZoomed) {
-            const rect = img.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-  
-            const moveX = ((x / rect.width) - 0.5) * 100;
-            const moveY = ((y / rect.height) - 0.5) * 100;
-  
-            img.style.transform = `scale(2) translate(${moveX}%, ${moveY}%)`;
-          }
-        }
-      });
-   
-  
-  
-      $(document).ready(function() {
-          $(".add-to-cart").click(function(e) {
-              e.preventDefault();
-              const productId = $(this).data("product-id");
-  
-              $.ajax({
-                  url: '/cart/add',
-                  method: 'POST',
-                  data: { productId: productId
-                  },
-                  success: function(response) {
-                      Swal.fire('Added!', response.message, 'success');
-                  },
-                  error: function(error) {
-                      Swal.fire('Oops!', 'Something went wrong!', 'error');
-                  }
-              });
-          });
-      });
-  </script>
-  
-  ///////////////////////////////
-  const options = {
-    "key": "<%= process.env.RAZORPAY_KEY_ID %>", // Razorpay Key ID
-    "amount": data.amount,
-    "currency": data.currency,
-    "order_id": data.orderId,
-    "handler": function (response) {
-      // Verify the payment after Razorpay callback
-      fetch('/razorpay/verify', {
-        method: 'POST',
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-        }),
-      })
-      .then(res => res.json())
-      .then(() => {
-        window.location.href = '/shop'; // Redirect to shop on success
-      })
-      .catch(err => {
-        alert('Payment verification failed');
-        console.error(err);
-      });
-    },
-    "prefill": {
-      "name": "<%= user.name %>",
-      "email": "<%= user.email %>",
-      "contact": "<%= user.phone %>",
-    },
-    "theme": {
-      "color": "#3399cc"
-    }
-  };
-
-
-
-  <order"ejs">
-
-  <div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30PX;">
+<div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30px;">
     <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
-    <div class="row justify-content-center" ">
-      <div class="col-lg-8" >
-        
-          <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
           <!-- Address Selection -->
           <div class="mb-4">
             <h4>Select Delivery Address</h4>
@@ -686,40 +14,40 @@ document.getElementById('discountAmount').innerText = 'Discount: ₹' + discount
               <% }) %>
             </select>
           </div>
-
+  
           <!-- Payment Method Selection -->
-          <!-- <div class="mb-4">
+          <div class="mb-4">
             <h4>Select Payment Method</h4>
-            <select name="paymentMethod" class="form-select">
-              <option value="Cash on Delivery" selected>Cash on Delivery</option>
-               <option value="Credit Card">Credit Card</option>
-              <option value="PayPal">Online payment</option> 
-            </select>
+            <label>
+              <input type="radio" name="paymentMethod" value="Cash on Delivery" checked> Cash on Delivery
+            </label>
+            <label>
+              <input type="radio" name="paymentMethod" value="Online Payment"> Online Payment
+            </label>
+            <label>
+              <input type="radio" name="paymentMethod" value="Wallet"> Wallet
+            </label>
+            <div id="walletErrorMessage" style="color: red; display: none;"></div> <!-- Error message container -->
+  
           </div>
-              -->
-
-              <div class="mb-4">
-                <h4>Select Payment Method</h4>
-                <select name="paymentMethod" id="paymentMethod" class="form-select">
-                  <option value="Cash on Delivery" selected>Cash on Delivery</option>
-                  <option value="Online payment">Online payment</option>
-                </select>
-              </div>
-
+  
+          <!-- Hidden field for wallet balance -->
+        
+          <input type="hidden" id="userWalletBalance" value="<%= user ? user.walletBalance : 0 %>">
+  
+          <!-- Coupon Selection -->
           <div class="mb-4">
             <h4>Select Coupon</h4>
             <select name="coupon" id="couponSelect" class="form-select">
               <option value="" data-discount="0">No Coupon</option>
-              <% couponData.forEach(coupon =>{ %>
-                <option value="<%= coupon._id%>" data-discount="<%= coupon.discountValue%>">
+              <% couponData.forEach(coupon => { %>
+                <option value="<%= coupon._id %>" data-discount="<%= coupon.discountValue %>">
                   <%= coupon.description %> - Discount: <%= coupon.discountValue %>
-      </option>
-                <% }) %>
+                </option>
+              <% }) %>
             </select>
-
           </div>
-
-          
+  
           <!-- Cart Items -->
           <div class="mb-4">
             <h4>Your Cart Items</h4>
@@ -730,165 +58,83 @@ document.getElementById('discountAmount').innerText = 'Discount: ₹' + discount
                     <strong><%= item.productId.productName %></strong>
                     <div>Quantity: <%= item.quantity %></div>
                   </div>
-                  <span>Total: &#8377; <%= item.totalPrice %> </span>
+                  <span>Total: &#8377; <%= item.totalPrice %></span>
                 </li>
-                
               <% }) %>
-              
             </ul>
-            
             <p style="text-align: right;">Original Total: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
             <p style="text-align: right;" id="discountAmount">Discount: &#8377; 0.00</p>
             <p style="text-align: right;" id="finalTotalPrice">Final Price: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
           </div>
-
-          
-<div class="text-center">
-  <button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">Place Order</button>
-  <button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
-    <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
-  </button>
-         </div>
-
+  
+          <div class="text-center">
+            <button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">
+              Place Order
+            </button>
+            <button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
+              <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
+            </button>
+          </div>
         </form>
       </div>
     </div>
   </div>
-
-  <%- include("../../views/partials/user/footer") %>
-
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
-    const orderId = '<%= orderId %>'; 
-
-    fetch(`/razorpay/create-order/${orderId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        
-      }),
-    }).then(response => response.json())
-      .then(data => {
-        
-      })
-      .catch(error => console.error('Error:', error));
-  });
-
-document.getElementById('couponSelect').addEventListener('change',function(){
-  const couponSelect = document.getElementById('couponSelect');
-    if (couponSelect.value === "") {
-        couponSelect.disabled = true; 
-    }
-  const selectedOption = this.options[this.selectedIndex];
-  const discountValue = parseFloat(selectedOption.getAttribute('data-discount')) || 0
-  const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
-
-  const finalPrice = originalPrice - discountValue;
-  document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
-    document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
- 
-})
-
-
-
-    document.getElementById('placeOrderBtn').addEventListener('click', function() {
-      Swal.fire({
-        title: 'Confirm Order',
-        text: "Are you sure you want to place this order?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, place it!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          
-          document.getElementById('orderForm').submit();
-        }
-      })
-    });
-
-
-
-    document.getElementById('placeOrderBtn').addEventListener('click', function () {
-    
-        placeOrder();
-      });
-
-      function placeOrder() {
-        
-        fetch("/razorpay/create-order", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            
-            amount: 2999, 
-            userId: '<%= user._id %>' 
-          }),
-        })
-        .then(response => response.json()) 
-        .then(data => {
-          if (data.orderId) {
-          
-            Swal.fire({
-              title: 'Order Placed!',
-              text: `Your order has been placed successfully. Order ID: ${data.orderId}`,
-              icon: 'success',
-              confirmButtonText: 'OK'
-            }).then(() => {
-              
-              window.location.href = '/order/success';
-            });
-          } else {
-            
-            Swal.fire({
-              title: 'Error',
-              text: 'There was a problem placing your order. Please try again.',
-              icon: 'error',
-              confirmButtonText: 'OK'
-            });
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          Swal.fire({
-            title: 'Error',
-            text: 'There was a problem placing your order. Please try again later.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-          });
-        });
-      }
-  document.addEventListener("DOMContentLoaded", function () {
-    const orderId = "67120d4e2c1d2cfab61d8dd7"; 
-    
-    fetch(`/razorpay/create-order/${orderId}`, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log("Razorpay order created:", data);
-      
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-  });
-  </script>
   
-</body>
-</html>
-
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <script>
+    document.getElementById('couponSelect').addEventListener('change', function () {
+      const selectedOption = this.options[this.selectedIndex];
+      const discountValue = parseFloat(selectedOption.getAttribute('data-discount')) || 0;
+      const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+      const finalPrice = originalPrice - discountValue;
+      document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
+      document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
+    });
+  
+    
+    const walletRadioButton = document.querySelector('input[name="paymentMethod"][value="Wallet"]');
+    const userWalletBalance = parseFloat(document.getElementById('userWalletBalance').value);
+  
+    
+    walletRadioButton.addEventListener('change', function() {
+      const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+      
+      if (userWalletBalance < totalOrderPrice) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Insufficient Wallet Balance',
+          text: 'Your wallet balance is insufficient. Please choose another payment method.',
+          confirmButtonColor: '#d33'
+        });
+        
+         }
+    });
+  
+  
+  
+    document.getElementById('placeOrderBtn').addEventListener('click', function (event) {
+    const walletBalance = parseFloat(document.getElementById('userWalletBalance').value);
+    const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+    const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+  
+    
+    const walletErrorMessage = document.getElementById('walletErrorMessage');
+    walletErrorMessage.textContent = '';
+    walletErrorMessage.style.display = 'none';
+  
+    if (selectedPaymentMethod === "Wallet" && walletBalance < totalOrderPrice) {
+      
+      event.preventDefault();
+      walletErrorMessage.textContent = 'Insufficient wallet balance. Please choose another payment method.';
+      walletErrorMessage.style.display = 'block'; 
+    }
+    
+    else {
+    
+      document.getElementById('orderForm').submit();
+    }
+  });
+  
+  </script>
