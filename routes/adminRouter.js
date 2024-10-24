@@ -48,6 +48,9 @@ router.get('/editProduct',adminAuth,addproductController.getEditProduct)
 router.post('/editProduct/:id',adminAuth,uploads.array('images',3),addproductController.editProduct)
 router.post('/deleteImage',adminAuth,addproductController.deletSingleImage)
 
+router.post('/addproductOffer',adminAuth,addproductController.addproductOffer)
+router.post('/removeproductOffer',adminAuth,addproductController.removeproductOffer)
+
 router.get('/coupon',adminAuth,couponController.getCoupon)
 router.get('/addCoupon',adminAuth,couponController.getAddCoupon)
 router.post('/coupons',adminAuth,couponController.postAddCoupon)

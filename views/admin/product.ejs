@@ -129,6 +129,8 @@
                 <th scope="col"><b>Brand</b></th>
                 <th scope="col"><b>Category</b></th>
                 <th scope="col"><b>Quantity</b></th>
+                <th scope="col"><b>offer</b></th>
+                <th scope="col"><b>Add offer</b></th>
                 <th scope="col"><b>Action</b></th>
                 <th scope="col"><b>Edit</b></th>
             </tr>
@@ -149,6 +151,24 @@
                     <% } %>
                 </td>
                 <td><%= data[i].quantity %></td>
+                <td>
+                <%if(locals.data[i].productOffer ){ %>
+                    <%=data[i].productOffer %>
+                    <%}else{%>
+                        0%
+                        <%}%>
+                </td>
+                <td>
+                    <%if(locals.data[i].productOffer === 0) {%>
+                    <button class="btn btn-info" onclick="addOffer('<%=data[i]._id%>')" style="width: 100px;">
+                        <a href="#" class="text-white" >Add Offer</a>
+                    </button>
+                    <%}else{%>
+                    <button class="btn btn-info" onclick="removeOffer('<%=data[i]._id%>')" style="width: 100px;">
+                        <a href="#" class="text-white" >Remove</a>
+                    </button>
+                    <%}%>
+                </td>
                 <td>
                     <% if (data[i].isBlocked === false) { %>
                     <button class="btn btn-danger" style="width: 80px;">
@@ -195,3 +215,71 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <%- include("../../views/partials/admin/footer") %>
 
+<script>
+   async function addOffer(productId){
+    const {value:amount} = await swal.fire({
+        title:'Offer in percentage',
+        input:'number',
+        inputLabel:'percentage',
+        inputPlaceholder:'%'
+    })
+    $.ajax({
+        url:"/admin/addproductOffer",
+        method:"Post",
+        data:{
+            percentage:amount,
+            productId:productId
+        },
+        success:(response=>{
+            if(response.status === true){
+                location.reload()
+                swal.fire('offer added','the offer has been removed ', 'success')
+            }else{
+                alert('failed')
+            }
+        })
+    })
+   }
+
+   function removeOffer(productId){
+    try {
+        swal.fire({
+           title:"Remove offer",
+           text:'are you sure you want to remove offer',
+           icon:'Warning',
+           showCancelButton:'true',
+           
+           confirmButtonColor:"#3885d6",
+           cancelButtonColor:"d33",
+           cancelButtonText:"are you sure it!",
+           timer:5000,
+           timerProgressBare:true
+
+        }).then(async(result)=>{
+            if(result.isConfirmed){
+                $.ajax({
+                    url:'/admin/removeproductOffer',
+                    method:"Post",
+                    data:{
+                        productId:productId
+                    },
+                    success:(response)=>{
+                        if(response.status === true){
+                            swal.fire('Removed !','The offer removed succesfully','success')
+                            location.reload()
+                        }else if(response.status === false ){
+                            swal.fire('Failde')
+                        }else{
+                            alert('failed')
+                        }
+                    }
+                })
+            }
+        })
+    } catch(error) {
+    console.error(error);
+    
+        
+    }
+   }
+</script>
