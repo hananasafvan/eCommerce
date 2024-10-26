@@ -6,8 +6,14 @@ const Wishlist = require("../../models/wishlistSchema");
 
 const addToCart = async (req, res) => {
   try {
+    
     const userId = req.session.user || req.user;
-    console.log("cart", userId);
+
+  if (!userId) {
+    return res.status(401).json({ message: "User not authenticated" });
+  }
+
+  console.log("Authenticated User ID:", userId);
 
     const { productId } = req.body;
     if (!userId) {
@@ -53,6 +59,7 @@ const addToCart = async (req, res) => {
 
     product.quantity -= 1;
     await product.save();
+console.log('cart product',product);
 
     await cart.save();
     res.json({ message: "Product added to cart" });
@@ -116,29 +123,64 @@ const addToCartWish = async (req, res) => {
   }
 };
 
+// const getCart = async (req, res) => {
+//   const userId = req.session.user || req.user;
+//   console.log("cart userid", userId);
+
+//   try {
+//     const cart = await Cart.findOne({ userId }).populate("items.productId");
+
+//     let userData = userId ? await User.findById(userId) : null;
+//     res.locals.user = userData;
+
+//     if (!cart || cart.items.length === 0) {
+//       return res.render("cart.ejs", { cartItems: [] });
+//     }
+
+//     res.render("cart.ejs", {
+//       user: userData,
+//       cartItems: cart.items,
+//     });
+//   } catch (error) {
+//     console.error("Error retrieving cart:", error);
+//     res.status(500).send("Internal server error");
+//   }
+// };
+
 const getCart = async (req, res) => {
-  const userId = req.session.user || req.user;
-  console.log("cart userid", userId);
-
   try {
-    const cart = await Cart.findOne({ userId }).populate("items.productId");
-
-    let userData = userId ? await User.findById(userId) : null;
-    res.locals.user = userData;
-
-    if (!cart || cart.items.length === 0) {
-      return res.render("cart.ejs", { cartItems: [] });
+    const userId = req.session.user || req.user;
+    if (!userId) {
+      return res.redirect('/login');  // Redirect if user is not logged in
     }
 
+    console.log("cart userid", userId);
+
+    // Fetch the cart and populate product details
+    const cart = await Cart.findOne({ userId }).populate("items.productId");
+    console.log('get cart', cart);
+    
+    // Fetch user data
+    const userData = await User.findById(userId);
+    res.locals.user = userData;
+    console.log('get cart', userData);
+    // Check if the cart exists and has items
+    if (!cart || cart.items.length === 0) {
+      return res.render("cart.ejs", { user: userData, cartItems: [] });
+    }
+
+    // Render the cart with the cart items and user data
     res.render("cart.ejs", {
       user: userData,
       cartItems: cart.items,
     });
+    
   } catch (error) {
-    console.error("Error retrieving cart:", error);
+    console.error("Error retrieving cart:", error.stack);
     res.status(500).send("Internal server error");
   }
 };
+
 
 const removeFromCart = async (req, res) => {
   const userId = req.session.user;

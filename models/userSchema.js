@@ -62,10 +62,7 @@ const userSchema = new Schema({
     redeemed: {
         type: Boolean
     },
-    redeemedUsers: [{
-        type: Schema.Types.ObjectId,
-        ref: "User"
-    }],
+   
     searchHistory: [{
         category: {
             type: Schema.Types.ObjectId,
@@ -88,6 +85,24 @@ const userSchema = new Schema({
         type: Number,
         default: 0
       },
+      walletTransactions: [{ 
+        amount: {
+            type: Number,
+            required: true
+        },
+        date: {
+            type: Date,
+            default: Date.now
+        },
+        description: {
+            type: String,
+            required: true
+        }
+    }],
+      redeemedUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
 });
 
 const User = mongoose.model("User", userSchema);

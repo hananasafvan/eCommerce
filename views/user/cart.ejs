@@ -97,9 +97,10 @@
       .then(response => response.json())
       .then(data => {
         if (data.success) {
-          Swal.fire('Updated', 'Cart updated successfully', 'success').then(() => {
-            location.reload(); 
-          });
+          // Swal.fire('Updated', 'Cart updated successfully', 'success').then(() => {
+          //   location.reload(); 
+          // });
+          location.reload(); 
         } else {
           Swal.fire('Error', data.error || 'Failed to update quantity', 'error');
         }

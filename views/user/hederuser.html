@@ -138,3 +138,69 @@
   });
   
   </script>
+
+
+
+
+
+
+
+
+
+const signup = async (req, res) => {
+  try {
+    const { name, phone, email, password, cPassword, referralCode } = req.body;
+
+    if (password !== cPassword) {
+      return res.render("signup", { message: "Passwords do not match" });
+    }
+
+    // Check if the email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.render("signup", { message: "User already exists with this email" });
+    }
+
+    // Generate a hashed password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Create a new user
+    const newUser = new User({
+      name,
+      phone,
+      email,
+      password: passwordHash,
+      referralCode: uuidv4() // Generate referral code using uuidv4
+    });
+
+    // Check if a referral code was provided
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode });
+
+      if (referrer) {
+        // Add ₹100 to both the new user's wallet and the referrer's wallet
+        referrer.walletBalance += 100;
+        newUser.walletBalance += 100;
+
+        // Add the new user to the referrer's redeemedUsers list
+        referrer.redeemedUsers.push(newUser._id);
+
+        // Save referrer changes
+        await referrer.save();
+      } else {
+        return res.render("signup", { message: "Invalid referral code" });
+      }
+    }
+
+    // Save the new user
+    await newUser.save();
+
+    // Log the new user in and redirect to the homepage
+    req.session.user = newUser._id;
+    res.redirect("/");
+
+  } catch (error) {
+    console.error("Signup error:", error);
+    res.redirect("/pageNotFound");
+  }
+};

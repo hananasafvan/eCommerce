@@ -4,6 +4,7 @@ const Product= require("../../models/productShema")
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
+const { v4: uuidv4 } = require("uuid");
 
 const pageNotFound = async (req, res) => {
   try {
@@ -41,45 +42,87 @@ async function sentVerificationEmail(email, otp) {
   }
 }
 
+// const signup = async (req, res) => {
+//   try {
+//     const { name, phone, email, password, cPassword } = req.body;
+
+//     if (password !== cPassword) {
+//       return res.render("signup", { message: "password note match" });
+//     }
+
+//     const findUser = await User.findOne({ email });
+//     if (findUser) {
+//       return res.render("signup", {
+//         message: "user alredy exist with this email",
+//       });
+//     }
+//     const otp = generateOtp();
+
+//     const emailSent = await sentVerificationEmail(email, otp);
+//     if (!emailSent) {
+//       return res.json("email-error");
+//     }
+//     req.session.userOtp = otp;
+//     req.session.userData = { name, phone, email, password };
+//     res.render("verify-otp");
+//     console.log("otp sent", otp);
+//   } catch (error) {
+//     console.error("signup error", error);
+
+//     if (error.code === 11000) {
+//       // Duplicate key error
+//       console.error("Duplicate key error", error.message);
+//       res.status(400).render("signup", {
+//         message: "An account with this email already exists.",
+//       });
+//     } else {
+//       console.error("Signup error", error);
+//       res.redirect("/pageNotFound");
+//     }
+//   }
+// };
+
+
+
 const signup = async (req, res) => {
   try {
-    const { name, phone, email, password, cPassword } = req.body;
+    const { name, phone, email, password, cPassword, referralCode } = req.body;
 
     if (password !== cPassword) {
-      return res.render("signup", { message: "password note match" });
+      return res.render("signup", { message: "Passwords do not match" });
     }
 
     const findUser = await User.findOne({ email });
     if (findUser) {
-      return res.render("signup", {
-        message: "user alredy exist with this email",
-      });
+      return res.render("signup", { message: "User already exists with this email" });
     }
-    const otp = generateOtp();
 
+    const otp = generateOtp();
     const emailSent = await sentVerificationEmail(email, otp);
+
     if (!emailSent) {
       return res.json("email-error");
     }
+
+    // Store user data temporarily in session, including referralCode
     req.session.userOtp = otp;
-    req.session.userData = { name, phone, email, password };
+    req.session.userData = { name, phone, email, password, referralCode };
+
     res.render("verify-otp");
-    console.log("otp sent", otp);
+    console.log("OTP sent", otp);
   } catch (error) {
-    console.error("signup error", error);
+    console.error("Signup error", error);
 
     if (error.code === 11000) {
-      // Duplicate key error
-      console.error("Duplicate key error", error.message);
-      res.status(400).render("signup", {
-        message: "An account with this email already exists.",
-      });
+      res.status(400).render("signup", { message: "An account with this email already exists." });
     } else {
-      console.error("Signup error", error);
       res.redirect("/pageNotFound");
     }
   }
 };
+
+
+
 
 const loadSignup = async (req, res) => {
   try {
@@ -140,32 +183,87 @@ const securePassword = async (password) => {
   } catch (error) {}
 };
 
+// const verifyOtp = async (req, res) => {
+//   try {
+//     const { otp } = req.body;
+//     console.log(otp);
+//     if (otp === req.session.userOtp) {
+//       const user = req.session.userData;
+//       const passwordHash = await securePassword(user.password);
+//       const saveUserData = new User({
+//         name: user.name,
+//         email: user.email,
+//         phone: user.phone,
+//         password: passwordHash,
+//       });
+//       await saveUserData.save();
+//       req.session.user = saveUserData._id;
+//       res.json({ success: true, redirectUrl: "/" });
+//     } else {
+//       res
+//         .status(400)
+//         .json({ success: false, message: "invalid otp , pleace try again" });
+//     }
+//   } catch (error) {
+//     console.error("error veryfing otp", error);
+//     res.status(500).json({ success: false, message: "An error occure" });
+//   }
+// };
+
 const verifyOtp = async (req, res) => {
   try {
     const { otp } = req.body;
-    console.log(otp);
+
     if (otp === req.session.userOtp) {
       const user = req.session.userData;
       const passwordHash = await securePassword(user.password);
-      const saveUserData = new User({
+
+      const saveUserData  = new User({
         name: user.name,
         email: user.email,
         phone: user.phone,
         password: passwordHash,
+        referralCode: uuidv4(), // Generate referral code for the new user
+        walletBalance: 0
       });
+
+      // Handle referral code if provided
+      if (user.referralCode) {
+        const referrer = await User.findOne({ referralCode: user.referralCode });
+
+        if (referrer) {
+          // Add ₹100 to both the new user's wallet and the referrer's wallet
+          referrer.walletBalance += 100;
+          newUser.walletBalance += 100;
+
+          // Add the new user to the referrer's redeemedUsers list
+          referrer.redeemedUsers.push(newUser._id);
+
+          // Save referrer changes
+          await referrer.save();
+        } else {
+          return res.render("signup", { message: "Invalid referral code" });
+        }
+      }
+
+      // Save the new user
       await saveUserData.save();
+
+      // Log the user in and clear session data
       req.session.user = saveUserData._id;
+      req.session.userOtp = null;
+      req.session.userData = null;
+
       res.json({ success: true, redirectUrl: "/" });
     } else {
-      res
-        .status(400)
-        .json({ success: false, message: "invalid otp , pleace try again" });
+      res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
     }
   } catch (error) {
-    console.error("error veryfing otp", error);
-    res.status(500).json({ success: false, message: "An error occure" });
+    console.error("Error verifying OTP", error);
+    res.status(500).json({ success: false, message: "An error occurred" });
   }
 };
+
 
 const resendOtp = async (req, res) => {
   try {

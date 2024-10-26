@@ -74,7 +74,13 @@ select:focus, input[type="date"]:focus {
     color: #d35400;
     font-weight: bold;
 }
-
+.col{
+    padding: 20px;
+    margin-left: 2px;
+    height: 100px;
+    width: 200px;
+    border: 1px solid black;
+}
 /* .btn {
     background-color: #d35400;
     color: white;
@@ -90,7 +96,7 @@ select:focus, input[type="date"]:focus {
     width: 200px;
 } */
 
-.btn:hover {
+/* .btn:hover {
     background-color: #e27933;
 }
 
@@ -101,7 +107,7 @@ select:focus, input[type="date"]:focus {
 
 .btn-success:hover {
     background-color: #d6790f;
-}
+} */
 
 #customDateFields {
     width: 100%;
@@ -122,6 +128,10 @@ select:focus, input[type="date"]:focus {
         margin-bottom: 10px;
     }
 }
+h2{
+    font-size: medium;
+    color: #d35400;
+}
 
     </style>
 </head>
@@ -129,61 +139,77 @@ select:focus, input[type="date"]:focus {
     <div class="container" style="text-align: center;">
         <h1>Sales Report</h1>
 
-
-        <form action="/admin/salesReport" method="GET" style=" width: 200px; margin-left: 300px;">
+        <!-- Date range form -->
+        <form action="/admin/salesReport" method="GET" style="display: inline-block; text-align: left;">
             <label for="dateRange">Select Date Range:</label>
-    <select id="dateRange" name="dateRange" onchange="showCustomDateFields(this.value)">
-        <option value="daily">Daily</option>
-        <option value="weekly">Weekly</option>
-        <option value="monthly">Monthly</option>
-        <option value="yearly">Yearly</option>
-        <option value="custom">Custom</option>
-    </select>
+            <select id="dateRange" name="dateRange" onchange="showCustomDateFields(this.value)" class="form-control">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+                <option value="custom">Custom</option>
+            </select>
+            
+            <div id="customDateFields" style="display:none;">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" name="startDate" class="form-control">
+                
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" name="endDate" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Apply</button>
+        </form>
 
-    <div id="customDateFields" style="display:none;">
-        <label for="startDate">Start Date:</label>
-        <input type="date" id="startDate" name="startDate">
-        
-        <label for="endDate">End Date:</label>
-        <input type="date" id="endDate" name="endDate">
+        <!-- Sales Data -->
+        <div class="row mt-5">
+            <div class="col">
+                <h2>Total Orders</h2>
+                <p><%= totalOrderCount %></p>
+            </div>
+            <div class="col">
+                <h2>Total Sales (Before Discount)</h2>
+                <p>₹<%= totalRevenue.toFixed(2) %></p>
+            </div>
+            <div class="col">
+                <h2>Product Discount</h2>
+                
+                <p>₹<%= productDiscount.toFixed(2) || 0 %></p>
+
+            </div>
+            <div class="col">
+                <h2>Net Before Coupons</h2>
+                <p>₹<%= (totalRevenue - productDiscount).toFixed(3) %></p>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col">
+                <h2>Coupon Discount</h2>
+                <p>₹<%= couponDiscount %></p>
+            </div>
+            <div class="col">
+                <h2>Net sales</h2>
+                <p>₹<%= totalDeliveredRevenue %></p>
+            </div>
+            <div class="col">
+                <h2>Refund Amount</h2>
+                <p>₹<%= totalReturndPrice || 0 %></p>
+            </div>
+            <div class="col">
+                <h2>Net After Refunds</h2>
+                <p>₹<%= (totalRevenue - totalReturndPrice).toFixed(2) %></p>
+            </div>
+        </div>
+
+        <!-- Export buttons -->
+        <div class="mt-5">
+            
+
+            <a href="/admin/download-pdf" class="btn btn-danger" style="height: 50px; width: 200px; border: none;">Download PDF</a>
+            <a href="/admin/download-excel" class="btn btn-success"style="height: 50px; width: 200px;border: none;">Download Excel</a>
+        </div>
     </div>
 
-    <button type="submit" class="btn btn-primary" style="background-color: #d35400; border: none;">Apply</button>
-             </form>
-
-
-
-        <div class="report-section" style="border-bottom: #333 1px solid;">
-            <h2>Total Orders</h2>
-            <p><%= totalOrderCount %></p>
-
-        </div>
-
-        
-
-        <div class="report-section" style="border-bottom: #333 1px solid;">
-            <h2>Payment Completed Orders</h2>
-            <p><%= paymentCompletedOrders %></p>
-        </div>
-
-        
-
-        <div class="report-section" style="border-bottom: #333 1px solid;">
-            <h2>Total Sales Revenue</h2>
-            <p>₹<%= totalRevenue.toFixed(2) %></p>
-        </div>
-        
-        <div class="report-section" style="border-bottom: #333 1px solid;">
-            <h2>Total Offer Prices</h2>
-            <p>₹<%= totalOfferPrice.toFixed(2) %></p>
-        </div>
-        
-        <a href="/admin/download-pdf" class="btn btn-primary" style="background-color: #d35400; width: 200px;" >Download PDF</a>
-        <a href="/admin/download-excel" class="btn btn-success" style="background-color: #d35400; width: 200px; color: white;">Download Excel</a>
-
-
-    </div>
-    <%- include("../../views/partials/admin/footer") %>
     <script>
         function showCustomDateFields(value) {
             if (value === 'custom') {
@@ -194,4 +220,5 @@ select:focus, input[type="date"]:focus {
         }
     </script>
 </body>
+
 </html>
