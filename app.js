@@ -12,7 +12,7 @@ const productRouter = require("./routes/productRouter");
 const orderRouter = require("./routes/orderRouter");
 const profile = require("./routes/profile");
 const adminOrderRouter = require("./routes/adminOrderRouter");
-const razorpayRoutes = require('./routes/razorpayRoutes')
+
 db();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -50,7 +50,7 @@ app.use("/", productRouter);
 app.use("/", profile);
 app.use("/order", orderRouter);
 app.use("/admin", adminOrderRouter);
-app.use('/razorpay', razorpayRoutes);
+
 
 //app.set("view cache", false);
 
@@ -71,3 +71,8 @@ app.listen(PORT, () => {
 
 // KEY ID rzp_test_kPNgq4T5ArRlHs
 //SECRET KEY X1qoflIJTJxlFfE8Xaq7o72L
+
+
+//Sandbox URL  https://sandbox.paypal.com
+//Email   sb-0c3u933611484@business.example.com
+//Password  i_dlR0[H

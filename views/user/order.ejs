@@ -102,19 +102,7 @@
         <!-- Hidden field for wallet balance -->
         <input type="hidden" id="userWalletBalance" value="<%= user ? user.walletBalance : 0 %>">
 
-        <!-- Coupon Selection -->
-        <!-- <div class="mb-4">
-          <h4>Select Coupon</h4>
-          <select name="coupon" id="couponSelect" class="form-select">
-            <option value="" data-discount="0">No Coupon</option>
-            <% couponData.forEach(coupon => { %>
-              <option value="<%= coupon._id %>" data-discount="<%= coupon.discountValue %>">
-                <%= coupon.description %> - Discount: <%= coupon.discountValue %>
-              </option>
-            <% }) %>
-          </select>
-        </div> -->
-
+        
         <div class="mb-4">
           <h4>Select Coupon</h4>
           <select name="coupon" id="couponSelect" class="form-select">
@@ -168,15 +156,6 @@
 
 
 <script>
-  // Update discount and final price based on selected coupon
-  // document.getElementById('couponSelect').addEventListener('change', function () {
-  //   const selectedOption = this.options[this.selectedIndex];
-  //   const discountValue = parseFloat(selectedOption.getAttribute('data-discount')) || 0;
-  //   const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
-  //   const finalPrice = originalPrice - discountValue;
-  //   document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
-  //   document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
-  // });
 
 
 
@@ -244,113 +223,6 @@
   
 });
 
-  // if (selectedPaymentMethod === 'Online Payment') {
-  //   try {
-  //     const orderResponse = await fetch('/razorpay/create_order', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ totalAmount: totalOrderPrice }),
-  //     });
-
-  //     if (!orderResponse.ok) {
-  //       throw new Error("Failed to create Razorpay order");
-  //     }
-
-  //     const orderData = await orderResponse.json();
-  //     console.log("Order Data:", orderData); // Debugging output
-
-  //     const options = {
-  //       key: '<%= razorpayKey %>',
-  //       amount: orderData.amount,
-  //       currency: orderData.currency,
-  //       name: 'Your Store Name',
-  //       description: 'Order Payment',
-  //       order_id: orderData.id,
-  //       handler: async function (response) {
-  //         const successResponse = await fetch('/razorpay/success', {
-  //           method: 'POST',
-  //           headers: { 'Content-Type': 'application/json' },
-  //           body: JSON.stringify({
-  //             orderId: orderData.id,
-  //             paymentId: response.razorpay_payment_id,
-  //           }),
-  //         });
-
-  //         if (successResponse.ok) {
-  //           window.location.href = '/order/success';
-  //         } else {
-  //           alert('There was an issue processing your payment. Please try again.');
-  //         }
-  //       },
-  //       theme: {
-  //         color: '#d35400',
-  //       },
-  //     };
-
-  //     const razorpay = new Razorpay(options);
-  //     razorpay.open();
-  //   } catch (error) {
-  //     console.error("Error during Razorpay process:", error);
-  //     alert('An error occurred while processing your order. Please try again later.');
-  //   }
-  // } else {
-   
-
-
-  // Handle place order button click
-//   document.getElementById('placeOrderBtn').addEventListener('click', async function (event) {
-//   event.preventDefault();
   
-//   const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
-//   const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-
-//   if (selectedPaymentMethod === 'Online Payment') {
-//     try {
-//       const orderResponse = await fetch('/razorpay/create_order', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ totalAmount: totalOrderPrice }),
-//       });
-
-//       if (!orderResponse.ok) {
-//         throw new Error("Failed to create Razorpay order");
-//       }
-
-//       const orderData = await orderResponse.json();
-//       console.log("Order Data:", orderData); // Debugging output
-
-//       const options = {
-//         key: '<%= razorpayKey %>',
-//         amount: orderData.amount,
-//         currency: orderData.currency,
-//         name: 'Your Store Name',
-//         description: 'Order Payment',
-//         order_id: orderData.id,
-//         handler: async function (response) {
-//           const successResponse = await fetch('/razorpay/success', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({
-//               orderId: orderData.id,
-//               paymentId: response.razorpay_payment_id,
-//             }),
-//           });
-//           window.location.href = '/order/success';
-//         },
-//         theme: {
-//           color: '#d35400',
-//         },
-//       };
-
-//       const razorpay = new Razorpay(options);
-//       razorpay.open();
-//     } catch (error) {
-//       console.error("Error during Razorpay process:", error);
-//     }
-//   } else {
-//     document.getElementById('orderForm').submit();
-//   }
-// });
-
 </script>
 

@@ -7,76 +7,7 @@ const User = require("../../models/userSchema");
 const Coupon = require("../../models/couponSchema");
 //const Wallet = require('../../models/wishlistSchema')
 const env = require("dotenv").config();
-const {
-  createOrder,
-} = require("../../controllers/user/razorpayController");
 
-
-// const getOrderPage = async (req, res) => {
-//   console.log('enter to getr order page');
-  
-//   try {
-//     const userId = req.session.user || req.user;
-//     console.log('new use', userId);
-    
-//     const user = await User.findById(userId);
-//     const cart = await Cart.findOne({ userId }).populate("items.productId");
-//     const addressData = await Address.find({ userId });
-//     console.log('chekout1',userId);
-//     console.log('chekout2',user);
-//     console.log('chekout3',cart);
-//     console.log('chekout4',addressData);
-    
-
-//     // Fetch coupons that are active and not yet used by the user, and under their usage limit
-//     const couponData = await Coupon.find({
-//       status: "Active",
-//       usageLimit: { $gt: 0 },  // Only get coupons with usage limit greater than 0
-//       redeemedUsers: { $nin: [userId] }
-//     });
-    
-// console.log('chekout coupon datas', couponData);
-// const cart = await Cart.findOne({ userId }).populate("items.productId");
-
-//     // const order = await Order.findOne({ userId, status: "Processing" });
-//     // console.log('chek out ',order);
-//     // if (!order) {
-//     //   return res.redirect("/cart");
-//     // }
-    
-
-
-//     // const orderId = order._id;
-//     const totalOrderPrice = cart.items.reduce((total, item) => {
-//       return total + (item.totalPrice || 0);
-//     }, 0);
-
-//     res.render("order", {
-//       cartItems: cart.items,
-//       totalOrderPrice,
-//       addressData,
-//       couponData,
-//       user,
-//       orderId,
-//       razorpayKey: process.env.RAZORPAY_KEY_ID ,
-      
-    
-//     });
-//     console.log({
-//       cartItems: cart.items,
-//       totalOrderPrice,
-//       addressData,
-//       couponData,
-//       user,
-//       orderId,
-//       razorpayKey: process.env.RAZORPAY_KEY_ID,
-//   });
-  
-//   } catch (error) {
-//     console.error("Error rendering order page:", error);
-//     res.status(500).send("Internal server error");
-//   }
-// };
 
 const getOrderPage = async (req, res) => {
   try {
