@@ -59,37 +59,33 @@
   </style>
 </head>
 <body>
-    <div class="container">
-      <h1>Your Wallet Balance</h1>
-      <p>Balance: &#8377;<%= walletBalance %></p>
-      
-      <a class="button" href="/shop">Continue Shopping</a>
 
-      <div class="transaction-history">
-        <h2>Transaction History</h2>
-        <div class="transaction">
-          <span>Order #12345</span>
-          <span>&#8377; -500</span>
-        </div>
-        <div class="transaction">
-          <span>Order #12346</span>
-          <span>&#8377; -300</span>
-        </div>
-        <div class="transaction">
-          <span>Order #12347</span>
-          <span>&#8377; +200</span>
-        </div>
-        <div class="transaction">
-          <span>Order #12348</span>
-          <span>&#8377; -150</span>
-        </div>
-        <div class="transaction">
-          <span>Order #12349</span>
-          <span>&#8377; +1000</span>
-        </div>
-      </div>
+  <div class="container">
+    <h1>Your Wallet Balance</h1>
+    <p>Balance: &#8377;<%= walletBalance %></p>
+  
+    <a class="button" href="/shop">Continue Shopping</a>
+  
+    <div class="transaction-history">
+      <h2>Transaction History</h2>
+  
+      <!-- Check if walletTransactions is defined and has entries -->
+      <% if (!walletTransactions || walletTransactions.length === 0) { %>
+        <p>No transactions available.</p>
+      <% } else { %>
+        <% walletTransactions.forEach(function(transaction) { %>
+          <div class="transaction">
+            <span>Date: <%= new Date(transaction.date).toLocaleDateString() %></span>
+            <span>&#8377; <%= transaction.amount %></span>
+            
+          </div>
+        <% }); %>
+      <% } %>
     </div>
+  </div>
+  
   <%- include("../../views/partials/user/footer") %>
-</body>
+  
+    </body>
 </html>
 

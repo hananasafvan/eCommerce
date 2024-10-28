@@ -11,21 +11,58 @@
     background-color: #f4f4f9;
     margin: 0;
     padding: 0;
-  }
+    overflow-x: hidden; /* This removes the horizontal scrollbar */
+}
 
-  .product-container {
+.product-container {
     display: flex;
-    flex-direction: row; /* Arrange side by side */
+    flex-direction: row;
     justify-content: space-between;
     max-width: 100%;
-    margin-left: 50px;
-    padding-top: 50px;
+    padding: 50px;
     background-color: #00131c;
     color: white;
     margin-bottom: 20px;
-  
-  }
-  
+    box-sizing: border-box; /* Ensure padding doesn't cause overflow */
+}
+
+.product-images img {
+    max-width: 100%; /* Ensure the images do not overflow */
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+    background-color: #007bff;
+}
+
+.related-products {
+    padding: 50px 20px;
+    background-color: #00131c;
+    box-sizing: border-box; /* Ensure padding doesn't cause overflow */
+}
+
+.related-products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensures the overall container width doesn't cause overflow */
+.img {
+    width: 100%;
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+
   .product-details {
     flex: 1; 
     padding-top: 50px;
@@ -40,15 +77,7 @@
     padding: 20px;
   }
 
-  .product-images img {
-    max-width: 300px;
-    height: auto;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    cursor: zoom-in;
-    transition: transform 0.3s ease;
-    background-color: #007bff;
-  }
+  
 
   .image-container {
     text-align: center;
@@ -197,7 +226,7 @@
 </head>
 
 <body>
-  <div class="img">
+  <div class="img" style="width: 100%;">
     <div class="breadcrumb-container">
       <a href="/" style="color:white">Home</a> / <a href="/shop" style="color: white;">Shop</a> /
       <% if (product) { %>
@@ -209,7 +238,7 @@
   </div>
 
   <% if (product) { %>
-    <div class="product-container">
+    <div class="product-container" style="width: 100%;">
       <!-- Product Images with Click-to-Zoom -->
       <div class="product-images">
         <% product.productImage.forEach(image => { %>
@@ -220,7 +249,7 @@
       </div>
 
       <!-- Product Details -->
-      <div class="product-details">
+      <div class="product-details" style="margin-left: 100px;">
         <h5 style="color: white; font-family: fantasy;"><%= product.productName %></h5>
         <br>
         <p class="price" style="font-size: 14px;">&#8377;<%= product.regularPrice %></p>
@@ -267,14 +296,14 @@
   </div>
   
    </div>
-   <div class="relatedprodect"></div>
+   <div class="relatedprodect" style="width: 100%;"></div>
   <% } else { %>
     <p style="text-align: center;">This product is currently unavailable.</p>
   <% } %>
 
   
 
-<div class="related-products">
+<div class="related-products" style="margin-bottom: 20px;">
   <h3 style="text-align: center; color: #d35400; margin-bottom: 20px;">Related Products</h3>
   <div class="related-products-grid">
       <% relatedProducts.forEach(product => { %>

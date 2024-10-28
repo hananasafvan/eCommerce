@@ -1,6 +1,6 @@
 const User = require("../../models/userSchema");
-const Category = require('../../models/categorySchema')
-const Product= require("../../models/productShema")
+const Category = require("../../models/categorySchema");
+const Product = require("../../models/productShema");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const env = require("dotenv").config();
@@ -42,48 +42,6 @@ async function sentVerificationEmail(email, otp) {
   }
 }
 
-// const signup = async (req, res) => {
-//   try {
-//     const { name, phone, email, password, cPassword } = req.body;
-
-//     if (password !== cPassword) {
-//       return res.render("signup", { message: "password note match" });
-//     }
-
-//     const findUser = await User.findOne({ email });
-//     if (findUser) {
-//       return res.render("signup", {
-//         message: "user alredy exist with this email",
-//       });
-//     }
-//     const otp = generateOtp();
-
-//     const emailSent = await sentVerificationEmail(email, otp);
-//     if (!emailSent) {
-//       return res.json("email-error");
-//     }
-//     req.session.userOtp = otp;
-//     req.session.userData = { name, phone, email, password };
-//     res.render("verify-otp");
-//     console.log("otp sent", otp);
-//   } catch (error) {
-//     console.error("signup error", error);
-
-//     if (error.code === 11000) {
-//       // Duplicate key error
-//       console.error("Duplicate key error", error.message);
-//       res.status(400).render("signup", {
-//         message: "An account with this email already exists.",
-//       });
-//     } else {
-//       console.error("Signup error", error);
-//       res.redirect("/pageNotFound");
-//     }
-//   }
-// };
-
-
-
 const signup = async (req, res) => {
   try {
     const { name, phone, email, password, cPassword, referralCode } = req.body;
@@ -94,7 +52,9 @@ const signup = async (req, res) => {
 
     const findUser = await User.findOne({ email });
     if (findUser) {
-      return res.render("signup", { message: "User already exists with this email" });
+      return res.render("signup", {
+        message: "User already exists with this email",
+      });
     }
 
     const otp = generateOtp();
@@ -104,7 +64,6 @@ const signup = async (req, res) => {
       return res.json("email-error");
     }
 
-    // Store user data temporarily in session, including referralCode
     req.session.userOtp = otp;
     req.session.userData = { name, phone, email, password, referralCode };
 
@@ -114,15 +73,16 @@ const signup = async (req, res) => {
     console.error("Signup error", error);
 
     if (error.code === 11000) {
-      res.status(400).render("signup", { message: "An account with this email already exists." });
+      res
+        .status(400)
+        .render("signup", {
+          message: "An account with this email already exists.",
+        });
     } else {
       res.redirect("/pageNotFound");
     }
   }
 };
-
-
-
 
 const loadSignup = async (req, res) => {
   try {
@@ -136,25 +96,23 @@ const loadSignup = async (req, res) => {
 const loadHomepage = async (req, res) => {
   try {
     const user = req.session.user;
-    const categories = await Category.find({isListed:true})
+    const categories = await Category.find({ isListed: true });
     let productData = await Product.find({
-      isBlocked:false,
-      category:{$in:categories.map(category =>category._id)},
-      quantity:{$gt:0}
-    })
-     
-    productData.sort((a,b)=>(b.createdon)-(a.createdon))
-    productData= productData.slice(0,4)
+      isBlocked: false,
+      category: { $in: categories.map((category) => category._id) },
+      quantity: { $gt: 0 },
+    });
 
-
+    productData.sort((a, b) => b.createdon - a.createdon);
+    productData = productData.slice(0, 4);
 
     if (user) {
       const userData = await User.findById(user);
       if (userData && !userData.isBlocked) {
         res.locals.user = userData;
-        return res.render("home", { user: userData,products:productData });
+        return res.render("home", { user: userData, products: productData });
       } else {
-        // Destroy the session and redirect to login if blocked
+        // Destroy the session and redirect to login is blocked by admin
         req.session.destroy((err) => {
           if (err) {
             console.log("Session destruction error:", err);
@@ -165,8 +123,8 @@ const loadHomepage = async (req, res) => {
       }
     } else {
       res.locals.user = null;
-      return res.render("home",{
-        products:productData
+      return res.render("home", {
+        products: productData,
       });
     }
   } catch (error) {
@@ -183,33 +141,6 @@ const securePassword = async (password) => {
   } catch (error) {}
 };
 
-// const verifyOtp = async (req, res) => {
-//   try {
-//     const { otp } = req.body;
-//     console.log(otp);
-//     if (otp === req.session.userOtp) {
-//       const user = req.session.userData;
-//       const passwordHash = await securePassword(user.password);
-//       const saveUserData = new User({
-//         name: user.name,
-//         email: user.email,
-//         phone: user.phone,
-//         password: passwordHash,
-//       });
-//       await saveUserData.save();
-//       req.session.user = saveUserData._id;
-//       res.json({ success: true, redirectUrl: "/" });
-//     } else {
-//       res
-//         .status(400)
-//         .json({ success: false, message: "invalid otp , pleace try again" });
-//     }
-//   } catch (error) {
-//     console.error("error veryfing otp", error);
-//     res.status(500).json({ success: false, message: "An error occure" });
-//   }
-// };
-
 const verifyOtp = async (req, res) => {
   try {
     const { otp } = req.body;
@@ -218,52 +149,49 @@ const verifyOtp = async (req, res) => {
       const user = req.session.userData;
       const passwordHash = await securePassword(user.password);
 
-      const saveUserData  = new User({
+      const saveUserData = new User({
         name: user.name,
         email: user.email,
         phone: user.phone,
         password: passwordHash,
-        referralCode: uuidv4(), // Generate referral code for the new user
-        walletBalance: 0
+        referralCode: uuidv4(),
+        walletBalance: 0,
       });
 
-      // Handle referral code if provided
       if (user.referralCode) {
-        const referrer = await User.findOne({ referralCode: user.referralCode });
+        const referrer = await User.findOne({
+          referralCode: user.referralCode,
+        });
 
         if (referrer) {
-          // Add ₹100 to both the new user's wallet and the referrer's wallet
           referrer.walletBalance += 100;
           newUser.walletBalance += 100;
 
-          // Add the new user to the referrer's redeemedUsers list
           referrer.redeemedUsers.push(newUser._id);
 
-          // Save referrer changes
           await referrer.save();
         } else {
           return res.render("signup", { message: "Invalid referral code" });
         }
       }
 
-      // Save the new user
       await saveUserData.save();
 
-      // Log the user in and clear session data
       req.session.user = saveUserData._id;
       req.session.userOtp = null;
       req.session.userData = null;
 
       res.json({ success: true, redirectUrl: "/" });
     } else {
-      res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
+      res
+        .status(400)
+        .json({ success: false, message: "Invalid OTP, please try again" });
     }
   } catch (error) {
     console.error("Error verifying OTP", error);
     res.status(500).json({ success: false, message: "An error occurred" });
   }
 };
-
 
 const resendOtp = async (req, res) => {
   try {

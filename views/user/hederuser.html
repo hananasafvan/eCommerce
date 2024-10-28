@@ -1,206 +1,88 @@
-<div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30px;">
-    <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
-          <!-- Address Selection -->
-          <div class="mb-4">
-            <h4>Select Delivery Address</h4>
-            <select name="selectedAddress" class="form-select">
-              <% addressData.forEach(address => { %>
-                <option value="<%= address._id %>">
-                  <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
-                </option>
-              <% }) %>
-            </select>
-          </div>
-  
-          <!-- Payment Method Selection -->
-          <div class="mb-4">
-            <h4>Select Payment Method</h4>
-            <label>
-              <input type="radio" name="paymentMethod" value="Cash on Delivery" checked> Cash on Delivery
-            </label>
-            <label>
-              <input type="radio" name="paymentMethod" value="Online Payment"> Online Payment
-            </label>
-            <label>
-              <input type="radio" name="paymentMethod" value="Wallet"> Wallet
-            </label>
-            <div id="walletErrorMessage" style="color: red; display: none;"></div> <!-- Error message container -->
-  
-          </div>
-  
-          <!-- Hidden field for wallet balance -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <style>
+        .order-details {
+            box-shadow: 0 4px 8px rgba(240, 32, 32, 0.1);
+            border-radius: 10px;
         
-          <input type="hidden" id="userWalletBalance" value="<%= user ? user.walletBalance : 0 %>">
-  
-          <!-- Coupon Selection -->
-          <div class="mb-4">
-            <h4>Select Coupon</h4>
-            <select name="coupon" id="couponSelect" class="form-select">
-              <option value="" data-discount="0">No Coupon</option>
-              <% couponData.forEach(coupon => { %>
-                <option value="<%= coupon._id %>" data-discount="<%= coupon.discountValue %>">
-                  <%= coupon.description %> - Discount: <%= coupon.discountValue %>
-                </option>
-              <% }) %>
-            </select>
-          </div>
-  
-          <!-- Cart Items -->
-          <div class="mb-4">
-            <h4>Your Cart Items</h4>
-            <ul class="list-group">
-              <% cartItems.forEach(item => { %>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong><%= item.productId.productName %></strong>
-                    <div>Quantity: <%= item.quantity %></div>
-                  </div>
-                  <span>Total: &#8377; <%= item.totalPrice %></span>
+        }
+
+        .order-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 10px 10px 0 0;
+            
+        }
+
+        .order-products {
+            border-top: 1px solid #dee2e6;
+            padding-top: 15px;
+        }
+
+        .img-thumbnail {
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .total-price {
+            font-size: 1.25rem;
+            color: #d35400;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Include Header Partial -->
+    <%- include("../../views/partials/user/headerNew") %>
+
+    <div class="container mt-5 mb-5" style="background-color: #00131c; width: 90%;">
+        <h3 class="text-center mb-5" style="color: white;">Order Details</h3>
+
+        <div class="order-details card p-4" style=" width: 90%; margin-left: 55px;">
+            <div class="order-header">
+                <h5>Order ID: <%= order._id.toString().slice(-7) %></h5>
+                <p style="color: #00131c;">Placed on: <%= order.createdAtFormatted %></p>
+            </div>
+
+            <h6 class="mt-4" style="color: #d35400; font-weight: bold;">Delivery Address</h6>
+            <p class="mb-4" style="margin-top: 10px; color: #00131c;">
+                <%= order.address.name %>, <%= order.address.city %>, <%= order.address.state %> - <%= order.address.pincode %>
+            </p>
+            <p class="mb-4" style="margin-top: -10px;color: #000;"> Phone:<%= order.address.phone %></p>
+
+            <!-- <h6 style="margin-left: 50px;">Products</h6> -->
+            <ul class="list-unstyled order-products">
+                <% order.items.forEach(item => { %>
+                <li class="d-flex align-items-center mb-4 border-bottom pb-3">
+                    <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail me-3" style="width: 100px; height: 100px;">
+                    <div>
+                        <strong style="color: #d35400;"><%= item.productId.productName %></strong>
+                        <div>Quantity: <%= item.quantity %></div>
+                        <div>Status: <%= item.status %></div>
+                        <span>Total:&#8377; <%= item.totalPrice %> </span>
+                    </div>
                 </li>
-              <% }) %>
+                <% }) %>
             </ul>
-            <p style="text-align: right;">Original Total: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
-            <p style="text-align: right;" id="discountAmount">Discount: &#8377; 0.00</p>
-            <p style="text-align: right;" id="finalTotalPrice">Final Price: &#8377; <%= totalOrderPrice.toFixed(2) %></p>
-          </div>
-  
-          <div class="text-center">
-            <button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">
-              Place Order
-            </button>
-            <button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
-              <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
-            </button>
-          </div>
-        </form>
-      </div>
+
+            <!-- <p class="total-price"><strong>Total Order Price: $<%= order.totalOrderPrice %> </strong></p> -->
+        </div>
+
+        <a href="/order/history" class="btn btn-secondary mt-4" style="margin-bottom: 20px;margin-left: 55px; border: none; background-color: #d35400;">Back to Order History</a>
     </div>
-  </div>
-  
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
-  <script>
-    document.getElementById('couponSelect').addEventListener('change', function () {
-      const selectedOption = this.options[this.selectedIndex];
-      const discountValue = parseFloat(selectedOption.getAttribute('data-discount')) || 0;
-      const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
-      const finalPrice = originalPrice - discountValue;
-      document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
-      document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
-    });
-  
-    
-    const walletRadioButton = document.querySelector('input[name="paymentMethod"][value="Wallet"]');
-    const userWalletBalance = parseFloat(document.getElementById('userWalletBalance').value);
-  
-    
-    walletRadioButton.addEventListener('change', function() {
-      const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
-      
-      if (userWalletBalance < totalOrderPrice) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Insufficient Wallet Balance',
-          text: 'Your wallet balance is insufficient. Please choose another payment method.',
-          confirmButtonColor: '#d33'
-        });
-        
-         }
-    });
-  
-  
-  
-    document.getElementById('placeOrderBtn').addEventListener('click', function (event) {
-    const walletBalance = parseFloat(document.getElementById('userWalletBalance').value);
-    const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
-    const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-  
-    
-    const walletErrorMessage = document.getElementById('walletErrorMessage');
-    walletErrorMessage.textContent = '';
-    walletErrorMessage.style.display = 'none';
-  
-    if (selectedPaymentMethod === "Wallet" && walletBalance < totalOrderPrice) {
-      
-      event.preventDefault();
-      walletErrorMessage.textContent = 'Insufficient wallet balance. Please choose another payment method.';
-      walletErrorMessage.style.display = 'block'; 
-    }
-    
-    else {
-    
-      document.getElementById('orderForm').submit();
-    }
-  });
-  
-  </script>
 
+    <!-- Include Footer Partial -->
+    <%- include("../../views/partials/user/footer") %>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 
-
-
-
-
-
-
-const signup = async (req, res) => {
-  try {
-    const { name, phone, email, password, cPassword, referralCode } = req.body;
-
-    if (password !== cPassword) {
-      return res.render("signup", { message: "Passwords do not match" });
-    }
-
-    // Check if the email already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.render("signup", { message: "User already exists with this email" });
-    }
-
-    // Generate a hashed password
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    // Create a new user
-    const newUser = new User({
-      name,
-      phone,
-      email,
-      password: passwordHash,
-      referralCode: uuidv4() // Generate referral code using uuidv4
-    });
-
-    // Check if a referral code was provided
-    if (referralCode) {
-      const referrer = await User.findOne({ referralCode });
-
-      if (referrer) {
-        // Add ₹100 to both the new user's wallet and the referrer's wallet
-        referrer.walletBalance += 100;
-        newUser.walletBalance += 100;
-
-        // Add the new user to the referrer's redeemedUsers list
-        referrer.redeemedUsers.push(newUser._id);
-
-        // Save referrer changes
-        await referrer.save();
-      } else {
-        return res.render("signup", { message: "Invalid referral code" });
-      }
-    }
-
-    // Save the new user
-    await newUser.save();
-
-    // Log the new user in and redirect to the homepage
-    req.session.user = newUser._id;
-    res.redirect("/");
-
-  } catch (error) {
-    console.error("Signup error:", error);
-    res.redirect("/pageNotFound");
-  }
-};
+</html>

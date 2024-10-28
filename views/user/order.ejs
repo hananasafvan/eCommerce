@@ -165,11 +165,11 @@
     const originalPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
     const finalPrice = originalPrice - discountValue;
 
-    // Display discount and final price
+    //  discount  final price
     document.getElementById('discountAmount').innerText = 'Discount: ₹' + discountValue.toFixed(2);
     document.getElementById('finalTotalPrice').innerText = 'Final Price: ₹' + finalPrice.toFixed(2);
 
-    // Fetch coupon details from server to check for minimum purchase requirement
+    
     fetch('/apply-coupon', {
         method: 'POST',
         headers: {
@@ -180,15 +180,14 @@
     .then(response => response.json())
     .then(data => {
         if (data.error) {
-            // Show the error message using SweetAlert
+        
             Swal.fire({
                 icon: 'error',
                 title: 'Oops...',
-                text: data.error, // Set the error message
+                text: data.error, 
             });
         } else {
-            // Continue to show the discount and final price if no error
-            // Hide any previous error alerts if needed
+            
         }
     })
     .catch(error => {
@@ -197,7 +196,7 @@
 });
 
 
-  // Validate wallet payment option
+  //  wallet payment 
   const walletRadioButton = document.querySelector('input[name="paymentMethod"][value="Wallet"]');
   const userWalletBalance = parseFloat(document.getElementById('userWalletBalance').value);
   

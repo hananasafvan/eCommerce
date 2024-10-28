@@ -33,31 +33,31 @@ const updateOrderStatus = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { status } = req.body;
 
-    // Find the order by orderId
+    
     const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).send("Order not found");
     }
 
-    // Find the item in the order
+
     const itemIndex = order.items.findIndex((item) => item.itemId === itemId);
     if (itemIndex === -1) {
       return res.status(404).send("Item not found");
     }
 
-    // Update the status of the item
+    // Update status of item
     order.items[itemIndex].status = status;
 
-    // If status is "Returned", update the product quantity and wallet balance
+    
     if (status === "Returned") {
-      const productId = order.items[itemIndex].productId._id; // Ensure this is correct
+      const productId = order.items[itemIndex].productId._id; 
       const product = await Product.findById(productId);
       if (!product) {
         return res.status(404).send("Product not found");
       }
 
       const quantity = order.items[itemIndex].quantity;
-      const itemPrice = product.salePrice; // Get the correct price from the product
+      const itemPrice = product.salePrice; 
 
       console.log(`Item Price: ${itemPrice}`);
       if (typeof itemPrice !== 'number' || isNaN(itemPrice)) {
@@ -67,18 +67,18 @@ const updateOrderStatus = async (req, res) => {
       product.quantity += quantity;
       await product.save();
 
-      // Update the user's wallet balance
+      
       const user = await User.findById(order.userId);
       if (!user) {
         return res.status(404).send("User not found");
       }
 
       if (typeof user.walletBalance !== 'number' || isNaN(user.walletBalance)) {
-        user.walletBalance = 0; // Set to 0 if not a number
+        user.walletBalance = 0; 
       }
 
       console.log(`Current Wallet Balance: ${user.walletBalance}`);
-      user.walletBalance += itemPrice; // Add the price of the returned item to the user's wallet
+      user.walletBalance += itemPrice; 
       console.log(`Updated Wallet Balance: ${user.walletBalance}`);
       await user.save();
     }

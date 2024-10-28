@@ -10,7 +10,7 @@ const verifyPayment = async (req, res) => {
   const generatedSignature = hmac.digest('hex');
 
   if (generatedSignature === razorpay_signature) {
-    // Signature matches, create the order in the database
+    
     const order = new Order({
       userId: req.session.user._id,
       items: req.session.cart.items,
@@ -22,7 +22,7 @@ const verifyPayment = async (req, res) => {
     await order.save();
     res.json({ success: true });
   } else {
-    // Signature doesn't match
+    
     res.json({ success: false });
   }
 };
