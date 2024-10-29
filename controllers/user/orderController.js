@@ -171,6 +171,10 @@ const placeOrder = async (req, res) => {
     }
 
     const address = await Address.findById(selectedAddress);
+console.log('cart item length ',cart.items.length);
+const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+console.log('total item length',totalQuantity);
+
 
     let totalOrderPrice = cart.items.reduce((total, item) => {
       const product = item.productId;
@@ -203,7 +207,21 @@ const placeOrder = async (req, res) => {
       if (couponData.discountType === "percentage") {
         totalOrderPrice -= totalOrderPrice * (discountValue / 100);
       } else {
-        totalOrderPrice -= discountValue;
+        let coupenPerUnit = (discountValue/totalQuantity).toFixed(3)
+        console.log('coupen per unit', coupenPerUnit);
+        cart.items.forEach((item) => {
+          const quantity = item.quantity
+          const price = item.price
+          let totalprice = item.totalPrice
+          console.log('`Quantity:',quantity);
+          console.log('`Price per Unit: ',price);
+          const discountForItem = coupenPerUnit * quantity;
+          item.totalPrice = totalprice - discountForItem;
+        });
+        // let totalPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
+        // console.log('total prices',totalPrice);
+        
+        totalOrderPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
       }
 
       if (!couponData.redeemedUsers.includes(userId)) {

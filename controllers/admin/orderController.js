@@ -142,7 +142,7 @@ const updateOrderStatus = async (req, res) => {
         return res.status(400).send("Invalid item price");
       }
 
-      const refundAmount = itemPricePerUnit * item.quantity;
+      const refundAmount =  item.totalPrice;
 
       // Increase product stock by the returned quantity
       product.quantity += item.quantity;
