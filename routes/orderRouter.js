@@ -26,7 +26,7 @@ router.post("/return/:orderId/:itemId", userAuth, orderController.returnItem);
 router.get('/wallet',userAuth, walletController.showWallet);
 router.post('/wallet/update',userAuth ,walletController.updateWallet);
 
-router.post('/pay',paymentController.payproduct);
+router.post('/pay',orderController.placeOrder);
 router.get('/success',paymentController.successPage)
 router.get('/cancel',paymentController.cancelPage)
   

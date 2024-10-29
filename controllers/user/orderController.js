@@ -50,38 +50,38 @@ const getOrderPage = async (req, res) => {
   }
 };
 
-const getOrderHistory = async (req, res) => {
-  const userId = req.session.user || req.user;
+// const getOrderHistory = async (req, res) => {
+//   const userId = req.session.user || req.user;
 
-  if (!userId) {
-    return res.redirect("/login");
-  }
+//   if (!userId) {
+//     return res.redirect("/login");
+//   }
 
-  try {
-    const orders = await Order.find({ userId })
+//   try {
+//     const orders = await Order.find({ userId })
 
-      .sort({ createdAt: -1 })
-      .populate("userId")
-      .populate({
-        path: "address",
-        model: "Address",
-      })
+//       .sort({ createdAt: -1 })
+//       .populate("userId")
+//       .populate({
+//         path: "address",
+//         model: "Address",
+//       })
 
-      .populate("items.productId")
-      .exec();
+//       .populate("items.productId")
+//       .exec();
 
-    const userData = await User.findById(userId);
-    res.locals.user = userData;
+//     const userData = await User.findById(userId);
+//     res.locals.user = userData;
 
-    res.render("orderHistory", {
-      user: userData,
-      orders,
-    });
-  } catch (error) {
-    console.error("Error retrieving order history:", error);
-    res.status(500).send("Internal server error");
-  }
-};
+//     res.render("orderHistory", {
+//       user: userData,
+//       orders,
+//     });
+//   } catch (error) {
+//     console.error("Error retrieving order history:", error);
+//     res.status(500).send("Internal server error");
+//   }
+// };
 
 const getOrderDetails = async (req, res) => {
   const userId = req.session.user || req.user;
@@ -111,12 +111,56 @@ const getOrderDetails = async (req, res) => {
   }
 };
 
+const getOrderHistory = async (req, res) => {
+  const userId = req.session.user || req.user;
+
+  if (!userId) {
+    return res.redirect("/login");
+  }
+
+  // Define pagination variables
+  const page = parseInt(req.query.page) || 1; // Get current page or default to 1
+  const limit = 5; // Items per page
+  const skip = (page - 1) * limit;
+
+  try {
+    // Get total orders count for the user
+    const totalOrders = await Order.countDocuments({ userId });
+
+    // Fetch paginated orders
+    const orders = await Order.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("userId")
+      .populate({
+        path: "address",
+        model: "Address",
+      })
+      .populate("items.productId")
+      .exec();
+
+    const userData = await User.findById(userId);
+    res.locals.user = userData;
+
+    res.render("orderHistory", {
+      user: userData,
+      orders,
+      currentPage: page,
+      totalPages: Math.ceil(totalOrders / limit),
+    });
+  } catch (error) {
+    console.error("Error retrieving order history:", error);
+    res.status(500).send("Internal server error");
+  }
+};
+
+
 const placeOrder = async (req, res) => {
   try {
     const userId = req.session.user || req.user;
     const { selectedAddress, paymentMethod, coupon } = req.body;
 
-    //address validation ?empty
     if (!mongoose.Types.ObjectId.isValid(selectedAddress)) {
       throw new Error("Invalid address ID");
     }
@@ -127,10 +171,18 @@ const placeOrder = async (req, res) => {
     }
 
     const address = await Address.findById(selectedAddress);
-    let totalOrderPrice = cart.items.reduce(
-      (total, item) => total + (item.totalPrice || 0),
-      0
-    );
+
+    let totalOrderPrice = cart.items.reduce((total, item) => {
+      const product = item.productId;
+      const effectivePrice = product.salePrice || product.regularPrice;
+
+      const discountMultiplier = (100 - (product.productOffer || 0)) / 100;
+      const itemPrice = effectivePrice * discountMultiplier;
+
+      item.totalPrice = itemPrice * item.quantity;
+
+      return total + item.totalPrice;
+    }, 0);
 
     const couponData = coupon
       ? await Coupon.findOne({
@@ -161,7 +213,7 @@ const placeOrder = async (req, res) => {
       }
     }
 
-    // Create the new order
+    // Create new order
     const newOrder = new Order({
       userId,
       items: cart.items,
@@ -174,7 +226,7 @@ const placeOrder = async (req, res) => {
         altphone: address.altphone,
       },
       paymentMethod,
-      status: paymentMethod === "Cash on Delivery" ? "Pending" : "Pending",
+      orderStatus: "Pending",
       totalOrderPrice,
       coupon: coupon || null,
     });
@@ -184,22 +236,47 @@ const placeOrder = async (req, res) => {
     await Cart.findByIdAndDelete(cart._id);
 
     if (paymentMethod === "Cash on Delivery") {
+
+      newOrder.items.forEach(item=>item.status = "Processing");
+      newOrder.orderStatus = "Processing";
+      await newOrder.save();
+
       return res.render("confirm-cod");
+
+
+
     } else if (paymentMethod === "Wallet") {
       const user = await User.findById(userId);
       if (totalOrderPrice <= user.walletBalance) {
         user.walletBalance -= totalOrderPrice;
-
         user.walletTransactions.push({
           amount: -totalOrderPrice,
           description: `Order placed with Wallet Payment (Order ID: ${newOrder._id})`,
         });
         await user.save();
+
+      newOrder.items.forEach(item=>item.status = "Paid");
+      newOrder.orderStatus = "Processing";
+      await newOrder.save();
+
         return res.render("confirm-cod");
       } else {
         return res.status(400).send("Insufficient Wallet Balance.");
       }
     } else if (paymentMethod === "Online Payment") {
+      const items = cart.items.map((item) => ({
+        name: item.productId.productName,
+        sku: item.productId._id,
+        price: (item.totalPrice / 84.1).toFixed(2),
+        currency: "USD",
+        quantity: item.quantity,
+      }));
+
+      const totalAmount = items.reduce(
+        (sum, item) => sum + parseFloat(item.price) * item.quantity,
+        0
+      );
+
       const create_payment_json = {
         intent: "sale",
         payer: { payment_method: "paypal" },
@@ -209,18 +286,10 @@ const placeOrder = async (req, res) => {
         },
         transactions: [
           {
-            item_list: {
-              items: cart.items.map((item) => ({
-                name: item.productId.productName,
-                sku: item.productId._id,
-                price: (item.totalPrice / 84.1).toFixed(2),
-                currency: "USD",
-                quantity: item.quantity,
-              })),
-            },
+            item_list: { items },
             amount: {
               currency: "USD",
-              total: (totalOrderPrice / 84.1).toFixed(2),
+              total: totalAmount.toFixed(2),
             },
             description: "Thank you for your purchase!",
           },
@@ -234,7 +303,7 @@ const placeOrder = async (req, res) => {
         } else {
           for (let i = 0; i < payment.links.length; i++) {
             if (payment.links[i].rel === "approval_url") {
-              res.redirect(payment.links[i].href);
+              return res.redirect(payment.links[i].href);
             }
           }
         }
@@ -249,6 +318,8 @@ const placeOrder = async (req, res) => {
 const cancelItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
+    console.log('cancelitem',orderId);
+    
 
     const order = await Order.findById(orderId);
     if (!order) {
@@ -264,13 +335,13 @@ const cancelItem = async (req, res) => {
     console.log("Item Status:", item.status);
 
     if (
-      order.status === "Pending" &&
+      order.orderStatus === "Processing" &&
       item.status !== "Cancelled" &&
       item.status !== "Returned"
     ) {
       item.status =
         order.paymentMethod === "Online Payment" ||
-        order.paymentMethod === "Wallet Payment"
+        order.paymentMethod === "Wallet"
           ? "Returned"
           : "Cancelled";
       await order.save();
@@ -283,12 +354,12 @@ const cancelItem = async (req, res) => {
       product.quantity += item.quantity;
       await product.save();
 
-      order.totalOrderPrice -= item.totalPrice;
-      await order.save();
+      // order.totalOrderPrice -= item.totalPrice;
+      // await order.save();
 
       if (
         order.paymentMethod === "Online Payment" ||
-        order.paymentMethod === "Wallet Payment"
+        order.paymentMethod === "Wallet"
       ) {
         const user = await User.findById(order.userId);
         if (!user) {
@@ -304,12 +375,15 @@ const cancelItem = async (req, res) => {
         await user.save();
 
         return res.status(200).json({
-          message: "Item cancelled successfully, refund added to wallet",
+          message: "Item cancelled successfully",
         });
       }
 
       return res.status(200).json({ message: "Item cancelled successfully" });
-    } else {
+    }
+    
+    
+    else {
       return res.status(400).json({ message: "Item cannot be cancelled" });
     }
   } catch (error) {
@@ -333,21 +407,25 @@ const returnItem = async (req, res) => {
     if (item.status === "Delivered") {
       item.status = "Request to return";
       await order.save();
-
+      const refundAmount = item.totalPrice * item.quantity;
+ console.log("return amount ",returnItem);
+ 
       const product = await Product.findById(item.productId);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
 
       if (item.status === "Returned") {
+
+
         const user = await User.findById(order.userId);
         if (!user) {
           return res.status(404).json({ message: "User not found" });
         }
 
-        user.walletBalance += item.price;
+        user.walletBalance += refundAmount
         user.walletTransactions.push({
-          amount: item.price,
+          amount:refundAmount,
           description: "Item return processed",
         });
         await user.save();

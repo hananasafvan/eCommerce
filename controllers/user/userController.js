@@ -42,21 +42,66 @@ async function sentVerificationEmail(email, otp) {
   }
 }
 
+// const signup = async (req, res) => {
+//   try {
+//     const { name, phone, email, password, cPassword, referralCode } = req.body;
+
+//     if (password !== cPassword) {
+//       return res.render("signup", { message: "Passwords do not match" });
+//     }
+
+//     const findUser = await User.findOne({ email });
+//     if (findUser) {
+//       return res.render("signup", {
+//         message: "User already exists with this email",
+//       });
+//     }
+
+//     const otp = generateOtp();
+//     const emailSent = await sentVerificationEmail(email, otp);
+
+//     if (!emailSent) {
+//       return res.json("email-error");
+//     }
+
+//     req.session.userOtp = otp;
+//     req.session.userData = { name, phone, email, password, referralCode };
+
+//     res.render("verify-otp");
+//     console.log("OTP sent", otp);
+//   } catch (error) {
+//     console.error("Signup error", error);
+
+//     if (error.code === 11000) {
+//       res
+//         .status(400)
+//         .render("signup", {
+//           message: "An account with this email already exists.",
+//         });
+//     } else {
+//       res.redirect("/pageNotFound");
+//     }
+//   }
+// };
+
+
+
 const signup = async (req, res) => {
   try {
     const { name, phone, email, password, cPassword, referralCode } = req.body;
 
+    // Check if passwords match
     if (password !== cPassword) {
       return res.render("signup", { message: "Passwords do not match" });
     }
 
+    // Check if user with this email or phone already exists
     const findUser = await User.findOne({ email });
     if (findUser) {
-      return res.render("signup", {
-        message: "User already exists with this email",
-      });
+      return res.render("signup", { message: "User already exists with this email" });
     }
 
+    // Generate OTP and send verification email
     const otp = generateOtp();
     const emailSent = await sentVerificationEmail(email, otp);
 
@@ -64,9 +109,11 @@ const signup = async (req, res) => {
       return res.json("email-error");
     }
 
+    // Save user data and OTP in the session for later verification
     req.session.userOtp = otp;
     req.session.userData = { name, phone, email, password, referralCode };
 
+    // Redirect to OTP verification page
     res.render("verify-otp");
     console.log("OTP sent", otp);
   } catch (error) {
@@ -83,6 +130,7 @@ const signup = async (req, res) => {
     }
   }
 };
+
 
 const loadSignup = async (req, res) => {
   try {
@@ -145,7 +193,16 @@ const verifyOtp = async (req, res) => {
   try {
     const { otp } = req.body;
 
-    if (otp === req.session.userOtp) {
+    // Log the values for debugging
+    console.log("Received OTP:", otp);
+    console.log("Stored OTP in session:", req.session.userOtp);
+
+    // Trim whitespace and compare
+    const trimmedOtp = otp.trim();
+    const storedOtp = req.session.userOtp.trim();
+
+    if (trimmedOtp === storedOtp) {
+      // Proceed with user registration
       const user = req.session.userData;
       const passwordHash = await securePassword(user.password);
 
@@ -158,34 +215,41 @@ const verifyOtp = async (req, res) => {
         walletBalance: 0,
       });
 
+      // Referral logic
       if (user.referralCode) {
-        const referrer = await User.findOne({
-          referralCode: user.referralCode,
-        });
+        const referrer = await User.findOne({ referralCode: user.referralCode });
 
         if (referrer) {
+          // Add ₹100 to the referrer's wallet
           referrer.walletBalance += 100;
-          newUser.walletBalance += 100;
+          referrer.walletTransactions.push({
+            amount: 100,
+            description: `Referral bonus for referring ${saveUserData.name}`,
+          });
 
-          referrer.redeemedUsers.push(newUser._id);
+          // Add ₹100 to the new user's wallet
+          saveUserData.walletBalance += 100;
+          saveUserData.walletTransactions.push({
+            amount: 100,
+            description: `Referral bonus for using ${referrer.name}'s referral code`,
+          });
 
           await referrer.save();
         } else {
-          return res.render("signup", { message: "Invalid referral code" });
+          return res.status(400).json({ success: false, message: "Invalid referral code" });
         }
       }
 
       await saveUserData.save();
 
+      // Clear session data
       req.session.user = saveUserData._id;
       req.session.userOtp = null;
       req.session.userData = null;
 
       res.json({ success: true, redirectUrl: "/" });
     } else {
-      res
-        .status(400)
-        .json({ success: false, message: "Invalid OTP, please try again" });
+      res.status(400).json({ success: false, message: "Invalid OTP, please try again" });
     }
   } catch (error) {
     console.error("Error verifying OTP", error);

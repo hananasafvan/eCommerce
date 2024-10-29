@@ -11,7 +11,9 @@ const showWallet = async (req, res) => {
       return res.status(404).send("User not found");
     }
 
-    const walletTransactions = user.walletTransactions;
+    
+    const walletTransactions = user.walletTransactions.sort((a, b) => b.date - a.date);
+    
     const userData = await User.findById(userId);
     res.locals.user = userData;
 

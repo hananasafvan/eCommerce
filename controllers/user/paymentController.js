@@ -1,8 +1,8 @@
 const paypal = require("paypal-rest-sdk");
 const Order = require("../../models/orderSchema");
 const env = require("dotenv").config();
+const Cart = require("../../models/cartSchema");
 
-// Configure PayPal
 const { PAYPAL_MODE, CLIND_ID, SECRET_ID } = process.env;
 paypal.configure({
   mode: PAYPAL_MODE,
@@ -10,7 +10,6 @@ paypal.configure({
   client_secret: SECRET_ID,
 });
 
-// creating PayPal payment
 const payproduct = async (req, res) => {
   try {
     const create_payment_json = {
@@ -61,71 +60,42 @@ const payproduct = async (req, res) => {
   }
 };
 
-//successful payment
-
 const successPage = async (req, res) => {
+  const { paymentId, PayerID, orderId } = req.query;
+
   try {
-    const payerId = req.query.PayerID;
-    const paymentId = req.query.paymentId;
-
-    if (!payerId || !paymentId) {
-      return res.status(400).send("Payment ID or Payer ID not provided.");
-    }
-
-    const orderId = req.query.orderId;
-    if (!orderId) {
-      return res.status(400).send("Order ID not provided.");
-    }
-
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).send("Order not found.");
-    }
-
-    const items = order.items.map((item) => ({
-      name: item.productId.productName,
-      sku: item.productId._id,
-      price: (item.totalPrice / 84.1).toFixed(2),
-      currency: "USD",
-      quantity: item.quantity,
-    }));
-
-    const totalAmount = items
-      .reduce((acc, item) => acc + parseFloat(item.price) * item.quantity, 0)
-      .toFixed(2);
-
-    const execute_payment_json = {
-      payer_id: payerId,
-      transactions: [
-        {
-          item_list: {
-            items: items,
-          },
-          amount: {
-            currency: "USD",
-            total: totalAmount,
-          },
-          description: "Thank you for your purchase!",
-        },
-      ],
-    };
+    const execute_payment_json = { payer_id: PayerID };
 
     paypal.payment.execute(
       paymentId,
       execute_payment_json,
-      function (error, payment) {
+      async (error, payment) => {
         if (error) {
-          console.error("PayPal Payment Execution Error:", error.response);
-          return res.status(500).send("Payment execution failed");
+          console.error("PayPal Execute Error:", error);
+          return res.status(500).send("Payment execution failed.");
         } else {
-          console.log("Payment successful:", JSON.stringify(payment));
-          res.render("confirm-cod");
+          console.log("Payment successful!");
+
+          const order = await Order.findById(orderId);
+          if (!order) {
+            return res.status(404).send("Order not found.");
+          }
+
+          order.orderStatus = "Processing";
+          order.items.forEach((item) => {
+            item.status = "Paid";
+          });
+          await order.save();
+
+          await Cart.findOneAndDelete({ userId: order.userId });
+
+          return res.render("confirm-cod", { orderId });
         }
       }
     );
   } catch (error) {
-    console.error("Error processing PayPal success callback:", error.message);
-    res.status(500).send("Error processing PayPal success callback");
+    console.error("Error processing PayPal success:", error);
+    return res.status(500).send("Internal server error");
   }
 };
 

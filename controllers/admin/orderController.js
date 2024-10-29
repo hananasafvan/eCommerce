@@ -28,68 +28,68 @@ const getOrderList = async (req, res) => {
 };
 
 
-const updateOrderStatus = async (req, res) => {
-  try {
-    const { orderId, itemId } = req.params;
-    const { status } = req.body;
+// const updateOrderStatus = async (req, res) => {
+//   try {
+//     const { orderId, itemId } = req.params;
+//     const { status } = req.body;
 
     
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return res.status(404).send("Order not found");
-    }
+//     const order = await Order.findById(orderId);
+//     if (!order) {
+//       return res.status(404).send("Order not found");
+//     }
 
 
-    const itemIndex = order.items.findIndex((item) => item.itemId === itemId);
-    if (itemIndex === -1) {
-      return res.status(404).send("Item not found");
-    }
+//     const itemIndex = order.items.findIndex((item) => item.itemId === itemId);
+//     if (itemIndex === -1) {
+//       return res.status(404).send("Item not found");
+//     }
 
-    // Update status of item
-    order.items[itemIndex].status = status;
+//     // Update status of item
+//     order.items[itemIndex].status = status;
 
     
-    if (status === "Returned") {
-      const productId = order.items[itemIndex].productId._id; 
-      const product = await Product.findById(productId);
-      if (!product) {
-        return res.status(404).send("Product not found");
-      }
+//     if (status === "Returned") {
+//       const productId = order.items[itemIndex].productId._id; 
+//       const product = await Product.findById(productId);
+//       if (!product) {
+//         return res.status(404).send("Product not found");
+//       }
 
-      const quantity = order.items[itemIndex].quantity;
-      const itemPrice = product.salePrice; 
+//       const quantity = order.items[itemIndex].quantity;
+//       const itemPrice = product.salePrice; 
 
-      console.log(`Item Price: ${itemPrice}`);
-      if (typeof itemPrice !== 'number' || isNaN(itemPrice)) {
-        return res.status(400).send("Invalid item price");
-      }
+//       console.log(`Item Price: ${itemPrice}`);
+//       if (typeof itemPrice !== 'number' || isNaN(itemPrice)) {
+//         return res.status(400).send("Invalid item price");
+//       }
 
-      product.quantity += quantity;
-      await product.save();
+//       product.quantity += quantity;
+//       await product.save();
 
       
-      const user = await User.findById(order.userId);
-      if (!user) {
-        return res.status(404).send("User not found");
-      }
+//       const user = await User.findById(order.userId);
+//       if (!user) {
+//         return res.status(404).send("User not found");
+//       }
 
-      if (typeof user.walletBalance !== 'number' || isNaN(user.walletBalance)) {
-        user.walletBalance = 0; 
-      }
+//       if (typeof user.walletBalance !== 'number' || isNaN(user.walletBalance)) {
+//         user.walletBalance = 0; 
+//       }
 
-      console.log(`Current Wallet Balance: ${user.walletBalance}`);
-      user.walletBalance += itemPrice; 
-      console.log(`Updated Wallet Balance: ${user.walletBalance}`);
-      await user.save();
-    }
+//       console.log(`Current Wallet Balance: ${user.walletBalance}`);
+//       user.walletBalance += itemPrice; 
+//       console.log(`Updated Wallet Balance: ${user.walletBalance}`);
+//       await user.save();
+//     }
 
-    await order.save();
-    res.redirect("/admin/orderList");
-  } catch (error) {
-    console.error("Error updating order status:", error);
-    res.status(500).send("Internal Server Error");
-  }
-};
+//     await order.save();
+//     res.redirect("/admin/orderList");
+//   } catch (error) {
+//     console.error("Error updating order status:", error);
+//     res.status(500).send("Internal Server Error");
+//   }
+// };
 
 
 
@@ -113,6 +113,64 @@ const cancelOrder = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+    const { status } = req.body;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    const item = order.items.find((item) => item.itemId === itemId);
+    if (!item) {
+      return res.status(404).send("Item not found");
+    }
+
+    // Update item status
+    item.status = status;
+
+    if (status === "Returned") {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        return res.status(404).send("Product not found");
+      }
+
+      const itemPricePerUnit = product.salePrice || product.regularPrice;
+      if (typeof itemPricePerUnit !== 'number' || isNaN(itemPricePerUnit)) {
+        return res.status(400).send("Invalid item price");
+      }
+
+      const refundAmount = itemPricePerUnit * item.quantity;
+
+      // Increase product stock by the returned quantity
+      product.quantity += item.quantity;
+      await product.save();
+
+      // Update user wallet with the refund amount
+      const user = await User.findById(order.userId);
+      if (!user) {
+        return res.status(404).send("User not found");
+      }
+console.log('updateorderstatus refund amount',refundAmount);
+
+      user.walletBalance = (user.walletBalance || 0) + refundAmount;
+      user.walletTransactions.push({
+        amount: refundAmount,
+        description: `Refund for returned item (Order ID: ${order._id})`,
+      });
+      await user.save();
+    }
+
+    await order.save();
+    res.redirect("/admin/orderList");
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
 
 const viewOrder = async (req, res) => {
   try {

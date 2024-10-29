@@ -44,7 +44,7 @@ const orderSchema = new mongoose.Schema({
     },
   },
   paymentMethod: { type: String, required: true },
-  status: { type: String, default: "Pending" },
+  orderStatus: { type: String, default: "Pending" },
   createdAt: { type: Date, default: Date.now },
   totalOrderPrice: { type: Number, default: 0 },
   coupon: {
