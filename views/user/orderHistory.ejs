@@ -3,10 +3,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
 </head>
 <%- include("../../views/partials/user/headerNew") %>
-<div class="container" style="padding-top: 100px; background-color:#dbedf5; margin-bottom: 30px; margin-top: 30px; padding-bottom: 50px;">
-  <h3 style="text-align: center; margin-bottom: 20px; color:#00131c">Your Orders</h3>
+<div class="container" style="padding-top: 100px; background-color:#00131c; margin-bottom: 30px; margin-top: 30px; padding-bottom: 50px;">
+  <h3 style="text-align: center; margin-bottom: 20px; color:#ecf1f3">Your Orders</h3>
   <% if (orders.length > 0) { %>
-    <table class="table table-dark table-bordered">
+    <table class="table  table-bordered" style="background-color: white;">
       <thead>
         <tr>
           <th>Order ID</th>
@@ -58,7 +58,7 @@
     <p class="text-center" style="color: white;">No orders found.</p>
   <% } %>
 </div>
-<div class="pagination justify-content-center">
+<div class="pagination justify-content-center" style="margin-bottom: 20px;">
   <% for (let i = 1; i <= totalPages; i++) { %>
     <a
       href="?page=<%= i %>"
@@ -104,7 +104,7 @@ function cancelItem(orderId, itemId, button) {
             'Your item has been cancelled.',
             'success'
           ).then(() => {
-            // Reload the page after showing the success message
+            
             window.location.reload();
           });
           button.textContent = "Cancelled";
@@ -153,7 +153,10 @@ function cancelItem(orderId, itemId, button) {
               'Return Requested!',
               'Your item return has been requested.',
               'success'
-            );
+            ).then(() => {
+            
+            window.location.reload();
+          });
             button.textContent = 'Return Requested';
             button.disabled = true;
           } else {

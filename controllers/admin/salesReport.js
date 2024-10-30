@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 const ejs = require("ejs");
 
-const ExcelJS = require("exceljs");
-const puppeteer = require("puppeteer");
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productShema");
 const Coupon = require("../../models/couponSchema");
+const User = require("../../models/userSchema");
 
 const PDFDocument = require("pdfkit");
+const ExcelJS = require("exceljs");
 const fs = require("fs");
 const path = require("path");
 
@@ -126,6 +126,40 @@ const getSalesReport = async (req, res) => {
       },
     ]);
 
+    const orders = await Order.find({
+      "items.status": { $in: ["Delivered", "Paid"] },
+    })
+      .populate({
+        path: "userId",
+        select: "name",
+        model: User,
+      })
+      .populate({
+        path: "items.productId",
+        select: "productName",
+        model: Product,
+      })
+      .select("orderStatus paymentMethod items");
+
+    const result = orders
+      .map((order) => {
+        return order.items
+          .filter(
+            (item) => item.status === "Delivered" || item.status === "Paid"
+          )
+          .map((item) => ({
+            orderId: order._id,
+            username: order.userId.name,
+            status: item.status,
+            productName: item.productId.productName,
+            paymentMethod: order.paymentMethod,
+          }));
+      })
+      .flat();
+
+    console.log(result);
+    req.result = result;
+    console.log("req.salesreport", req.result);
     res.render("salesReport", {
       totalOrderCount,
       totalRevenue: totalSales[0]?.totalRevenue || 0,
@@ -137,6 +171,7 @@ const getSalesReport = async (req, res) => {
       refundAmount: refundAmount[0]?.totalRefund || 0,
       productDiscount: productDiscount[0]?.productDiscount || 0,
       couponDiscount: couponDiscount[0]?.couponDiscount || 0,
+      result,
     });
   } catch (err) {
     console.error(err);
@@ -146,276 +181,259 @@ const getSalesReport = async (req, res) => {
 
 const getSalesReportPDF = async (req, res) => {
   try {
-    const totalOrderCount = await Order.countDocuments();
+    const { dateRange, startDate, endDate } = req.query;
+    let matchCondition = {};
+    const now = new Date();
+
+    const totalOrderCount = await Order.countDocuments(matchCondition);
     const totalSales = await Order.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalRevenue: { $sum: "$totalOrderPrice" },
-        },
-      },
+      { $match: matchCondition },
+      { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
     ]);
-
     const paymentCompletedOrders = await Order.countDocuments({
-      status: "Pending",
+      status: "Completed",
+      ...matchCondition,
     });
-
     const totalOfferPrices = await Order.aggregate([
+      { $match: { coupon: { $ne: null }, ...matchCondition } },
+      { $group: { _id: null, totalOfferPrice: { $sum: "$couponAmount" } } },
+    ]);
+    const refundAmount = await Order.aggregate([
+      { $match: { status: "Refunded", ...matchCondition } },
+      { $group: { _id: null, totalRefund: { $sum: "$totalOrderPrice" } } },
+    ]);
+    const productDiscount = await Product.aggregate([
       {
-        $match: { coupon: { $ne: null } },
+        $project: {
+          discountAmount: {
+            $multiply: [{ $divide: ["$productOffer", 100] }, "$regularPrice"],
+          },
+        },
       },
+      { $group: { _id: null, productDiscount: { $sum: "$discountAmount" } } },
+    ]);
+    const couponDiscount = await Coupon.aggregate([
+      { $group: { _id: null, couponDiscount: { $sum: "$discountValue" } } },
+    ]);
+    const deliveredSales = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { "items.status": "Delivered", ...matchCondition } },
       {
         $group: {
           _id: null,
-          totalOfferPrice: { $sum: "$totalOrderPrice" },
+          totalDeliveredRevenue: { $sum: "$items.totalPrice" },
+        },
+      },
+    ]);
+    const returndSales = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { "items.status": "Returned", ...matchCondition } },
+      {
+        $group: {
+          _id: null,
+          totalReturndPrice: { $sum: "$items.totalPrice" },
         },
       },
     ]);
 
-    const productDiscount = 460;
-
-    const totalRefunds = await Order.aggregate([
-      { $match: { refundAmount: { $ne: null } } },
-      {
-        $group: {
-          _id: null,
-          refundAmount: { $sum: "$refundAmount" },
-        },
-      },
-    ]);
-
-    const refundAmount = totalRefunds[0]?.refundAmount || 0;
-
-    const orders = await Order.find({}).populate("items.productId");
-
-    const doc = new PDFDocument({ margin: 30 });
+    const doc = new PDFDocument();
+    const fileName = "Sales_Report.pdf";
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=salesReport.pdf"
-    );
-
     doc.pipe(res);
 
-    // Add title and summary section
-    doc.fontSize(20).text("Sales Summary", { align: "center" });
-    doc.moveDown();
-    doc.fontSize(12).text(`Total Orders: ${totalOrderCount}`);
-    doc.text(
-      `Total Sales (Before Discounts): ₹${(
-        totalSales[0]?.totalRevenue || 0
-      ).toFixed(2)}`
-    );
-    doc.text(`Product Discount: ₹${productDiscount}`);
-    doc.text(
-      `Net Before Coupon Discounts: ₹${(
-        totalSales[0]?.totalRevenue - productDiscount
-      ).toFixed(2)}`
-    );
-    doc.text(`Coupon Discount: ₹${totalOfferPrices[0]?.totalOfferPrice || 0}`);
-    doc.text(
-      `Net Sales: ₹${(
-        totalSales[0]?.totalRevenue -
-        productDiscount -
-        (totalOfferPrices[0]?.totalOfferPrice || 0)
-      ).toFixed(2)}`
-    );
-    doc.text(`Refund Amount: ₹${refundAmount}`);
-    doc.text(
-      `Net Sales After Refunds: ₹${(
-        totalSales[0]?.totalRevenue -
-        productDiscount -
-        (totalOfferPrices[0]?.totalOfferPrice || 0) -
-        refundAmount
-      ).toFixed(2)}`
-    );
-    doc.moveDown();
-
-    // Table headers
-    const headers = [
-      "Order ID",
-      "Order Date",
-      "Grand Total",
-      "Coupon Discount",
-      "Payment Method",
-      "Payment Status",
-      "Product Name",
-      "Quantity",
-      "Original Price",
-      "Discounted Price",
-      "Subtotal",
-      "Product Status",
-    ];
-    const columnWidths = [70, 70, 70, 70, 100, 100, 100, 50, 70, 70, 70, 80]; // Column width for each header
-    let y = doc.y; // Y position to start the table
-
-    // Draw table headers
-    headers.forEach((header, i) => {
-      doc.text(
-        header,
-        50 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0),
-        y,
-        {
-          width: columnWidths[i],
-          align: "center",
-        }
-      );
-    });
-
-    y += 20; // Move y position down for the next row
-
-    // Draw line below headers
     doc
-      .moveTo(50, y - 5)
-      .lineTo(550, y - 5)
-      .stroke();
+      .fontSize(16)
+      .text("Sales Report Summary", { align: "center" })
+      .moveDown();
+    doc
+      .fontSize(12)
+      .text(`Total Orders: ${totalOrderCount}`)
+      .text(`Total Revenue: ${totalSales[0]?.totalRevenue || 0}`)
+      .text(`Completed Payments: ${paymentCompletedOrders}`)
+      .text(`Total Offer Prices: ${totalOfferPrices[0]?.totalOfferPrice || 0}`)
+      .text(`Refund Amount: ${refundAmount[0]?.totalRefund || 0}`)
+      .text(`Product Discount: ${productDiscount[0]?.productDiscount || 0}`)
+      .text(`Coupon Discount: ${couponDiscount[0]?.couponDiscount || 0}`)
+      .text(
+        `Delivered Sales Revenue: ${
+          deliveredSales[0]?.totalDeliveredRevenue || 0
+        }`
+      )
+      .text(`Returned Sales Price: ${returndSales[0]?.totalReturndPrice || 0}`)
+      .moveDown();
 
-    // Add table rows with grid-like lines
-    orders.forEach((order) => {
-      order.items.forEach((item) => {
-        const couponAmount = order.coupon ? order.coupon.amount : 0;
-        const row = [
-          order._id,
-          order.createdAt.toLocaleDateString(),
-          `₹${(order.totalOrderPrice || 0).toFixed(2)}`,
-          `₹${couponAmount}`,
-          order.paymentMethod,
-          order.paymentStatus,
-          item.productId?.name || "N/A",
-          `${item.quantity}`,
-          `₹${(item.regularPrice || 0).toFixed(2)}`,
-          `₹${(item.totalPrice || 0).toFixed(2)}`,
-          `₹${(item.totalPrice || 0).toFixed(2)}`,
-          item.status,
-        ];
+    const orders = await Order.find({
+      "items.status": { $in: ["Delivered", "Paid"] },
+    })
+      .populate("userId", "name")
+      .populate("items.productId", "productName")
+      .select("orderStatus paymentMethod items");
+    const result = orders.flatMap((order) =>
+      order.items
+        .filter((item) => ["Delivered", "Paid"].includes(item.status))
+        .map((item) => ({
+          orderId: order._id,
+          username: order.userId.name,
+          status: item.status,
+          productName: item.productId.productName,
+          paymentMethod: order.paymentMethod,
+        }))
+    );
 
-        row.forEach((cell, i) => {
-          doc.text(
-            cell,
-            50 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0),
-            y,
-            {
-              width: columnWidths[i],
-              align: "center",
-            }
-          );
-        });
-
-        doc
-          .moveTo(50, y + 15)
-          .lineTo(550, y + 15)
-          .stroke();
-        y += 20;
-      });
+    result.forEach((item) => {
+      doc
+        .fontSize(12)
+        .text(`Order ID: ${item.orderId}`)
+        .text(`Username: ${item.username}`)
+        .text(`Status: ${item.status}`)
+        .text(`Product Name: ${item.productName}`)
+        .text(`Payment Method: ${item.paymentMethod}`)
+        .moveDown();
     });
-
-    doc.text("Thank you for your business!", 100, y + 40, { align: "center" });
 
     doc.end();
-  } catch (err) {
-    console.error("Error generating PDF:", err);
+  } catch (error) {
+    console.error(error);
     res.status(500).send("Server Error");
   }
 };
 
 const getSalesReportExcel = async (req, res) => {
   try {
-    const totalOrderCount = await Order.countDocuments();
+    const { dateRange, startDate, endDate } = req.query;
+    let matchCondition = {};
+    const now = new Date();
+
+    const totalOrderCount = await Order.countDocuments(matchCondition);
     const totalSales = await Order.aggregate([
+      { $match: matchCondition },
+      { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
+    ]);
+    const paymentCompletedOrders = await Order.countDocuments({
+      status: "Completed",
+      ...matchCondition,
+    });
+    const totalOfferPrices = await Order.aggregate([
+      { $match: { coupon: { $ne: null }, ...matchCondition } },
+      { $group: { _id: null, totalOfferPrice: { $sum: "$couponAmount" } } },
+    ]);
+    const refundAmount = await Order.aggregate([
+      { $match: { status: "Refunded", ...matchCondition } },
+      { $group: { _id: null, totalRefund: { $sum: "$totalOrderPrice" } } },
+    ]);
+    const productDiscount = await Product.aggregate([
+      {
+        $project: {
+          discountAmount: {
+            $multiply: [{ $divide: ["$productOffer", 100] }, "$regularPrice"],
+          },
+        },
+      },
+      { $group: { _id: null, productDiscount: { $sum: "$discountAmount" } } },
+    ]);
+    const couponDiscount = await Coupon.aggregate([
+      { $group: { _id: null, couponDiscount: { $sum: "$discountValue" } } },
+    ]);
+    const deliveredSales = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { "items.status": "Delivered", ...matchCondition } },
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$totalOrderPrice" },
+          totalDeliveredRevenue: { $sum: "$items.totalPrice" },
+        },
+      },
+    ]);
+    const returndSales = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { "items.status": "Returned", ...matchCondition } },
+      {
+        $group: {
+          _id: null,
+          totalReturndPrice: { $sum: "$items.totalPrice" },
         },
       },
     ]);
 
-    const paymentCompletedOrders = await Order.countDocuments({
-      status: "Completed",
-    });
-    const totalOfferPrices = await Order.aggregate([
-      {
-        $match: { coupon: { $ne: null } },
-      },
-      {
-        $group: { _id: null, totalOfferPrice: { $sum: "$totalOrderPrice" } },
-      },
-    ]);
-
-    const productDiscount = 460;
-
-    const orders = await Order.find()
-      .populate({
-        path: "items.productId",
-        select: "name regularPrice salesPrice",
-      })
-      .populate({
-        path: "coupon",
-        select: "discountValue",
-      })
-      .lean();
-
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
 
-    //summary data
-    worksheet.addRow(["Metric", "Value"]);
-    worksheet.addRow(["Total Order Count", totalOrderCount]);
+    worksheet.addRow(["Summary Data"]);
+    worksheet.addRow(["Total Orders", totalOrderCount]);
     worksheet.addRow(["Total Revenue", totalSales[0]?.totalRevenue || 0]);
-    worksheet.addRow(["Payment Completed Orders", paymentCompletedOrders]);
+    worksheet.addRow(["Completed Payments", paymentCompletedOrders]);
     worksheet.addRow([
-      "Total Offer Price",
+      "Total Offer Prices",
       totalOfferPrices[0]?.totalOfferPrice || 0,
     ]);
-    worksheet.addRow(["Product Discount", productDiscount]);
-
+    worksheet.addRow(["Refund Amount", refundAmount[0]?.totalRefund || 0]);
+    worksheet.addRow([
+      "Product Discount",
+      productDiscount[0]?.productDiscount || 0,
+    ]);
+    worksheet.addRow([
+      "Coupon Discount",
+      couponDiscount[0]?.couponDiscount || 0,
+    ]);
+    worksheet.addRow([
+      "Delivered Sales Revenue",
+      deliveredSales[0]?.totalDeliveredRevenue || 0,
+    ]);
+    worksheet.addRow([
+      "Returned Sales Price",
+      returndSales[0]?.totalReturndPrice || 0,
+    ]);
     worksheet.addRow([]);
 
     worksheet.addRow([
       "Order ID",
-      "Order Date",
-      "Total Order Price",
-      "Coupon Discount",
-      "Payment Method",
+      "Username",
+      "Status",
       "Product Name",
-      "Quantity",
-      "Regular Price",
-      "Sales Price",
-      "Product Status",
+      "Payment Method",
     ]);
 
-    orders.forEach((order) => {
-      order.items.forEach((item) => {
-        const product = item.productId;
-        worksheet.addRow([
-          order._id,
-          order.createdAt,
-          order.totalOrderPrice,
-          order.coupon ? order.coupon.discountValue : 0,
-          order.paymentMethod,
-          product.name,
-          item.quantity,
-          product.regularPrice,
-          product.salesPrice,
-          item.status,
-        ]);
-      });
+    const orders = await Order.find({
+      "items.status": { $in: ["Delivered", "Paid"] },
+    })
+      .populate("userId", "name")
+      .populate("items.productId", "productName")
+      .select("orderStatus paymentMethod items");
+    const result = orders.flatMap((order) =>
+      order.items
+        .filter((item) => ["Delivered", "Paid"].includes(item.status))
+        .map((item) => ({
+          orderId: order._id,
+          username: order.userId.name,
+          status: item.status,
+          productName: item.productId.productName,
+          paymentMethod: order.paymentMethod,
+        }))
+    );
+
+    result.forEach((item) => {
+      worksheet.addRow([
+        item.orderId,
+        item.username,
+        item.status,
+        item.productName,
+        item.paymentMethod,
+      ]);
     });
 
-    const excelBuffer = await workbook.xlsx.writeBuffer();
-
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=salesReport.xlsx"
-    );
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     );
-
-    res.send(excelBuffer);
-  } catch (err) {
-    console.error("Error generating Excel report:", err);
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="Sales_Report.xlsx"'
+    );
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error(error);
     res.status(500).send("Server Error");
   }
 };

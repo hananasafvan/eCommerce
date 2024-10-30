@@ -4,6 +4,8 @@ const updateQuantity = async (req, res, next) => {
     const { productId, change } = req.body;
     const userId = req.session.user || req.user;
 
+
+
     try {
         let cart = await Cart.findOne({ userId }).populate('items.product');
         
