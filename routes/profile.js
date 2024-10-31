@@ -11,6 +11,10 @@ router.get("/userProfile", userAuth, profileController.getProfile);
 router.get("/user/editUser", userAuth, profileController.getEditUser);
 router.post("/user/editUser/:id", userAuth, profileController.postEditUser);
 
+router.get('/user/changePassword',userAuth,profileController.getChangepassword);
+router.post('/user/changePassword', userAuth, profileController.postChangePassword);
+
+
 router.post("/cart/add", userAuth, cartController.addToCart);
 router.post('/cart/addWish',cartController.addToCartWish);
 router.get("/cart", userAuth, cartController.getCart);

@@ -86,10 +86,10 @@ const getProducts = async (req, res, next) => {
           sortCriteria = { popularity: -1 };
           break;
         case "priceLowToHigh":
-          sortCriteria = { regularPrice: 1 };
+          sortCriteria = { salePrice: 1 };
           break;
         case "priceHighToLow":
-          sortCriteria = { regularPrice: -1 };
+          sortCriteria = { salePrice: -1 };
           break;
         case "averageRatings":
           sortCriteria = { averageRating: -1 };

@@ -1,5 +1,7 @@
 const User = require("../../models/userSchema");
 const session = require("express-session");
+const bcrypt = require("bcrypt");
+
 
 const getProfile = async (req, res) => {
   try {
@@ -82,9 +84,69 @@ const postEditUser = async (req, res) => {
     });
   }
 };
+const getChangepassword = async (req,res)=>{
+  try {
+    const userId = req.session.user;
+    if (!userId) {
+      return res.status(401).send("User not logged in");
+    }
+
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+const password = user.password;
+console.log('change password password',password);
+
+
+    return res.render("changePassword", { userId: user._id });
+  } catch (error) {
+    console.log(error);
+    res.redirect("/pageNotFound");
+  }
+}
+
+
+
+const postChangePassword = async (req, res) => {
+  try {
+    const userId = req.session.user;
+    const { oldPassword, newPassword } = req.body;
+
+    if (!userId) {
+      return res.status(401).send("User not logged in");
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    // Check if the old password is correct
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).send("Old password is incorrect");
+    }
+
+    // Hash and update the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.send("Password updated successfully");
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("An error occurred while updating the password");
+  }
+};
+
+
 
 module.exports = {
   getProfile,
   getEditUser,
   postEditUser,
+  getChangepassword,
+  postChangePassword
 };

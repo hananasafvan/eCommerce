@@ -40,7 +40,7 @@
 
 <%- include("../../views/partials/user/headerNew") %>
 
-<div class="container mt-5" style="background-color: #00131c;  margin-top: 20px;">
+<div class="container mt-5" style="background-color: #00131c;  margin-top: 20px;margin-bottom: 20px;">
   <div class="row justify-content-center">
     <!-- Main Content -->
     <div class="col-md-9">
@@ -61,9 +61,10 @@
         <p style="color:#070707; font-weight: bold;"> <%= user.name %></p>
         <p style="color:#0a0a0a; font-weight: bold;"> <%= user.email %></p>
         <p style="color:#0a0a0a; font-weight: bold;"> <%= user.phone %></p>
-        
+        <button style="background-color: #d35400;width: 200px;height: 50px;border: none;margin-left: 25px; color: white;"><a href="/user/changePassword" style="color: white;">Change Password</a></button>
       </div>
-      <div style="background-color:#d35400; text-align: center; height: 100px; padding-top: 30px;">
+      
+      <div style="background-color:#d35400; text-align: center; height: 100px; padding-top: 30px;margin-bottom: 20px;">
       <h5 style="font-family: unset; color: white;">share the link and get Rs.100 in your wallet </h5>
         <p style="color: white;"><i class="fa fa-copy" style="color: #515352; margin-right: 10px;"></i><%=user.referralCode%></p>
       </div>
