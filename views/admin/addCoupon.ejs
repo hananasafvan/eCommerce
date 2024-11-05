@@ -170,14 +170,7 @@
               name="minPurchase"
               placeholder="Optional"
             />
-            <!-- <label for="maxPurchase">Max Purchase Amount:</label>
-            <br>
-            <input
-              type="number"
-              id="maxPurchase"
-              name="maxPurchase"
-              placeholder="Optional"
-            /> -->
+            
           </div>
 
           <div style="margin-bottom: 20px">
@@ -203,80 +196,77 @@
     <%- include("../../views/partials/admin/footer") %>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-      function validSubmit(event){
-      
+<script>
+  function validSubmit(event) {
+    event.preventDefault(); 
 
-      const code = document.getElementsByName("code")[0].value;
-      const description = document.getElementsByName("description")[0].value;
-      const  discountType = document.getElementsByName("discountType")[0].value;
-      const startDate = document.getElementsByName("startDate")[0].value;
-      const endDate = document.getElementsByName("endDate")[0].value;
-      const discountValue = document.getElementsByName("discountValue")[0].value;
-      const minPurchase = document.getElementsByName("minPurchase")[0].value;
-      const maxPurchase = document.getElementsByName("maxPurchase")[0].value;
-      const usageLimit = document.getElementsByName("usageLimit")[0].value;
-      //const status = document.getElementsByName("status")[0].value
-      
-      if (startDate > endDate) {
-         Swal.fire({
-          icon:'error',
-          title:'Invalid Dates',
-          text: 'End date must be after start date.',
-         })
-    return false;
-  }
+    const code = document.getElementById("code").value;
+    const description = document.getElementById("description").value;
+    const discountType = document.getElementById("discountType").value;
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+    const discountValue = document.getElementById("discountValue").value;
+    const minPurchase = document.getElementById("minPurchase").value;
+    const usageLimit = document.getElementById("usageLimit").value;
 
-  if (discountValue <= 0) {
-    Swal.fire({
-      icon:'error',
-      title:'Invalid Discount',
-      text:'discount value must graterthan zero'
-    })
-    return false;
-  }
-
-      fetch("/admin/coupons",{
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-      code,
-      description,
-      discountType,
-      startDate,
-      endDate,
-      discountValue,
-      minPurchase: document.getElementById("minPurchase").value || null,
-      maxPurchase: document.getElementById("maxPurchase").value || null,
-      usageLimit: document.getElementById("usageLimit").value || null,
-        }),
-      })
-
-      .then((response) => response.json())
-  .then((data) => {
-    Swal.fire({
-      icon :'success',
-      title:'Coupon Added',
-      text:'Coupon added successfully!',
-       confirmButtonText: 'OK'
-    }).then((result) => {
-         if (result.isConfirmed) {
-           window.location.reload(); 
-         }
-       });
-  })
-  .catch((error) => {
-    Swal.fire({
-         icon: 'error',
-         title: 'Error',
-         text: 'An error occurred: ' + error.message,
-       });
-       console.log(error);
     
-  });
+    if (new Date(startDate) >= new Date(endDate)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid Dates',
+        text: 'End date must be after the start date.',
+      });
+      return false;
     }
-    </script>
+
+  
+    fetch("/admin/coupons", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        code,
+        description,
+        discountType,
+        startDate,
+        endDate,
+        discountValue,
+        minPurchase: minPurchase || null,
+        usageLimit: usageLimit || null,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+        
+          return response.json().then((data) => {
+            throw new Error(data.error || "Unknown error");
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Coupon Added',
+          text: data.message,
+          confirmButtonText: 'OK',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.reload();
+          }
+        });
+      })
+      .catch((error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message,
+        });
+      });
+  }
+</script>
+
+
   </body>
 </html>

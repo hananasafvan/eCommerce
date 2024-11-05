@@ -220,7 +220,7 @@ h2{
             </div>
             <div class="col">
                 <h2>Net After Refunds</h2>
-                <p>₹<%= (totalRevenue - totalReturndPrice).toFixed(2) %></p>
+                <p>₹<%= (totalRevenue - totalReturndPrice).toFixed(2) || 0 %></p>
             </div>
         </div>
     

@@ -86,7 +86,7 @@ const postEditUser = async (req, res) => {
 };
 const getChangepassword = async (req,res)=>{
   try {
-    const userId = req.session.user;
+    const userId = req.session.user || req.user;
     if (!userId) {
       return res.status(401).send("User not logged in");
     }
@@ -98,7 +98,8 @@ const getChangepassword = async (req,res)=>{
 
 const password = user.password;
 console.log('change password password',password);
-
+const userData = await User.findById(userId);
+    res.locals.user = userData;
 
     return res.render("changePassword", { userId: user._id });
   } catch (error) {

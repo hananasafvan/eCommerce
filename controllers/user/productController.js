@@ -57,7 +57,9 @@ const securePassword = async (password) => {
 const getProducts = async (req, res, next) => {
   try {
     const searchQuery = req.query.searchQuery || "";
-    const { sortBy, category, brand } = req.query;
+    const sortBy = req.query.sortBy || "";
+    const category = req.query.category || "";
+    const brand = req.query.brand || "";
 
     const page = parseInt(req.query.page) || 1;
     const limit = 12;
@@ -78,43 +80,37 @@ const getProducts = async (req, res, next) => {
       searchCondition.brand = brand;
     }
 
-    // Sorting logic based on the selected sort option
     let sortCriteria = {};
-    if (sortBy) {
-      switch (sortBy) {
-        case "popularity":
-          sortCriteria = { popularity: -1 };
-          break;
-        case "priceLowToHigh":
-          sortCriteria = { salePrice: 1 };
-          break;
-        case "priceHighToLow":
-          sortCriteria = { salePrice: -1 };
-          break;
-        case "averageRatings":
-          sortCriteria = { averageRating: -1 };
-          break;
-        case "featured":
-          sortCriteria = { isFeatured: -1 };
-          break;
-        case "newArrivals":
-          sortCriteria = { createdAt: -1 };
-          break;
-        case "aToZ":
-          sortCriteria = { productName: 1 };
-          break;
-        case "zToA":
-          sortCriteria = { productName: -1 };
-          break;
-        default:
-          sortCriteria = {};
-      }
-    } else {
-      sortCriteria = { createdAt: -1 };
+    switch (sortBy) {
+      case "popularity":
+        sortCriteria = { popularity: -1 };
+        break;
+      case "priceLowToHigh":
+        sortCriteria = { salePrice: 1 };
+        break;
+      case "priceHighToLow":
+        sortCriteria = { salePrice: -1 };
+        break;
+      case "averageRatings":
+        sortCriteria = { averageRating: -1 };
+        break;
+      case "featured":
+        sortCriteria = { isFeatured: -1 };
+        break;
+      case "newArrivals":
+        sortCriteria = { createdAt: -1 };
+        break;
+      case "aToZ":
+        sortCriteria = { productName: 1 };
+        break;
+      case "zToA":
+        sortCriteria = { productName: -1 };
+        break;
+      default:
+        sortCriteria = { createdAt: -1 };
     }
 
     const products = await Product.find(searchCondition)
-
       .populate({
         path: "category",
         match: { isListed: true },
@@ -128,15 +124,11 @@ const getProducts = async (req, res, next) => {
       .limit(limit)
       .exec();
 
-    const filteredProducts =
-      products.filter((product) => product.category !== null) ||
-      products.filter((product) => product.brand !== null);
+    const filteredProducts = products.filter(
+      (product) => product.category !== null && product.brand !== null
+    );
 
-    const totalProducts = await Product.countDocuments({
-      ...searchCondition,
-      category: { $in: await Category.find({ isListed: true }).select("_id") },
-    });
-
+    const totalProducts = await Product.countDocuments(searchCondition);
     const totalPages = Math.ceil(totalProducts / limit);
 
     let userId = req.user || req.session.user;
@@ -150,16 +142,15 @@ const getProducts = async (req, res, next) => {
     return res.render("shop", {
       user: userData,
       products: filteredProducts,
-
-      sortBy: sortBy || "",
-      searchQuery: searchQuery,
-      category: category || "",
-      brand: brand || "",
-      categories: categories,
-      brands: brands,
+      sortBy,
+      searchQuery,
+      category,
+      brand,
+      categories,
+      brands,
       currentPage: page,
-      totalPages: totalPages,
-      totalProducts: totalProducts,
+      totalPages,
+      totalProducts,
     });
   } catch (error) {
     console.log("shop page not found:", error);
@@ -167,7 +158,6 @@ const getProducts = async (req, res, next) => {
   }
 };
 
-// Get product details by ID
 const getProductDetails = async (req, res) => {
   const userId = req.session.user || req.user;
   try {

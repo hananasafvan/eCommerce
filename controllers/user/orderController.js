@@ -25,7 +25,7 @@ const getOrderPage = async (req, res) => {
     const user = await User.findById(userId);
     const addressData = await Address.find({ userId });
     const couponData = await Coupon.find({
-      status: "Active",
+      status: "active",
       usageLimit: { $gt: 0 },
       redeemedUsers: { $nin: [userId] },
     });
@@ -49,39 +49,6 @@ const getOrderPage = async (req, res) => {
     res.status(500).send("Internal server error");
   }
 };
-
-// const getOrderHistory = async (req, res) => {
-//   const userId = req.session.user || req.user;
-
-//   if (!userId) {
-//     return res.redirect("/login");
-//   }
-
-//   try {
-//     const orders = await Order.find({ userId })
-
-//       .sort({ createdAt: -1 })
-//       .populate("userId")
-//       .populate({
-//         path: "address",
-//         model: "Address",
-//       })
-
-//       .populate("items.productId")
-//       .exec();
-
-//     const userData = await User.findById(userId);
-//     res.locals.user = userData;
-
-//     res.render("orderHistory", {
-//       user: userData,
-//       orders,
-//     });
-//   } catch (error) {
-//     console.error("Error retrieving order history:", error);
-//     res.status(500).send("Internal server error");
-//   }
-// };
 
 const getOrderDetails = async (req, res) => {
   const userId = req.session.user || req.user;
@@ -118,16 +85,13 @@ const getOrderHistory = async (req, res) => {
     return res.redirect("/login");
   }
 
-  // Define pagination variables
-  const page = parseInt(req.query.page) || 1; // Get current page or default to 1
-  const limit = 5; // Items per page
+  const page = parseInt(req.query.page) || 1;
+  const limit = 5;
   const skip = (page - 1) * limit;
 
   try {
-    // Get total orders count for the user
     const totalOrders = await Order.countDocuments({ userId });
 
-    // Fetch paginated orders
     const orders = await Order.find({ userId })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -155,7 +119,6 @@ const getOrderHistory = async (req, res) => {
   }
 };
 
-
 const placeOrder = async (req, res) => {
   try {
     const userId = req.session.user || req.user;
@@ -171,10 +134,12 @@ const placeOrder = async (req, res) => {
     }
 
     const address = await Address.findById(selectedAddress);
-console.log('cart item length ',cart.items.length);
-const totalQuantity = cart.items.reduce((sum, item) => sum + item.quantity, 0);
-console.log('total item length',totalQuantity);
-
+    console.log("cart item length ", cart.items.length);
+    const totalQuantity = cart.items.reduce(
+      (sum, item) => sum + item.quantity,
+      0
+    );
+    console.log("total item length", totalQuantity);
 
     let totalOrderPrice = cart.items.reduce((total, item) => {
       const product = item.productId;
@@ -191,8 +156,10 @@ console.log('total item length',totalQuantity);
     const couponData = coupon
       ? await Coupon.findOne({
           _id: coupon,
-          status: "Active",
+          status: "active",
           usageLimit: { $gt: 0 },
+          startDate: { $lte: new Date() },
+          endDate: { $gte: new Date() },
         })
       : null;
     if (couponData) {
@@ -207,21 +174,22 @@ console.log('total item length',totalQuantity);
       if (couponData.discountType === "percentage") {
         totalOrderPrice -= totalOrderPrice * (discountValue / 100);
       } else {
-        let coupenPerUnit = (discountValue/totalQuantity).toFixed(3)
-        console.log('coupen per unit', coupenPerUnit);
+        let coupenPerUnit = (discountValue / totalQuantity).toFixed(3);
+        console.log("coupen per unit", coupenPerUnit);
         cart.items.forEach((item) => {
-          const quantity = item.quantity
-          const price = item.price
-          let totalprice = item.totalPrice
-          console.log('`Quantity:',quantity);
-          console.log('`Price per Unit: ',price);
+          const quantity = item.quantity;
+          const price = item.price;
+          let totalprice = item.totalPrice;
+          console.log("`Quantity:", quantity);
+          console.log("`Price per Unit: ", price);
           const discountForItem = coupenPerUnit * quantity;
           item.totalPrice = totalprice - discountForItem;
         });
-        // let totalPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
-        // console.log('total prices',totalPrice);
-        
-        totalOrderPrice = cart.items.reduce((total, item) => total + item.totalPrice, 0);
+
+        totalOrderPrice = cart.items.reduce(
+          (total, item) => total + item.totalPrice,
+          0
+        );
       }
 
       if (!couponData.redeemedUsers.includes(userId)) {
@@ -231,7 +199,6 @@ console.log('total item length',totalQuantity);
       }
     }
 
-    // Create new order
     const newOrder = new Order({
       userId,
       items: cart.items,
@@ -254,15 +221,11 @@ console.log('total item length',totalQuantity);
     await Cart.findByIdAndDelete(cart._id);
 
     if (paymentMethod === "Cash on Delivery") {
-
-      newOrder.items.forEach(item=>item.status = "Processing");
+      newOrder.items.forEach((item) => (item.status = "Processing"));
       newOrder.orderStatus = "Processing";
       await newOrder.save();
 
       return res.render("confirm-cod");
-
-
-
     } else if (paymentMethod === "Wallet") {
       const user = await User.findById(userId);
       if (totalOrderPrice <= user.walletBalance) {
@@ -273,9 +236,9 @@ console.log('total item length',totalQuantity);
         });
         await user.save();
 
-      newOrder.items.forEach(item=>item.status = "Paid");
-      newOrder.orderStatus = "Processing";
-      await newOrder.save();
+        newOrder.items.forEach((item) => (item.status = "Paid"));
+        newOrder.orderStatus = "Processing";
+        await newOrder.save();
 
         return res.render("confirm-cod");
       } else {
@@ -336,8 +299,7 @@ console.log('total item length',totalQuantity);
 const cancelItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
-    console.log('cancelitem',orderId);
-    
+    console.log("cancelitem", orderId);
 
     const order = await Order.findById(orderId);
     if (!order) {
@@ -398,10 +360,7 @@ const cancelItem = async (req, res) => {
       }
 
       return res.status(200).json({ message: "Item cancelled successfully" });
-    }
-    
-    
-    else {
+    } else {
       return res.status(400).json({ message: "Item cannot be cancelled" });
     }
   } catch (error) {
@@ -426,24 +385,22 @@ const returnItem = async (req, res) => {
       item.status = "Request to return";
       await order.save();
       const refundAmount = item.totalPrice * item.quantity;
- console.log("return amount ",returnItem);
- 
+      console.log("return amount ", returnItem);
+
       const product = await Product.findById(item.productId);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
 
       if (item.status === "Returned") {
-
-
         const user = await User.findById(order.userId);
         if (!user) {
           return res.status(404).json({ message: "User not found" });
         }
 
-        user.walletBalance += refundAmount
+        user.walletBalance += refundAmount;
         user.walletTransactions.push({
-          amount:refundAmount,
+          amount: refundAmount,
           description: "Item return processed",
         });
         await user.save();

@@ -149,7 +149,7 @@ const getSalesReport = async (req, res) => {
           )
           .map((item) => ({
             orderId: order._id,
-            username: order.userId.name,
+            username: order.userId ? order.userId.name : "Unknown User",
             status: item.status,
             productName: item.productId.productName,
             paymentMethod: order.paymentMethod,
@@ -274,7 +274,7 @@ const getSalesReportPDF = async (req, res) => {
         .filter((item) => ["Delivered", "Paid"].includes(item.status))
         .map((item) => ({
           orderId: order._id,
-          username: order.userId.name,
+          username: order.userId ? order.userId.name : "Unknown User",
           status: item.status,
           productName: item.productId.productName,
           paymentMethod: order.paymentMethod,
@@ -405,7 +405,7 @@ const getSalesReportExcel = async (req, res) => {
         .filter((item) => ["Delivered", "Paid"].includes(item.status))
         .map((item) => ({
           orderId: order._id,
-          username: order.userId.name,
+          username: order.userId ? order.userId.name : "Unknown User",
           status: item.status,
           productName: item.productId.productName,
           paymentMethod: order.paymentMethod,

@@ -48,23 +48,25 @@ router.get('/editProduct',adminAuth,addproductController.getEditProduct)
 router.post('/editProduct/:id',adminAuth,uploads.array('images',3),addproductController.editProduct)
 router.post('/deleteImage',adminAuth,addproductController.deletSingleImage)
 
+//offer
 router.post('/addproductOffer',adminAuth,addproductController.addproductOffer)
 router.post('/removeproductOffer',adminAuth,addproductController.removeproductOffer)
+router.post('/addCategoryOffer',adminAuth,categoryController.addCategoryOffer)
+router.post('/removeCategoryOffer',adminAuth,categoryController.removeCategoryOffer)
 
+//coupon
 router.get('/coupon',adminAuth,couponController.getCoupon)
 router.get('/addCoupon',adminAuth,couponController.getAddCoupon)
 router.post('/coupons',adminAuth,couponController.postAddCoupon)
 router.get('/editCoupon',adminAuth,couponController.getEditCoupon)
 router.post('/editCoupons/:id',adminAuth,couponController.editCoupon)
 router.delete('/deleteCoupon/:id',adminAuth, couponController.deleteCoupon);
-
+//salesreport
 router.get('/salesReport',adminAuth,salesReport.getSalesReport)
 router.get("/download-pdf", adminAuth,salesReport.getSalesReportPDF);
 router.get("/download-excel", adminAuth,salesReport. getSalesReportExcel,);
 
 
-router.post('/addCategoryOffer',adminAuth,categoryController.addCategoryOffer)
-router.post('/removeCategoryOffer',adminAuth,categoryController.removeCategoryOffer)
 
 module.exports = router
 

@@ -3,13 +3,36 @@ const Coupon = require("../../models/couponSchema");
 const getCoupon = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 5;
+    const limit = 10;
     const skip = (page - 1) * limit;
 
     const couponData = await Coupon.find({})
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
+
+
+      const currentDate = new Date();
+const updatedCoupons = await Promise.all(
+      couponData.map(async (coupon) => {
+        let status = "active"; 
+
+        if (currentDate < new Date(coupon.startDate)) {
+          status = "upcoming";
+        } else if (currentDate > new Date(coupon.endDate)) {
+          status = "expired";
+        }
+
+        
+        if (coupon.status !== status) {
+          coupon.status = status;
+          await coupon.save();
+        }
+
+        return coupon;
+      })
+    );
+
 
     const totalCoupon = await Coupon.countDocuments();
     const totalPages = Math.ceil(totalCoupon / limit);
@@ -34,37 +57,30 @@ const getAddCoupon = async (req, res) => {
   }
 };
 const postAddCoupon = async (req, res) => {
-  console.log("hello coupon");
-  const {
-    code,
-    description,
-    discountType,
-    startDate,
-    endDate,
-    discountValue,
-    minPurchase,
-    maxPurchase,
-    usageLimit,
-    count,
-  } = req.body;
-  console.log(
-    "req.body of coupon",
-    code,
-    description,
-    discountType,
-    startDate,
-    endDate,
-    discountValue,
-    minPurchase,
-    maxPurchase,
-    usageLimit
-  );
-
   try {
-    const existingCoupon = await Coupon.findOne({ code });
-    if (existingCoupon) {
-      return res.status(400).json({ error: "Coupon already exists" });
+    const {
+      code,
+      description,
+      discountType,
+      startDate,
+      endDate,
+      discountValue,
+      minPurchase,
+      maxPurchase,
+      usageLimit,
+    } = req.body;
+
+  
+    if (new Date(startDate) >= new Date(endDate)) {
+      return res.status(400).json({ error: "End date must be after start date." });
     }
+
+  
+    const existingCoupon = await Coupon.findOne({ code: new RegExp(`^${code}$`, "i") });
+    if (existingCoupon) {
+      return res.status(400).json({ error: "Coupon already exists." });
+    }
+
 
     const newCoupon = new Coupon({
       code,
@@ -76,21 +92,20 @@ const postAddCoupon = async (req, res) => {
       minPurchase,
       maxPurchase,
       usageLimit,
-      status: "Active",
+      status: "active",
       count: 0,
     });
     await newCoupon.save();
 
-    const currentDate = new Date().getTime();
-    if (currentDate > newCoupon.endDate) {
-      newCoupon.status = "Expired";
-      await newCoupon.save();
-    }
+    
     res.json({ message: "Coupon added successfully." });
   } catch (error) {
     console.error("Error adding coupon:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
 const getEditCoupon = async (req, res) => {
   try {
     const id = req.query.id;
@@ -107,6 +122,8 @@ const getEditCoupon = async (req, res) => {
     res.redirect("/pageerror");
   }
 };
+
+
 
 const editCoupon = async (req, res) => {
   try {
@@ -129,8 +146,7 @@ const editCoupon = async (req, res) => {
       return res
         .status(400)
         .json({
-          error:
-            "Please enter a valid coupon code (letters, numbers, and special characters like %$&@#-_).",
+          error: "Please enter a valid coupon code (letters, numbers, and special characters like %$&@#-_).",
         });
     }
 
@@ -138,8 +154,7 @@ const editCoupon = async (req, res) => {
       return res
         .status(400)
         .json({
-          error:
-            "Please enter a valid description (letters, numbers, spaces, and common characters).",
+          error: "Please enter a valid description (letters, numbers, spaces, and common characters).",
         });
     }
 
@@ -152,25 +167,23 @@ const editCoupon = async (req, res) => {
     if (minPurchase && !/^\d+(\.\d+)?$/.test(minPurchase)) {
       return res
         .status(400)
-        .json({
-          error: "Please enter a valid minimum purchase amount (numbers only).",
-        });
+        .json({ error: "Please enter a valid minimum purchase amount (numbers only)." });
     }
 
     if (maxPurchase && !/^\d+(\.\d+)?$/.test(maxPurchase)) {
       return res
         .status(400)
-        .json({
-          error: "Please enter a valid maximum purchase amount (numbers only).",
-        });
+        .json({ error: "Please enter a valid maximum purchase amount (numbers only)." });
     }
 
     if (usageLimit && !/^\d+$/.test(usageLimit)) {
       return res
         .status(400)
-        .json({
-          error: "Please enter a valid usage limit (whole numbers only).",
-        });
+        .json({ error: "Please enter a valid usage limit (whole numbers only)." });
+    }
+
+    if (new Date(startDate) >= new Date(endDate)) {
+      return res.status(400).json({ error: "End date must be after start date." });
     }
 
     const existingCoupon = await Coupon.findOne({
@@ -182,7 +195,7 @@ const editCoupon = async (req, res) => {
         .json({ error: "Coupon already exists, please choose another name" });
     }
 
-    const updatedCoupoin = await Coupon.findByIdAndUpdate(
+    const updatedCoupon = await Coupon.findByIdAndUpdate(
       id,
       {
         $set: {
@@ -200,8 +213,9 @@ const editCoupon = async (req, res) => {
       },
       { new: true }
     );
-    if (updatedCoupoin) {
-      res.json({ message: "Coupon edit successfully." });
+
+    if (updatedCoupon) {
+      res.json({ message: "Coupon edited successfully." });
     } else {
       res.status(404).json({ error: "Coupon not found" });
     }
@@ -210,6 +224,8 @@ const editCoupon = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
 
 const deleteCoupon = async (req, res) => {
   try {
