@@ -166,13 +166,7 @@ h2{
                 <option value="custom">Custom</option>
             </select>
             
-            <!-- <div id="customDateFields" style="display:none;">
-                <label for="startDate">Start Date:</label>
-                <input type="date" id="startDate" name="startDate" class="form-control">
-                
-                <label for="endDate">End Date:</label>
-                <input type="date" id="endDate" name="endDate" class="form-control">
-            </div> -->
+           
 
             <div id="customDateFields" style="display:none;">
                 <label for="startDate">Start Date:</label>
@@ -199,10 +193,7 @@ h2{
                 <h2>Product Discount</h2>
                 <p>₹<%= productDiscount.toFixed(2) || 0 %></p>
             </div>
-            <!-- <div class="col">
-                <h2>Net Before Coupons</h2>
-                <p>₹<%= (totalRevenue - productDiscount).toFixed(2) %></p>
-            </div> -->
+            
         </div>
     
         <div class="row mt-5">
@@ -210,10 +201,7 @@ h2{
                 <h2>Coupon Discount</h2>
                 <p>₹<%= couponDiscount %></p>
             </div>
-            <!-- <div class="col">
-                <h2>Net Sales</h2>
-                <p>₹<%= totalDeliveredRevenue %></p>
-            </div> -->
+            
             <div class="col">
                 <h2>Refund Amount</h2>
                 <p>₹<%= totalReturndPrice || 0 %></p>
@@ -228,7 +216,7 @@ h2{
         <div class="container" style="text-align: center;">
             <h1>Sales Report</h1>
         
-            <!-- Your existing summary and date selection form goes here -->
+            
         
             <!-- Result Table with Pagination -->
             <h2 class="mt-5">Order Details</h2>
