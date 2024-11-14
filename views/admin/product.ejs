@@ -150,7 +150,20 @@
                         No Category
                     <% } %>
                 </td>
-                <td><%= data[i].quantity %></td>
+                <!-- <td><%= data[i].quantity %></td> -->
+
+                <td>
+                    <% if (data[i].stock && data[i].stock.length > 0) { %>
+                        <ul style="list-style-type: none; padding: 0;">
+                            <% data[i].stock.forEach(stockItem => { %>
+                                <li> <%= stockItem.size %> -  <%= stockItem.quantity %></li>
+                            <% }) %>
+                        </ul>
+                    <% } else { %>
+                        No Stock 
+                    <% } %>
+                </td>
+                
                 <td>
                 <%if(locals.data[i].productOffer ){ %>
                     <%=data[i].productOffer %>

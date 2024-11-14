@@ -296,6 +296,7 @@ const placeOrder = async (req, res) => {
   }
 };
 
+
 const cancelItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -331,12 +332,17 @@ const cancelItem = async (req, res) => {
         return res.status(404).json({ message: "Product not found" });
       }
 
-      product.quantity += item.quantity;
-      await product.save();
+      // Find the stock item corresponding to the size
+      const stockItem = product.stock.find(stock => stock.size === item.size);
+      if (stockItem) {
+        // Increase the quantity for the particular size
+        stockItem.quantity += item.quantity;
+        await product.save();
+      } else {
+        return res.status(400).json({ message: "Size not found in product stock" });
+      }
 
-      // order.totalOrderPrice -= item.totalPrice;
-      // await order.save();
-
+      // If the order is paid online or with wallet, refund the amount
       if (
         order.paymentMethod === "Online Payment" ||
         order.paymentMethod === "Wallet"
@@ -355,7 +361,7 @@ const cancelItem = async (req, res) => {
         await user.save();
 
         return res.status(200).json({
-          message: "Item cancelled successfully",
+          message: "Item cancelled successfully and stock updated",
         });
       }
 
@@ -368,6 +374,7 @@ const cancelItem = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 const returnItem = async (req, res) => {
   try {

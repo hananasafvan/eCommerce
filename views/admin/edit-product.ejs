@@ -97,6 +97,24 @@
                                    </div>
                                </div>
                            </div>
+                           <div class="form-group ">
+                            <label for="stock">Stock:- </label> 
+                            <div class="mb-3 d-flex  align-items-start ">
+                              <label class="form-label flex-wrap">S:</label>
+                              <input id="s1" type="number" class="form-control ml-3 stock-input" name="s1" value="<%= product.stock.find(item => item.size === 'S')?.quantity || 0 %>" min="0" required >
+                              <label class="form-label ml-2">M:</label>
+                              <input id="s2" type="number" class="form-control ml-3 stock-input" name="s2" value="<%= product.stock.find(item => item.size === 'M')?.quantity || 0 %>" min="0" required >
+                              <label class="form-label ml-2">L:</label>
+                              <input id="s3" type="number" class="form-control ml-3 stock-input" name="s3" min="0" value="<%= product.stock.find(item => item.size === 'L')?.quantity || 0 %>" required >
+                              <label class="form-label ml-2">XL:</label>
+                              <input id="s4" type="number" class="form-control ml-3 stock-input" name="s4" value="<%= product.stock.find(item => item.size === 'XL')?.quantity || 0 %>" min="0" required >
+                              <label class="form-label ml-2">XXL:</label>
+                              <input id="s5" type="number" class="form-control ml-3 stock-input" name="s5" value="<%= product.stock.find(item => item.size === 'XXL')?.quantity || 0 %>" min="0" required >
+                            </div>
+                            <div id="stockError" class="text-danger"></div>
+                          </div>
+                    </div>
+
                            <div class="row">
                              
                                <div class="col-lg-4">
@@ -263,6 +281,8 @@
                const category = document.getElementsByName('category')[0].value;
                const quantity = document.getElementsByName('quantity')[0].value;
                const images = document.getElementById('input1')
+               const stockInputs = document.getElementsByClassName('stock-input');
+               const stockError = document.getElementById('stockError');   
                
     imageDatas = document.getElementById("imageDatas")?.value;
                let isValid = true;    
@@ -299,6 +319,15 @@
                    displayErrorMessage("images-error",'Please select an image.');
                    isValid = false;
                }
+
+               for (let i = 0; i < stockInputs.length; i++) {
+        if (stockInputs[i].value.trim() === '' || parseInt(stockInputs[i].value) < 0) {
+            stockError.textContent = 'Stock inputs cannot be empty or negative.';
+            isValid = false;
+            break;
+        }
+    }
+
                return isValid;
            }
           

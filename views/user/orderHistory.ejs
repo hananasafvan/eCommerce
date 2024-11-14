@@ -97,7 +97,7 @@ function cancelItem(orderId, itemId, button) {
       })
       .then(response => response.json())
       .then(data => {
-        if (data.message === "Item cancelled successfully") {
+        if (data.message === "Item cancelled successfully and stock updated") {
           // Show success message and disable the button
           Swal.fire(
             'Cancelled!',

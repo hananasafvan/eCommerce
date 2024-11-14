@@ -28,83 +28,36 @@ const getOrderList = async (req, res) => {
 };
 
 
-// const updateOrderStatus = async (req, res) => {
-//   try {
-//     const { orderId, itemId } = req.params;
-//     const { status } = req.body;
-
-    
-//     const order = await Order.findById(orderId);
-//     if (!order) {
-//       return res.status(404).send("Order not found");
-//     }
-
-
-//     const itemIndex = order.items.findIndex((item) => item.itemId === itemId);
-//     if (itemIndex === -1) {
-//       return res.status(404).send("Item not found");
-//     }
-
-//     // Update status of item
-//     order.items[itemIndex].status = status;
-
-    
-//     if (status === "Returned") {
-//       const productId = order.items[itemIndex].productId._id; 
-//       const product = await Product.findById(productId);
-//       if (!product) {
-//         return res.status(404).send("Product not found");
-//       }
-
-//       const quantity = order.items[itemIndex].quantity;
-//       const itemPrice = product.salePrice; 
-
-//       console.log(`Item Price: ${itemPrice}`);
-//       if (typeof itemPrice !== 'number' || isNaN(itemPrice)) {
-//         return res.status(400).send("Invalid item price");
-//       }
-
-//       product.quantity += quantity;
-//       await product.save();
-
-      
-//       const user = await User.findById(order.userId);
-//       if (!user) {
-//         return res.status(404).send("User not found");
-//       }
-
-//       if (typeof user.walletBalance !== 'number' || isNaN(user.walletBalance)) {
-//         user.walletBalance = 0; 
-//       }
-
-//       console.log(`Current Wallet Balance: ${user.walletBalance}`);
-//       user.walletBalance += itemPrice; 
-//       console.log(`Updated Wallet Balance: ${user.walletBalance}`);
-//       await user.save();
-//     }
-
-//     await order.save();
-//     res.redirect("/admin/orderList");
-//   } catch (error) {
-//     console.error("Error updating order status:", error);
-//     res.status(500).send("Internal Server Error");
-//   }
-// };
-
-
-
-
 const cancelOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
     console.log("Cancelling Order ID:", orderId);
-    const updatedOrder = await Order.findByIdAndUpdate(orderId, {
-      status: "Cancelled",
-    });
 
-    if (!updatedOrder) {
+    const order = await Order.findById(orderId);
+    if (!order) {
       console.log("Order not found");
       return res.status(404).send("Order not found");
+    }
+
+    // Update order status to 'Cancelled'
+    order.status = "Cancelled";
+    await order.save();
+
+    // Loop through each item in the order and update stock for the specific size
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+      if (product) {
+        const stockItem = product.stock.find(stock => stock.size === item.size);
+        
+        if (stockItem) {
+          stockItem.quantity += item.quantity; // Increment stock for specific size
+          await product.save();
+        } else {
+          console.log(`Size ${item.size} not found in product stock`);
+        }
+      } else {
+        console.log(`Product ID ${item.productId} not found`);
+      }
     }
 
     res.redirect("/admin/orderList");
@@ -113,6 +66,9 @@ const cancelOrder = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
+
+
+
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -137,15 +93,17 @@ const updateOrderStatus = async (req, res) => {
         return res.status(404).send("Product not found");
       }
 
-      const itemPricePerUnit = product.salePrice || product.regularPrice;
-      if (typeof itemPricePerUnit !== 'number' || isNaN(itemPricePerUnit)) {
-        return res.status(400).send("Invalid item price");
+      const refundAmount = item.totalPrice;
+
+      // Increase stock for the returned quantity in the specific size
+      const stockItem = product.stock.find(stock => stock.size === item.size);
+      console.log('update order stock item,',stockItem);
+      
+      if (stockItem) {
+        stockItem.quantity += item.quantity;
+      } else {
+        return res.status(400).send("Size not found in product stock");
       }
-
-      const refundAmount =  item.totalPrice;
-
-      // Increase product stock by the returned quantity
-      product.quantity += item.quantity;
       await product.save();
 
       // Update user wallet with the refund amount
@@ -153,7 +111,8 @@ const updateOrderStatus = async (req, res) => {
       if (!user) {
         return res.status(404).send("User not found");
       }
-console.log('updateorderstatus refund amount',refundAmount);
+
+      console.log('Refund amount for returned item:', refundAmount);
 
       user.walletBalance = (user.walletBalance || 0) + refundAmount;
       user.walletTransactions.push({
@@ -170,6 +129,7 @@ console.log('updateorderstatus refund amount',refundAmount);
     res.status(500).send("Internal Server Error");
   }
 };
+
 
 
 const viewOrder = async (req, res) => {

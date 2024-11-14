@@ -6,6 +6,7 @@ const User = require("../../models/userSchema");
 const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
+//const { size } = require("pdfkit/js/page");
 
 const addproductInfo = async (req, res) => {
   try {
@@ -69,6 +70,17 @@ const addProducts = async (req, res) => {
       if (!categoryId) {
         return res.status(400).json("invalid category name");
       }
+
+      const stockSizes = [
+        { size: 'S', quantity: parseInt(req.body.s1, 10) },
+        { size: 'M', quantity: parseInt(req.body.s2, 10) },
+        { size: 'L', quantity: parseInt(req.body.s3, 10) },
+        { size: 'XL', quantity: parseInt(req.body.s4, 10) },
+        { size: 'XXL', quantity: parseInt(req.body.s5, 10) }
+      ];
+
+      const totalQuantity = stockSizes.reduce((acc, size) => acc + size.quantity, 0);
+
       const newProduct = new Product({
         productName: products.productName,
         description: products.description,
@@ -77,12 +89,13 @@ const addProducts = async (req, res) => {
         regularPrice: products.regularPrice,
         salePrice: products.salePrice,
         createdOn: new Date(),
-        quantity: products.quantity,
+        quantity: totalQuantity,
         size: products.size,
         color: products.color,
         productImage: images,
         status: products.quantity <= 0 ? "note available" : "Available",
         intproductOffer:0,
+        stock:stockSizes,
       });
 
       await newProduct.save();
@@ -172,7 +185,7 @@ const getEditProduct = async (req, res) => {
       return res.status(400).send("Invalid product ID");
     }
 
-    const product = await Product.findOne({ _id: id });
+    const product = await Product.findOne({ _id: id }).populate('stock')
     const category = await Category.find({});
     const brand = await Brand.find({});
 
@@ -185,6 +198,7 @@ const getEditProduct = async (req, res) => {
       cat: category,
       brand: brand,
       selectedCategory: product.category.toString(),
+      
     });
     console.log("Selected Category ID:", product.category.toString());
   } catch (error) {
@@ -213,6 +227,17 @@ const editProduct = async (req, res) => {
       return res.status(400).json({ error: "Product already exists" });
     }
 
+    const stockSizes = [
+      { size: 'S', quantity: parseInt(req.body.s1, 10) },
+      { size: 'M', quantity: parseInt(req.body.s2, 10) },
+      { size: 'L', quantity: parseInt(req.body.s3, 10) },
+      { size: 'XL', quantity: parseInt(req.body.s4, 10) },
+      { size: 'XXL', quantity: parseInt(req.body.s5, 10) }
+    ];
+
+    const totalQuantity = stockSizes.reduce((acc, size) => acc + size.quantity, 0);
+    
+
     const updateFields = {
       productName: data.productName,
       description: data.description,
@@ -220,9 +245,11 @@ const editProduct = async (req, res) => {
       category: data.category,
       regularPrice: data.regularPrice,
       salePrice: data.salePrice,
-      quantity: data.quantity,
+      quantity:totalQuantity,
       size: data.size,
       color: data.color,
+      stock:stockSizes,
+
     };
 
     const images = [];

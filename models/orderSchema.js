@@ -9,6 +9,7 @@ const orderSchema = new mongoose.Schema({
       quantity: { type: Number, required: true },
       totalPrice: { type: Number, required: true },
       status: { type: String, default: "Pending" },
+      size: { type: String, required: true },
       itemId: {
         type: String,
         default: () => uuidv4().split("-")[0],

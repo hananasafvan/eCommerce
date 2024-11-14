@@ -40,6 +40,11 @@ const productSchema = new Schema({
         type : Number,
         default : 0
     },
+
+    stock:[{
+          size:{type:String,require:true},
+          quantity:{type:Number,require:true}
+    }],
     color : {
         type : String,
         required : true
