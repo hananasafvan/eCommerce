@@ -244,6 +244,8 @@ const placeOrder = async (req, res) => {
       } else {
         return res.status(400).send("Insufficient Wallet Balance.");
       }
+
+
     } else if (paymentMethod === "Online Payment") {
       const items = cart.items.map((item) => ({
         name: item.productId.productName,
@@ -332,17 +334,17 @@ const cancelItem = async (req, res) => {
         return res.status(404).json({ message: "Product not found" });
       }
 
-      // Find the stock item corresponding to the size
+    
       const stockItem = product.stock.find(stock => stock.size === item.size);
       if (stockItem) {
-        // Increase the quantity for the particular size
+  
         stockItem.quantity += item.quantity;
         await product.save();
       } else {
         return res.status(400).json({ message: "Size not found in product stock" });
       }
 
-      // If the order is paid online or with wallet, refund the amount
+      
       if (
         order.paymentMethod === "Online Payment" ||
         order.paymentMethod === "Wallet"
@@ -427,6 +429,84 @@ const returnItem = async (req, res) => {
   }
 };
 
+
+
+const repayItem = async (req, res) => {
+  try {
+    const userId = req.session.user || req.user;
+    const { orderId, itemId } = req.params;
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).send("Order not found.");
+    }
+
+    if (order.paymentMethod !== 'Online Payment' || order.orderStatus !== 'Pending') {
+      return res.status(400).send("Only pending online payments can be repaid.");
+    }
+
+    
+    const itemsToRepay = order.items.filter((item) => item.status === "Pending");
+    if (!itemsToRepay.length) {
+      return res.status(400).send("All items have already been processed or paid.");
+    }
+
+    
+    const items = itemsToRepay.map((item) => ({
+      name: item.productId.productName,
+      sku: item.productId._id,
+      price: (item.totalPrice / 84.1).toFixed(2), 
+      currency: "USD",
+      quantity: item.quantity,
+    }));
+
+    const totalAmount = items.reduce(
+      (sum, item) => sum + parseFloat(item.price) * item.quantity,
+      0
+    );
+
+    const create_payment_json = {
+      intent: "sale",
+      payer: { payment_method: "paypal" },
+      redirect_urls: {
+        return_url: `http://localhost:3000/order/success?orderId=${order._id}`,
+        cancel_url: "http://localhost:3000/order/cancel",
+      },
+      transactions: [
+        {
+          item_list: { items },
+          amount: {
+            currency: "USD",
+            total: totalAmount.toFixed(2),
+          },
+          description: "Thank you for your purchase!",
+        },
+      ],
+    };
+
+    paypal.payment.create(create_payment_json, function (error, payment) {
+      if (error) {
+        console.error("PayPal Payment Error:", error);
+        return res.status(500).send("Payment processing error.");
+      } else {
+        const approvalUrl = payment.links.find(link => link.rel === "approval_url");
+        if (approvalUrl) {
+          return res.redirect(approvalUrl.href);
+        }
+        return res.status(500).send("Unable to process payment at this time.");
+      }
+    });
+  } catch (error) {
+    console.error("Repay Item Error:", error);
+    return res.status(500).send("Internal server error.");
+  }
+};
+
+
+
+
+
+
 module.exports = {
   getOrderPage,
   placeOrder,
@@ -434,4 +514,5 @@ module.exports = {
   getOrderDetails,
   cancelItem,
   returnItem,
+  repayItem
 };

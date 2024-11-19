@@ -21,7 +21,7 @@ router.get("/history", userAuth, orderController.getOrderHistory);
 
 router.post("/cancel/:orderId/:itemId", userAuth, orderController.cancelItem);
 router.post("/return/:orderId/:itemId", userAuth, orderController.returnItem);
-
+router.get('/repay/:orderId/:itemId',userAuth, orderController.repayItem);
 
 router.get('/wallet',userAuth, walletController.showWallet);
 router.post('/wallet/update',userAuth ,walletController.updateWallet);

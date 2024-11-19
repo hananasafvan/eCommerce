@@ -37,11 +37,17 @@
                     <% if (item.status === 'Cancelled') { %>
                       <button type="button" class="btn btn-danger btn-sm" disabled>Cancelled</button>
                       
-                    <% } else if (item.status === 'Processing' || item.status === 'Pending' || item.status === 'Paid') { %>
+                    <% } else if (item.status === 'Processing'  || item.status === 'Paid') { %>
                       <button type="button" class="btn btn-danger btn-sm" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', this)">Cancel</button>
                     <% } else if (item.status === 'Delivered') { %>
                       <button type="button" class="btn btn-primary btn-sm" onclick="returnItem('<%= order._id %>', '<%= item._id %>', this)">Return</button>
-                    <% } %>
+                    <% }else if (item.status === 'Pending') {%>
+                      <!-- <button type="button" class="btn btn-primary btn-sm" onclick="repay('/repay<%= order._id %>', '<%= item._id %>', this)">RePay</button>
+                   -->
+
+                        <a class="button" href="/order/repay/<%= order._id %>/<%= item._id %>"> repay</a>
+
+                      <%}%>
                   </li>
                 <% }) %>
               </ul>

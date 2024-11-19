@@ -186,54 +186,57 @@ h2{
                 <p><%= totalOrderCount %></p>
             </div>
             <div class="col">
-                <h2>Total Sales (Before Discount)</h2>
+                <h2>Total Sales </h2>
                 <p>₹<%= totalRevenue.toFixed(2) %></p>
             </div>
             <div class="col">
-                <h2>Product Discount</h2>
-                <p>₹<%= productDiscount.toFixed(2) || 0 %></p>
+                <h2>Net sales</h2>
+                <p>₹<%= netSales%></p>
             </div>
             
         </div>
     
-        <div class="row mt-5">
+        <!-- <div class="row mt-5">
             <div class="col">
                 <h2>Coupon Discount</h2>
-                <p>₹<%= couponDiscount %></p>
+                <p></p>
             </div>
             
             <div class="col">
                 <h2>Refund Amount</h2>
-                <p>₹<%= totalReturndPrice || 0 %></p>
+                <p></p>
             </div>
             <div class="col">
                 <h2>Net After Refunds</h2>
-                <p>₹<%= (totalRevenue - totalReturndPrice).toFixed(2) || 0 %></p>
+                <p></p>
             </div>
         </div>
-    
-        <!-- Result Table -->
+     -->
+
         <div class="container" style="text-align: center;">
-            <h1>Sales Report</h1>
+            
         
             
         
-            <!-- Result Table with Pagination -->
+            
             <h2 class="mt-5">Order Details</h2>
             <table id="orderTable" class="table table-striped table-bordered mt-3">
                 <thead>
                     <tr>
                         <th>Order ID</th>
-                        <th>Username</th>
+                    
+                        <th>custemer</th>
                         <th>Status</th>
                         <th>Product Name</th>
                         <th>Payment Method</th>
+
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <% result.forEach(item => { %>
                         <tr>
                             <td><%= item.orderId %></td>
+                            
                             <td><%= item.username %></td>
                             <td><%= item.status %></td>
                             <td><%= item.productName %></td>
@@ -243,14 +246,25 @@ h2{
                 </tbody>
             </table>
         
-            <!-- Pagination Controls -->
+        
             <div id="paginationControls" class="mt-3"></div>
         </div>
-        <!-- Export buttons -->
+    
         <div class="mt-5">
-            <a href="/admin/download-pdf" class="btn btn-danger" style="height: 50px; width: 200px; border: none;">Download PDF</a>
-            <a href="/admin/download-excel" class="btn btn-success" style="height: 50px; width: 200px; border: none;">Download Excel</a>
+            <a href="/admin/download-pdf?dateRange=<%= dateRange %>&startDate=<%= startDate %>&endDate=<%= endDate %>" 
+                class="btn btn-danger" 
+                style="height: 50px; width: 200px; border: none;">
+                Download PDF
+             </a>
+             
+             <a href="/admin/download-excel?dateRange=<%= dateRange %>&startDate=<%= startDate %>&endDate=<%= endDate %>" 
+                class="btn btn-success" 
+                style="height: 50px; width: 200px; border: none;">
+                Download Excel
+             </a>
+             
         </div>
+        
     </div>
     
     <script>
@@ -278,14 +292,14 @@ h2{
 
 
 
-        const rowsPerPage = 10; // Number of rows per page
+        const rowsPerPage = 10; 
     let currentPage = 1;
     const tableBody = document.getElementById("tableBody");
     const rows = Array.from(tableBody.getElementsByTagName("tr"));
     const totalPages = Math.ceil(rows.length / rowsPerPage);
     const paginationControls = document.getElementById("paginationControls");
 
-    // Function to display rows for the current page
+    
     function displayPage(page) {
         tableBody.innerHTML = "";
         const start = (page - 1) * rowsPerPage;
@@ -295,7 +309,7 @@ h2{
         updatePaginationControls(page);
     }
 
-    // Function to create pagination buttons
+
     function updatePaginationControls(page) {
         paginationControls.innerHTML = "";
 
@@ -308,8 +322,38 @@ h2{
         }
     }
 
-    // Initial display
+    
     displayPage(currentPage);
+
+
+
+
+
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    const downloadExcelBtn = document.getElementById('downloadExcelBtn');
+    const dateRangeSelect = document.getElementById('dateRange');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+
+    function updateDownloadUrls() {
+        const dateRange = dateRangeSelect.value;
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+
+        let queryParams = `?dateRange=${encodeURIComponent(dateRange)}`;
+        if (dateRange === 'custom') {
+            queryParams += `&startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
+        }
+
+        downloadPdfBtn.href = `/admin/download-pdf${queryParams}`;
+        downloadExcelBtn.href = `/admin/download-excel${queryParams}`;
+    }
+
+
+    updateDownloadUrls();
+    dateRangeSelect.addEventListener('change', updateDownloadUrls);
+    startDateInput.addEventListener('change', updateDownloadUrls);
+    endDateInput.addEventListener('change', updateDownloadUrls);
             </script>
 </body>
 
