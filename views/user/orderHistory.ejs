@@ -44,8 +44,8 @@
                     <% }else if (item.status === 'Pending') {%>
                       <!-- <button type="button" class="btn btn-primary btn-sm" onclick="repay('/repay<%= order._id %>', '<%= item._id %>', this)">RePay</button>
                    -->
-
-                        <a class="button" href="/order/repay/<%= order._id %>/<%= item._id %>"> repay</a>
+                          
+                        <a class="btn btn-dark btn-sm" href="/order/repay/<%= order._id %>/<%= item._id %>"> repay</a>
 
                       <%}%>
                   </li>

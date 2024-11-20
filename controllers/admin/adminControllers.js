@@ -1,6 +1,7 @@
 const User = require("../../models/userSchema");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const Order = require('../../models/orderSchema')
 
 const pageerror = async (req, res) => {
   res.render("admin-error");
@@ -37,13 +38,44 @@ const login = async (req, res) => {
 const loadDashboard = async (req, res) => {
   if (req.session.admin) {
     try {
-      res.render("dashboard");
+      console.log('load dashbord');
+      
+      const order = await Order.find()
+
+      const productOrderCounts = await Order.aggregate([
+        { $unwind: "$items" },
+        {
+          $group: {
+            _id: "$items.productId", 
+            orderCount: { $sum: 1 }, 
+          },
+        },
+        { $sort: { orderCount: -1 } },
+        { $limit: 10 },
+        {
+          $lookup: {
+            from: "products",
+            localField: "_id",
+            foreignField: "_id",
+            as: "productDetails",
+          },
+        },
+        {
+          $project: {
+            productId: "$_id",
+            orderCount: 1,
+            productDetails: { $arrayElemAt: ["$productDetails", 0] }, 
+          },
+        },
+      ]);    
+      res.render("dashboard",
+       { productOrderCounts}
+      );
     } catch (error) {
       res.redirect("/pageNotFound");
     }
   }
 };
-
 const logout = async (req, res) => {
   try {
     req.session.destroy((err) => {

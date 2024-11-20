@@ -213,6 +213,26 @@
     }
   });
 
+
+//COD
+
+const codRadiobtn = document.querySelector('input[name="paymentMethod"][value="Cash on Delivery"]');
+codRadiobtn.addEventListener('change',function(){
+  const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
+       if(totalOrderPrice>1000){
+        event.preventDefault();
+        event.target.checked = false;
+
+        Swal.fire({
+          icon:'error',
+          title:'COD Unavailable',
+          text:'Cash on Delivery is not available for orders exceeding ₹1000. Please select a different payment method.',
+           confirmButtonColor: '#d33'
+        })
+       }
+})
+
+
   document.getElementById('placeOrderBtn').addEventListener('click', async function (event) {
   event.preventDefault();
   

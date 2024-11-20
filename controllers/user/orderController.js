@@ -221,11 +221,17 @@ const placeOrder = async (req, res) => {
     await Cart.findByIdAndDelete(cart._id);
 
     if (paymentMethod === "Cash on Delivery") {
-      newOrder.items.forEach((item) => (item.status = "Processing"));
-      newOrder.orderStatus = "Processing";
-      await newOrder.save();
+      
+        if(totalOrderPrice<1000){
+          newOrder.items.forEach((item) => (item.status = "Processing"));
+          newOrder.orderStatus = "Processing";
+          await newOrder.save();
+          return res.render("confirm-cod");
+    
+        }else{
+          return res.status(400).send('Cash on Delivery is not available for orders exceeding ₹1000. Please select a different payment method.');
+        }
 
-      return res.render("confirm-cod");
     } else if (paymentMethod === "Wallet") {
       const user = await User.findById(userId);
       if (totalOrderPrice <= user.walletBalance) {
@@ -441,7 +447,7 @@ const repayItem = async (req, res) => {
       return res.status(404).send("Order not found.");
     }
 
-    if (order.paymentMethod !== 'Online Payment' || order.orderStatus !== 'Pending') {
+    if (order.orderStatus !== 'Pending') {
       return res.status(400).send("Only pending online payments can be repaid.");
     }
 
