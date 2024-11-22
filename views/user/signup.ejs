@@ -292,13 +292,14 @@ function passValidateChecking(event) {
     const cpassval = cPassword.value;
     const alpha = /[a-zA-Z]/;
     const digit = /\d/;
+    const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
 
     if (passval.length < 8) {
         error4.style.display = "block";
         error4.innerHTML = "Should contain at least 8 characters";
-    } else if (!alpha.test(passval) || !digit.test(passval)) {
+    } else if (!alpha.test(passval) || !digit.test(passval)|| !specialChar.test(passval)) {
         error4.style.display = "block";
-        error4.innerHTML = "Should contain both numbers and letters";
+        error4.innerHTML = "Should contain both numbers and letters and spl charecter";
     } else {
         error4.style.display = "none";
         error4.innerHTML = "";

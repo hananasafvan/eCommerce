@@ -1,40 +1,29 @@
-<div class="container mt-5 mb-5" style="background-color: #00131c; width: 90%;">
-    <h3 class="text-center mb-5" style="color: white;">Order Details</h3>
-
-    <div class="order-details card p-4" style=" width: 90%; margin-left: 55px;">
-        <div class="order-header">
-            <h5>Order ID: <%= order._id.toString().slice(-7) %></h5>
-            <p style="color: #00131c;">Placed on: <%= order.createdAtFormatted %></p>
-        </div>
-
-        <h6 class="mt-4" style="color: #d35400; font-weight: bold;">Delivery Address</h6>
-        <p class="mb-4" style="margin-top: 10px; color: #00131c;">
-            <%= order.address.name %>, <%= order.address.city %>, <%= order.address.state %> - <%= order.address.pincode %>
-        </p>
-        <p class="mb-4" style="margin-top: -10px;color: #000;"> Phone:<%= order.address.phone %></p>
-
-        <!-- <h6 style="margin-left: 50px;">Products</h6> -->
-        <ul class="list-unstyled order-products">
-            <% order.items.forEach(item => { %>
-            <li class="d-flex align-items-center mb-4 border-bottom pb-3">
-                <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail me-3" style="width: 100px; height: 100px;">
-                <div>
-                    <strong style="color: #d35400;"><%= item.productId.productName %></strong>
-                    <div>Quantity: <%= item.quantity %></div>
-                    <div>Status: <%= item.status %></div>
-                    <span>Total:&#8377; <%= item.totalPrice %> </span>
-                </div>
-            </li>
-            <% }) %>
-        </ul>
-
-        <!-- <p class="total-price"><strong>Total Order Price: $<%= order.totalOrderPrice %> </strong></p> -->
-    </div>
-
-    <a href="/order/history" class="btn btn-secondary mt-4" style="margin-bottom: 20px;margin-left: 55px; border: none; background-color: #d35400;">Back to Order History</a>
-</div>
-
-
-
+<div>
+    <canvas id="myChart"></canvas>
+  </div>
   
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
+  <script>
+    const ctx = document.getElementById('myChart');
+  
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+        datasets: [{
+          label: '# of Votes',
+          data: [12, 19, 3, 5, 2, 3],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  </script>
+   

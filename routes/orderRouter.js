@@ -13,7 +13,7 @@ const paymentController = require('../controllers/user/paymentController')
 router.get("/checkout", userAuth, orderController.getOrderPage);
 router.post("/place", userAuth, orderController.placeOrder);
 router.get("/details/:orderId", userAuth, orderController.getOrderDetails);
-
+router.get('/invoice/:orderId/:itemId',userAuth,orderController.getInvoice)
 
 
 

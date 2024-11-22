@@ -18,7 +18,11 @@ router.get('/pageerror',adminControllers.pageerror)
 router.get('/login',adminControllers.loadLogin)
 router.post('/login',adminControllers.login)
 router.get('/',adminAuth,adminControllers.loadDashboard)
+router.get('/dashboard', adminAuth, adminControllers.loadDashboard)
+router.get('/', (req, res) => res.redirect('/dashboard'));
 router.get('/logout',adminControllers.logout)
+
+
 //custemer
 router.get('/users',adminAuth,customerController.customerInfo)
 router.get('/blockCustomer',adminAuth,customerController.customerBlocked)

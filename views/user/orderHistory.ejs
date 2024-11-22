@@ -1,10 +1,16 @@
 <head>
   
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
+  <%- include("../../views/partials/user/headerNew") %>
 </head>
-<%- include("../../views/partials/user/headerNew") %>
-<div class="container" style="padding-top: 100px; background-color:#00131c; margin-bottom: 30px; margin-top: 30px; padding-bottom: 50px;">
-  <h3 style="text-align: center; margin-bottom: 20px; color:#ecf1f3">Your Orders</h3>
+<style>
+  body{
+    background-color: #9fc8d3;
+    
+  }
+</style>
+<div class="container" style="padding-top: 100px;margin-bottom: 30px; margin-top: 30px;">
+  <h3 style="text-align: center; margin-bottom: 20px; color:black">Your Orders</h3>
   <% if (orders.length > 0) { %>
     <table class="table  table-bordered" style="background-color: white;">
       <thead>

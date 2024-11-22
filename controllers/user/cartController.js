@@ -266,7 +266,6 @@ const updateQuantity = async (req, res, next) => {
       });
     }
 
-    // stock for specific size
     const stockSizeItem = item.productId.stock.find(
       (stock) => stock.size === productSize
     );
@@ -275,7 +274,7 @@ const updateQuantity = async (req, res, next) => {
       return res.status(400).json({ error: "Not enough stock available for this size" });
     }
 
-    // Decrement stock for the specific size
+  
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, "stock.size": productSize },
       { $inc: { "stock.$.quantity": -change } },
@@ -290,7 +289,7 @@ const updateQuantity = async (req, res, next) => {
 
     await updatedProduct.save();
 
-    // Update cart item quantity and total price
+    
     item.quantity = newQuantity;
     item.totalPrice = item.price * newQuantity;
     await cart.save();

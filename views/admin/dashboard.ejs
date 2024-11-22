@@ -1,12 +1,36 @@
 <%- include("../../views/partials/admin/header") %>
 <section class="content-main">
   <div class="content-header">
+    <form method="GET" action="/admin/dashboard">
+      <select name="timePeriod" onchange="this.form.submit()">
+        <!-- <option value="daily" <%= timePeriod === 'daily' ? 'selected' : '' %>>Daily</option> -->
+        <option value="weekly" <%= timePeriod === 'weekly' ? 'selected' : '' %>>Weekly</option>
+        <option value="monthly" <%= timePeriod === 'monthly' ? 'selected' : '' %>>Monthly</option>
+        <option value="yearly" <%= timePeriod === 'yearly' ? 'selected' : '' %>>Yearly</option>
+        <!-- <option value="custom" <%= timePeriod === 'custom' ? 'selected' : '' %>>Custom</option> -->
+      </select>
+      
+       
+    </form>
+    
     
   </div>
 
-  <div class="card mb-4" style="width: 350px; border: solid 1px black;">
-    <div class="card-header" style="background-color: rgb(190, 156, 109);text-align: center; padding: 5px;border-bottom: solid 1px black;">
-      <h4 style="color: black;">Top 10 Products by Orders</h4>
+
+  <div class="card mb-4" style="width: 100%; border: solid 1px black; align-items: center;">
+    
+    <div class="card-body" style="width: 50%;">
+      <canvas id="myChart"></canvas>
+    </div>
+    
+
+    
+  </div>
+  
+
+  <div class="card mb-4" style="width: 250px; border: solid 1px black;float: left; margin-left: 70px;">
+    <div class="card-header" style="text-align: center; padding: 5px; border: none;padding-top: 25px;">
+      <h4 style="color: black;">Best Selling Product</h4>
     </div>
     <div class="card-body">
       <table class="table" style="border: solid 1px black; ">
@@ -14,21 +38,165 @@
           <tr style="border: solid 1px black;">
             <th></th>
             <th>Product Name</th>
-            <th>Orders Count</th>
+            <th>Total Sales</th>
+            <th>Product price</th>
           </tr>
         </thead>
         <tbody style="border: solid 1px black;">
-          <% productOrderCounts.forEach((product, index) => { %>
+          <% bestsellproduct.forEach((product, index) => { %>
             <tr style="border: solid 1px black;">
               <td><%= index + 1 %></td>
               <td><%= product.productDetails ? product.productDetails.productName : "Unknown Product" %></td>
               <td><%= product.orderCount %></td>
+              <td><%= product.productDetails.salePrice %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+           </table>
+    </div>
+  </div>
+
+
+  <div class="card mb-4" style="width: 250px; border: solid 1px black; float: left; margin-left: 70px;">
+    <div class="card-header" style="text-align: center; padding: 5px; border: none; padding-top: 25px;">
+      <h4 style="color: black;">Best Seller Brand</h4>
+    </div>
+    <div class="card-body">
+      <table class="table" style="border: solid 1px black;">
+        <thead style="border: solid 1px black;">
+          <tr style="border: solid 1px black;">
+            <th></th>
+            <th>Brand</th>
+            <th>Total Sales</th>
+          </tr>
+        </thead>
+        <tbody style="border: solid 1px black;">
+          <% bestsellerbrand.forEach((brand, index) => { %>
+            <tr style="border: solid 1px black;">
+              <td><%= index + 1 %></td>
+              <td><%= brand.brand %></td>
+              <td><%= brand.totalSales %></td>
             </tr>
           <% }) %>
         </tbody>
       </table>
     </div>
   </div>
-</section>
+
+
+
+  
+  <div class="card mb-4" style="width: 250px; border: solid 1px black; float: left; margin-left: 70px;">
+    <div class="card-header" style="text-align: center; padding: 5px; border: none; padding-top: 25px;">
+      <h4 style="color: black;">Best Seller category</h4>
+    </div>
+    <div class="card-body">
+      <table class="table" style="border: solid 1px black;">
+        <thead style="border: solid 1px black;">
+          <tr style="border: solid 1px black;">
+            <th></th>
+            <th>category</th>
+            <th>Total Sales</th>
+          </tr>
+        </thead>
+        <tbody style="border: solid 1px black;">
+          <% bestsellercategory.forEach((category, index) => { %>
+            <tr style="border: solid 1px black;">
+              <td><%= index + 1 %></td>
+              <td><%= category.category %></td>
+              <td><%= category.totalSales %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </section>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <script>
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  
+    const ctx = document.getElementById('myChart');
+    const revenueByPaymentMethod = <%- JSON.stringify(revenueByPaymentMethod) %>; 
+   
+    // Prepare chart data
+    const labels = Object.keys(revenueByPaymentMethod); // Payment method labels
+    const data = Object.values(revenueByPaymentMethod); // Revenue values
+
+    new Chart(ctx, {
+      type: 'bar', // You can use 'pie', 'doughnut', or 'bar'
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Revenue by Payment Method',
+            data: data,
+            backgroundColor: [
+    // Color for slice 1
+    'rgba(255, 99, 132, 0.2)',
+     // Color for slice 2
+  'rgba(75, 192, 192, 0.2)',  
+  'rgba(255, 206, 86, 1)', // Color for slice 3
+],
+            borderColor: [
+              'rgba(75, 192, 192, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(54, 162, 235, 0.2)',
+              
+            ],
+            
+            borderWidth: 2,
+            barThickness: 40,
+          },
+        ],
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Revenue (₹)',
+            },
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Payment Method',
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+        },
+      },
+    });
+  });
+
+
+    function showCustomDateFields(value) {
+            if (value === 'custom') {
+                document.getElementById('customDateFields').style.display = 'block';
+            } else {
+                document.getElementById('customDateFields').style.display = 'none';
+            }
+        }
+
+
+
+        const today = new Date().toISOString().split('T')[0];
+    document.getElementById('startDate').setAttribute('max', today);
+    document.getElementById('endDate').setAttribute('max', today);
+
+    
+  </script>
+
 <%- include("../../views/partials/admin/footer") %>
 

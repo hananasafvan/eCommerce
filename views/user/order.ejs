@@ -88,7 +88,7 @@
         <div class="mb-4">
           <h4>Select Payment Method</h4>
           <label>
-            <input type="radio" name="paymentMethod" value="Cash on Delivery" checked> Cash on Delivery
+            <input type="radio" name="paymentMethod" value="Cash on Delivery"> Cash on Delivery
           </label>
           <label>
             <input type="radio" name="paymentMethod" value="Online Payment"> Online Payment
@@ -109,7 +109,7 @@
             <option value="" data-discount="0">No Coupon</option>
             <% couponData.forEach(coupon => { %>
               <option value="<%= coupon._id %>" data-discount="<%= coupon.discountValue %>">
-                <%= coupon.description %> - Discount: <%= coupon.discountValue %>
+                <%= coupon.description %> - Rs <%= coupon.discountValue %> off
               </option>
               
             <% }) %>

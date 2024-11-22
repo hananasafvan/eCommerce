@@ -7,6 +7,8 @@ const User = require("../../models/userSchema");
 const Coupon = require("../../models/couponSchema");
 const env = require("dotenv").config();
 const paypal = require("paypal-rest-sdk");
+const PDFDocument = require("pdfkit");
+const fs = require("fs");
 paypal.configure({
   mode: process.env.PAYPAL_MODE, // sandbox or live
   client_id: process.env.CLIENT_ID,
@@ -184,6 +186,8 @@ const placeOrder = async (req, res) => {
           console.log("`Price per Unit: ", price);
           const discountForItem = coupenPerUnit * quantity;
           item.totalPrice = totalprice - discountForItem;
+          console.log('item.totalprice',item.totalPrice);
+          
         });
 
         totalOrderPrice = cart.items.reduce(
@@ -509,9 +513,108 @@ const repayItem = async (req, res) => {
 };
 
 
+async function Invoice(order, res, item) {
+  const doc = new PDFDocument();
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment;filename=invoice-${order._id}-${item._id}.pdf`);
+
+  doc.pipe(res);
+
+  doc
+    .fontSize(20)
+    .text("INVOICE", { align: "center" })
+    .moveDown(1);
+
+  doc
+    .fontSize(12)
+    .text(`Order ID: ${order._id}`)
+    .text(`Order Date: ${order.createdAt.toDateString()}`)
+    .moveDown(1);
+
+  // Customer Details
+  doc
+    .fontSize(14)
+    .text("Customer Details:", { underline: true })
+    .moveDown(0.5);
+
+  doc
+    .fontSize(12)
+    .text(`Name: ${order.address.name}`)
+    .text(`City: ${order.address.city}`)
+    .text(`State: ${order.address.state}`)
+    .text(`Pincode: ${order.address.pincode}`)
+    .text(`Phone: ${order.address.phone}`)
+    .text(`Alt Phone: ${order.address.altphone || "N/A"}`)
+    .moveDown(1);
+
+  // Order Item Details (Focus on single item)
+  doc
+    .fontSize(14)
+    .text("Order Item:", { underline: true })
+    .moveDown(0.5);
+
+  const product = item.productId;
+
+  doc
+    .fontSize(12)
+    .text(`Product: ${product.productName}`)
+    .text(`Brand: ${product.brand}`)
+    .text(`Sale Price: ₹${product.salePrice.toFixed(2)}`)
+    .text(`Offer: ${product.productOffer || 'None'}`)
+    .text(`Quantity: ${item.quantity}`)
+    .text(`Total: ₹${item.totalPrice.toFixed(2)}`)
+    .moveDown(1);
+
+  // Pricing Summary
+  doc
+    .fontSize(14)
+    .text("Pricing Summary:", { underline: true })
+    .moveDown(0.5);
+
+  doc
+    .fontSize(12)
+    .text(`Item Total: ₹${item.totalPrice.toFixed(2)}`)
+    .moveDown(1);
+
+  // Payment Method
+  doc
+    .fontSize(12)
+    .text(`Payment Method: ${order.paymentMethod}`)
+    .moveDown(1);
+
+  doc
+    .fontSize(10)
+    .text("Thank you for your purchase!", { align: "center" })
+    .text("For support, contact us at mailfashon@example.com", { align: "center" });
+
+  doc.end();
+}
 
 
+const getInvoice =async(req,res)=>{
+  try {
+    const { orderId, itemId } = req.params;
+    
+    // Fetch the order by orderId and populate product details for the specific item
+    const order = await Order.findById(orderId)
+      .populate("items.productId")
+      .populate("coupon");
 
+    // Find the item in the order by itemId
+    const item = order.items.find(i => i._id.toString() === itemId);
+    
+    if (!item) {
+      return res.status(404).send("Item not found.");
+    }
+
+    // Generate invoice for the specific item
+    Invoice(order, res, item);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("An error occurred while generating the invoice.");
+  }
+}
 
 module.exports = {
   getOrderPage,
@@ -520,5 +623,6 @@ module.exports = {
   getOrderDetails,
   cancelItem,
   returnItem,
-  repayItem
+  repayItem,
+  getInvoice,
 };
