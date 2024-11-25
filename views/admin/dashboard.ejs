@@ -2,7 +2,8 @@
 <section class="content-main">
   <div class="content-header">
     <form method="GET" action="/admin/dashboard">
-      <select name="timePeriod" onchange="this.form.submit()">
+      <p style="color: black;">Select Date Range:</p>
+      <select name="timePeriod" onchange="this.form.submit()" style="width: 150px; height: 40px; padding-left: 20px;background-color:#328ca5;color: white;border-radius: 5px;border: none;">
         <!-- <option value="daily" <%= timePeriod === 'daily' ? 'selected' : '' %>>Daily</option> -->
         <option value="weekly" <%= timePeriod === 'weekly' ? 'selected' : '' %>>Weekly</option>
         <option value="monthly" <%= timePeriod === 'monthly' ? 'selected' : '' %>>Monthly</option>
@@ -17,12 +18,21 @@
   </div>
 
 
-  <div class="card mb-4" style="width: 100%; border: solid 1px black; align-items: center;">
-    
+  <div class="card mb-4" style="padding-top: 20px;  width: 100%; border: solid 1px black; align-items: center;">
+    <h4>Revenue By PaymentMethod</h4>
     <div class="card-body" style="width: 50%;">
       <canvas id="myChart"></canvas>
     </div>
     
+
+    
+  </div>
+
+  <div class="card mb-4" style="padding-top: 20px;  width: 100%; border: solid 1px black; align-items: center;">
+    <h4>Count Category Oder</h4>
+    <div class="card-body" style="width: 50%;">
+      <canvas id="myChart2"></canvas>
+    </div>
 
     
   </div>
@@ -180,6 +190,73 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  const ctx2 = document.getElementById('myChart2');
+    const countcategoryOder = <%- JSON.stringify(countcategoryOder) %>; 
+   
+
+    const labels = Object.keys(countcategoryOder); 
+    const data = Object.values(countcategoryOder); 
+
+    new Chart(ctx2, {
+      type: 'doughnut', // You can use 'pie', 'doughnut', or 'bar'
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Count Category Order',
+            data: data,
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(255, 206, 86, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+              'rgba(255, 159, 64, 0.2)',
+                 ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+              
+            ],
+            
+            borderWidth: 2,
+            barThickness: 40,
+          },
+        ],
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'count',
+            },
+          },
+          x: {
+            title: {
+              display: true,
+              text: 'Category',
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+          },
+        },
+      },
+    });
+
+})
 
     function showCustomDateFields(value) {
             if (value === 'custom') {

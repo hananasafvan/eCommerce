@@ -5,7 +5,7 @@
 </head>
 <style>
   body{
-    background-color: #9fc8d3;
+    background-color: #f4f4f9;
     
   }
 </style>
@@ -40,25 +40,35 @@
                   <li>
                     <strong><%= item.productId.productName %></strong> (Qty: <%= item.quantity %>)<br>
                     Status: <span class="badge <%= item.status === 'Pending' ? 'bg-warning' : 'bg-success' %>"><%= item.status %></span>
+                    <% 
+                      const deliveredDate = new Date(item.deliveredAt || item.updatedAt); // Use the deliveredAt date if available, fallback to updatedAt
+                      const currentDate = new Date();
+                      const daysSinceDelivery = Math.floor((currentDate - deliveredDate) / (1000 * 60 * 60 * 24)); 
+                    %>
                     <% if (item.status === 'Cancelled') { %>
                       <button type="button" class="btn btn-danger btn-sm" disabled>Cancelled</button>
-                      
-                    <% } else if (item.status === 'Processing'  || item.status === 'Paid') { %>
-                      <button type="button" class="btn btn-danger btn-sm" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', this)">Cancel</button>
-                    <% } else if (item.status === 'Delivered') { %>
+                    <% } else if (item.status === 'Delivered' && daysSinceDelivery <= 7) { %>
                       <button type="button" class="btn btn-primary btn-sm" onclick="returnItem('<%= order._id %>', '<%= item._id %>', this)">Return</button>
-                    <% }else if (item.status === 'Pending') {%>
-                      <!-- <button type="button" class="btn btn-primary btn-sm" onclick="repay('/repay<%= order._id %>', '<%= item._id %>', this)">RePay</button>
-                   -->
-                          
-                        <a class="btn btn-dark btn-sm" href="/order/repay/<%= order._id %>/<%= item._id %>"> repay</a>
-
-                      <%}%>
+                    <% } else if (item.status === 'Delivered' && daysSinceDelivery > 7) { %>
+                      <button type="button" class="btn btn-secondary btn-sm" disabled>Can't Return</button>
+                    <% } else if (item.status === 'Processing' || item.status === 'Paid') { %>
+                      <button type="button" class="btn btn-danger btn-sm" onclick="cancelItem('<%= order._id %>', '<%= item._id %>', this)">Cancel</button>
+                    <% } else if (item.status === 'Pending') { %>
+                      <a class="btn btn-dark btn-sm" href="/order/repay/<%= order._id %>/<%= item._id %>">Repay</a>
+                    <% } %>
                   </li>
                 <% }) %>
+                
               </ul>
             </td>
-            <td>&#8377; <%= order.totalOrderPrice %></td>
+            <td>&#8377; <%= order.totalOrderPrice %>
+              <br>
+              <% if(order.coupon){%>   
+                Discount Value: <%= order.coupon.discountValue %>
+                <%}%>
+                
+            </td>
+        
             <td>
               <a href="/order/details/<%= order._id %>" class="btn btn-dark btn-sm" style="background-color: #d35400; border: none;">View Details</a>
             </td>
@@ -82,6 +92,8 @@
 </div>
 
 <%- include("../../views/partials/user/footer") %>
+
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
 
 

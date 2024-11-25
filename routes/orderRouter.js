@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const orderController = require("../controllers/user/orderController");
+const addressController = require('../controllers/user/addressController')
 const { userAuth } = require("../middleweares/auth");
 const bodyParser = require('body-parser')
 
@@ -30,7 +31,7 @@ router.post('/pay',orderController.placeOrder);
 router.get('/success',paymentController.successPage)
 router.get('/cancel',paymentController.cancelPage)
   
-
+router.get('/orderAddress',userAuth,addressController.newAddress)
 
 
 module.exports = router;

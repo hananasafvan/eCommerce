@@ -20,8 +20,8 @@
     justify-content: space-between;
     max-width: 100%;
     padding: 50px;
-    background-color: #00131c;
-    color: white;
+    
+    color: rgb(7, 7, 7);
     margin-bottom: 20px;
     box-sizing: border-box; /* Ensure padding doesn't cause overflow */
 }
@@ -129,8 +129,8 @@
 
 
   .star-rating {
-    font-size: 15px; /* Size of the stars */
-    color: white; /* Black color for unselected stars */
+    font-size: 30px; /* Size of the stars */
+    color: rgb(3, 3, 3); /* Black color for unselected stars */
     cursor: pointer; /* Change cursor to pointer */
 }
 
@@ -154,7 +154,7 @@
 
 .related-products {
     padding: 50px 20px;
-    background-color: #00131c
+    
     
   }
 
@@ -218,6 +218,54 @@
 }
 
 
+.product-images {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+
+.large-image-container {
+  flex: 3;
+  text-align: center;
+}
+
+.large-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  cursor: zoom-in;
+  transition: transform 0.3s ease;
+}
+
+.thumbnail-images {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.thumbnail {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.3s ease, border 0.3s ease;
+}
+
+.thumbnail:hover {
+  transform: scale(1.1);
+}
+
+.active-thumbnail {
+  border: 2px solid #007bff;
+  transform: scale(1.2);
+}
 
 
 
@@ -241,49 +289,38 @@
     <div class="product-container" style="width: 100%;">
       <!-- Product Images with Click-to-Zoom -->
       <div class="product-images">
-        <% product.productImage.forEach(image => { %>
-          <div class="image-container">
-            <img src="/uploads/product-imgs/<%= image %>" alt="<%= product.productName %>" class="zoomable-image">
-          </div>
-        <% }) %>
+        <div class="large-image-container">
+          <img id="largeImage" src="/uploads/product-imgs/<%= product.productImage[1] %>" alt="<%= product.productName %>" class="zoomable-image large-image">
+        </div>
+        <div class="thumbnail-images" style="margin-top: 70px;">
+          <% product.productImage.forEach((image, index) => { %>
+            <img src="/uploads/product-imgs/<%= image %>" alt="<%= product.productName %>" class="thumbnail <%= index === 0 ? 'active-thumbnail' : '' %>" data-image="/uploads/product-imgs/<%= image %>">
+          <% }) %>
+        </div>
       </div>
+      
+      
 
       <!-- Product Details -->
       <div class="product-details" style="margin-left: 100px;">
-        <h5 style="color: white; font-family: fantasy;"><%= product.productName %></h5>
+        <h4 style="color: rgb(133, 51, 3); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-style: italic;"><%= product.productName %></h4>
         <br>
-        <p class="price" style="font-size: 14px;">&#8377;<%= product.regularPrice %></p>
+        <h4 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"> <%= product.description %></h4>
+        <br>
+  
+        <% if (product.salePrice < product.regularPrice) { %>
+          <p style="text-decoration: line-through; margin-bottom: 0.1px;  color: #000; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;font-weight: 10px;"> Original Price &#8377; <%= product.regularPrice %> </p>
+          <p style="color: rgb(12, 197, 12); margin-top: 1px; color: #000; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;font-weight: 10px;">Offer Price &#8377; <%= product.salePrice %></p>
+      <% } else { %>
+          <p>&#8377; <%= product.regularPrice %></p>
+      <% } %>
+        <h4 style="color: rgb(7, 7, 7);">inclusive of all taxes</h4>
+ 
+        <br>
+       
         
-        <p style="color: white;">inclusive of all taxes</p>
-        
-        <div class="star-rating">
-          <span class="star" data-value="1">&#9733;</span>
-          <span class="star" data-value="2">&#9733;</span>
-          <span class="star" data-value="3">&#9733;</span>
-          <span class="star" data-value="4">&#9733;</span>
-          <span class="star" data-value="5">&#9733;</span>
-          
-      </div>
-
-      
-
-        <p style="color: white;"><%= product.description %></p>
-        
-        
-        <p>
-          <% if (product.quantity > 0) { %>
-            <span style="color: rgb(248, 248, 248);">Available</span>
-          <% } else { %>
-            <span style="color: rgb(252, 249, 249);">Sorry, This product is unavailable now</span>
-          <% } %>
-        </p>
-        
-      <div>
-
-          
-      </div>
         <label > Size</label>
-        <select  id="sizeSelect" name="size">
+        <select  id="sizeSelect" name="size" style="height: 40px; width: 150px; align-items: center;">
           <% product.stock.forEach(stockItem=>{ %>
             <%if(stockItem.quantity>0){ %>
            <option value="<%= stockItem.size %>"><%= stockItem.size %></option>
@@ -291,20 +328,48 @@
             <%})%> 
           
         </select>
+               
+        <br>
+        <% if (product.quantity > 0) { %>
+        <button style="width: 200px;height: 40px; background-color: rgb(12, 136, 12); color: white;align-items: center;">
+          <a  href="#" class="btn  add-to-cart" data-product-id="<%= product._id %>" style="color: #fff;margin-top: -9px;">
+              ADD TO BAG 
+          </a>
+        </button>
+      <% } else { %>
+          <p class="out-of-stock" style="color: rgb(180, 17, 17);">Out of Stock</p>
+      <% } %>
+
+        <a href="" class="wishlist-btn" data-product-id="<%= product._id %>" ></a>
+      <i class="fas fa-heart fa-lg" style="color: rgb(233, 38, 38); margin-left: 10px;" ></i>
+  </a> 
+
+        
+        <p style="margin-top: 20px;">
+          <% if (product.quantity > 0) { %>
+            <span style="color: rgb(15, 15, 15);">Available</span>
+          <% } else { %>
+            <span style="color: rgb(233, 54, 63);">Sorry, This product is unavailable now</span>
+          <% } %>
+        </p>
+        
+      <div>
+
+          
+      </div>
+      <div class="star-rating">
+        <span class="star" data-value="1">&#9733;</span>
+        <span class="star" data-value="2">&#9733;</span>
+        <span class="star" data-value="3">&#9733;</span>
+        <span class="star" data-value="4">&#9733;</span>
+        <span class="star" data-value="5">&#9733;</span>
+        
+    </div>
+
             
               
-      <% if (product.quantity > 0) { %>
-        
-        <a  href="#" class="btn  add-to-cart" data-product-id="<%= product._id %>" style="margin-bottom: 10px;">
-            <i class="fas fa-shopping-cart" style="color: white;"></i> 
-        </a>
-        
-    <% } else { %>
-        <p class="out-of-stock" style="color: white;">Out of Stock</p>
-    <% } %>
-    <a href="" class="wishlist-btn" ></a>
-    <i class="fas fa-heart" style="color: white;" ></i>
-</a>
+      
+    
   </div>
   
    </div>
@@ -315,16 +380,23 @@
 
   
 
-<div class="related-products" style="margin-bottom: 20px;">
-  <h3 style="text-align: center; color: #d35400; margin-bottom: 20px;">Related Products</h3>
+<div class="related-products" style="margin-bottom: 20px; background-color: white;">
+  <h3 style="text-align: center; color: #080808; margin-bottom: 20px;">Related Products</h3>
   <div class="related-products-grid">
       <% relatedProducts.forEach(product => { %>
           <div class="product-item">
               <a href="/product/<%= product._id %>">
                   <img src="/uploads/product-imgs/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-image">
               </a>
-              <h4 class="product-title" style="color: #d35400;;"><%= product.productName %></h4>
-              <p class="product-price">&#8377; <%= product.regularPrice %></p>
+              <h4 class="product-title" style="color: #080808;;"><%= product.productName %></h4>
+              <!-- <p class="product-price" style="color: black;">&#8377; <%= product.salePrice %></p> -->
+
+              <% if (product.salePrice < product.regularPrice) { %>
+                <p style="text-decoration: line-through; margin-bottom: 0.1px;">&#8377; <%= product.regularPrice %> </p>
+                <p style="color: rgb(12, 197, 12); margin-top: 1px;">&#8377; <%= product.salePrice %></p>
+            <% } else { %>
+                <p>&#8377; <%= product.regularPrice %></p>
+            <% } %>
               
           </div>
       <% }) %>
@@ -397,5 +469,82 @@
             });
         });
     });
+
+
+    $(document).ready(function() {
+    $(".wishlist-btn").click(function(e) {
+        e.preventDefault();
+        const productId = $(this).data("product-id");
+
+        $.ajax({
+            url: '/wishlist/add',
+            method: 'POST',
+            data: { productId: productId },
+            success: function(response) {
+                if (response.message === 'Product is already in your wishlist!') {
+                    Swal.fire('Already Added!', response.message, 'info'); 
+                } else {
+                    Swal.fire('Added to Wishlist!', response.message, 'success'); 
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error details:", xhr.responseText);
+                Swal.fire('Oops!', 'Something went wrong! ' + xhr.responseText, 'error'); 
+            }
+        });
+    });
+});
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const largeImage = document.getElementById("largeImage");
+    const thumbnails = document.querySelectorAll(".thumbnail");
+
+    // Change the large image on thumbnail click
+    thumbnails.forEach(thumbnail => {
+      thumbnail.addEventListener("click", function () {
+        const newImageSrc = this.getAttribute("data-image");
+        largeImage.src = newImageSrc;
+
+        // Update the active thumbnail
+        thumbnails.forEach(thumb => thumb.classList.remove("active-thumbnail"));
+        this.classList.add("active-thumbnail");
+      });
+    });
+  
+    // Zoom functionality for the large image
+    let isZoomed = false;
+
+    largeImage.addEventListener("click", () => {
+      if (!isZoomed) {
+        largeImage.style.transform = "scale(2)";
+        largeImage.style.cursor = "move";
+        isZoomed = true;
+        largeImage.addEventListener("mousemove", panImage);
+      } else {
+        largeImage.style.transform = "scale(1)";
+        largeImage.style.cursor = "zoom-in";
+        isZoomed = false;
+        largeImage.removeEventListener("mousemove", panImage);
+      }
+    });
+
+    function panImage(e) {
+      if (isZoomed) {
+        const rect = largeImage.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const moveX = ((x / rect.width) - 0.5) * 100;
+        const moveY = ((y / rect.height) - 0.5) * 100;
+
+        largeImage.style.transform = `scale(2) translate(${moveX}%, ${moveY}%)`;
+      }
+    }
+  });
+
+
+
+  
 </script>
 

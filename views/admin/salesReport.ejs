@@ -159,11 +159,11 @@ h2{
         <form action="/admin/salesReport" method="GET" style="display: inline-block; text-align: left;">
             <label for="dateRange">Select Date Range:</label>
             <select id="dateRange" name="dateRange" onchange="showCustomDateFields(this.value)" class="form-control">
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-                <option value="custom">Custom</option>
+                <option value="daily" <%= dateRange === 'daily' ? 'selected' : '' %>>Daily</option>
+                <option value="weekly" <%= dateRange === 'weekly' ? 'selected' : '' %> >Weekly</option>
+                <option value="monthly" <%= dateRange === 'monthly' ? 'selected' : '' %> >Monthly</option>
+                <option value="yearly" <%= dateRange === 'yearly' ? 'selected' : '' %> >Yearly</option>
+                <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %> >Custom</option>
             </select>
             
            

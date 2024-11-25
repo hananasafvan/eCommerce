@@ -157,10 +157,11 @@ const getCart = async (req, res) => {
 };
 
 const removeFromCart = async (req, res) => {
-  console.log('enter to removefrom cart');
-  
+  console.log('Enter to remove from cart');
+
   const userId = req.session.user;
   const productId = req.params.productId;
+  const productSize = req.query.size; // Pass size in the query parameters
 
   try {
     const cart = await Cart.findOne({ userId });
@@ -169,42 +170,33 @@ const removeFromCart = async (req, res) => {
       return res.status(404).json({ message: "Cart not found" });
     }
 
+    // Find the item index based on both productId and size
     const itemIndex = cart.items.findIndex(
-      (item) => item.productId == productId
+      (item) => item.productId == productId && item.size == productSize
     );
 
     if (itemIndex > -1) {
       const productQuantityInCart = cart.items[itemIndex].quantity;
-      const productSize = cart.items[itemIndex].size;
 
-      console.log('product size from cart',productSize);
-      
+      console.log('Product size from cart:', productSize);
+
+      // Remove the item from the cart
       cart.items.splice(itemIndex, 1);
       await cart.save();
 
-      // const updatedProduct = await Product.findByIdAndUpdate(
-      //   productId,
-      //   { $inc: { quantity: productQuantityInCart } },
-      //   { new: true }
-      // );
-
-
+      // Update the product stock
       const updatedProduct = await Product.findOneAndUpdate(
         { _id: productId, "stock.size": productSize },
         { $inc: { "stock.$.quantity": productQuantityInCart } },
         { new: true }
       );
 
-      // if (
-      //   updatedProduct.quantity > 0 &&
-      //   updatedProduct.status === "out of stock"
-      // ) {
-      //   updatedProduct.status = "Available";
-      //   await updatedProduct.save();
-      // }
-
-
-      if (updatedProduct && updatedProduct.quantity > 0 && updatedProduct.status === "out of stock") {
+      // Update the status of the product if needed
+      if (
+        updatedProduct &&
+        updatedProduct.quantity > 0 &&
+        updatedProduct.status === "out of stock"
+      ) {
         updatedProduct.status = "Available";
         await updatedProduct.save();
       }
@@ -215,7 +207,6 @@ const removeFromCart = async (req, res) => {
       return res.json({
         message: "Product removed and stock updated",
         productQuantity: updatedProduct ? updatedProduct.quantity : null,
-
       });
     } else {
       return res.status(404).json({ message: "Product not found in cart" });
@@ -225,10 +216,12 @@ const removeFromCart = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
 const MAX_QUANTITY_PER_PRODUCT = 5;
 
 const updateQuantity = async (req, res, next) => {
-  const { productId, change } = req.body;
+  const { productId, size, change } = req.body; // Include size in the request
   const userId = req.session.user || req.user;
 
   try {
@@ -239,7 +232,8 @@ const updateQuantity = async (req, res, next) => {
     }
 
     const item = cart.items.find(
-      (item) => item.productId._id.toString() === productId
+      (item) =>
+        item.productId._id.toString() === productId && item.size === size // Match by productId and size
     );
 
     if (!item) {
@@ -250,7 +244,7 @@ const updateQuantity = async (req, res, next) => {
       return res.status(400).json({ error: "Product is blocked" });
     }
 
-    const productSize = item.size; 
+    const productSize = item.size; // Retrieve the selected size
     let newQuantity = item.quantity + change;
 
     if (newQuantity < 1) {
@@ -262,7 +256,7 @@ const updateQuantity = async (req, res, next) => {
 
     if (newQuantity > MAX_QUANTITY_PER_PRODUCT) {
       return res.status(400).json({
-        error: `You can only have up to ${MAX_QUANTITY_PER_PRODUCT} units of this product`,
+        error: `You can only have up to ${MAX_QUANTITY_PER_PRODUCT} units of this product in this size.`,
       });
     }
 
@@ -271,17 +265,20 @@ const updateQuantity = async (req, res, next) => {
     );
 
     if (!stockSizeItem || stockSizeItem.quantity < change) {
-      return res.status(400).json({ error: "Not enough stock available for this size" });
+      return res.status(400).json({
+        error: "Not enough stock available for this size.",
+      });
     }
 
-  
+    // Update the specific size stock quantity
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, "stock.size": productSize },
       { $inc: { "stock.$.quantity": -change } },
       { new: true }
     );
 
-    if (updatedProduct.stock.every(stock => stock.quantity === 0)) {
+    // Check and update the product availability status
+    if (updatedProduct.stock.every((stock) => stock.quantity === 0)) {
       updatedProduct.status = "out of stock";
     } else {
       updatedProduct.status = "Available";
@@ -289,11 +286,12 @@ const updateQuantity = async (req, res, next) => {
 
     await updatedProduct.save();
 
-    
+    // Update the cart item quantity and total price
     item.quantity = newQuantity;
     item.totalPrice = item.price * newQuantity;
     await cart.save();
 
+    // Update the user data in locals
     const user = await User.findById(userId);
     res.locals.user = user;
 
@@ -301,7 +299,7 @@ const updateQuantity = async (req, res, next) => {
       success: true,
       updatedQuantity: item.quantity,
       productStatus: updatedProduct.status,
-      productQuantity: updatedProduct.quantity,
+      remainingStock: stockSizeItem.quantity - change,
     });
   } catch (error) {
     next(error);

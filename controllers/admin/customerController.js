@@ -36,6 +36,7 @@ const customerInfo = async (req, res) => {
       data: userData,
       totalPages: Math.ceil(count / limit),
       currentPage: parseInt(page),
+    
     });
   } catch (error) {
     console.error(error);

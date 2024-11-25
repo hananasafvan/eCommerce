@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,90 +6,120 @@
   <title>Address</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <%- include("../../views/partials/user/headerNew") %>
-<style>
-  body{
-    background-color: #9fc8d3;
-  }
-  .form{
-    background-color: rgb(255, 253, 253);
-    width: 500px;
-    padding: 50px;
-    margin-top: 50px;
-    margin-left: 300px;
-    border-radius: 1px;
-
-
-  }
-</style>
-
+  <style>
+    body {
+      background-color: #f0f4f8;
+      font-family: 'Arial', sans-serif;
+    }
+    .address-container {
+      margin-top: 50px;
+    }
+    .address-list {
+      margin-bottom: 30px;
+    }
+    .address-item {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+      padding: 20px;
+    }
+    .address-item h5 {
+      color: #333;
+    }
+    .address-item p {
+      color: #555;
+    }
+    .address-item .btn {
+      border-radius: 20px;
+    }
+    .address-form {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .form-label {
+      font-weight: bold;
+    }
+    .btn-custom {
+      background-color: #328ca5;
+      border: none;
+      border-radius: 20px;
+    }
+    .btn-custom:hover {
+      background-color: #276e83;
+    }
+  </style>
 </head>
 <body>
-  
 
-<div class="col-md-6" style="text-align: center;  margin-top: 150px; margin-left: 350px;   padding-top: 50px;">
-<h4 style="color: #00131c;">Your Addresses</h4>
-  <% if (addressData && addressData.length > 0) { %>
-    <ul class="list-group">
-      <% addressData.forEach(function(address) { %>
-        <li class="list-group-item">
-          <strong><%= address.name %></strong><br>
-          <%= address.city %>, <%= address.state %>, <%= address.pincode %><br>
-          Phone: <%= address.phone %>, Alt Phone: <%= address.altphone %><br>
-          <a href="/address/edit/<%= address._id %>" class="btn btn-primary btn-sm">Edit</a>
-          
-          <form id="deleteForm-<%= address._id %>" action="/address/delete/<%= address._id %>" method="POST" style="display:inline;" onsubmit="return confirmDelete(event, '<%= address._id %>');">
-            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-          </form>
-          
-
-        </li>
-      <% }) %>
-    </ul>
-  <% } else { %>
-    <p>No addresses found. Add a new one below!</p>
-  <% } %>
-</div>
-
-    <!-- Add Address Form -->
-    <div class="col-md-12 mt-4" style=" padding-top: 40px;  height: 900px; margin-left: 90px; margin-right: 90px; width: 1170px; ">
-      <div class="form">
-      <h4 style="text-align: center; color: #00131c">Add New Address</h4>
+<div class="container address-container">
+  <div class="row">
+    <div class="col-md-6 mx-auto">
+      <h4 class="text-center text-primary">Your Addresses</h4>
       
-
-      <form action="/addAddress" method="POST" onsubmit="return validateForm()">
-        <div class="mb-3">
-          <label for="name" class="form-label" >Name</label>
-          <input type="text" class="form-control" id="name" name="name" pattern="[A-Za-z ]+" title="Name can only contain alphabets." required style=" width: 350px;">
+      <% if (addressData && addressData.length > 0) { %>
+        <div class="address-list">
+          <% addressData.forEach(function(address) { %>
+            <div class="address-item">
+              <h5><%= address.name %></h5>
+              <p><%= address.city %>, <%= address.state %>, <%= address.pincode %></p>
+              <p>Phone: <%= address.phone %>, Alt Phone: <%= address.altphone %></p>
+              <a href="/address/edit/<%= address._id %>" class="btn btn-sm btn-custom">Edit</a>
+              
+              <form id="deleteForm-<%= address._id %>" action="/address/delete/<%= address._id %>" method="POST" style="display:inline;" onsubmit="return confirmDelete(event, '<%= address._id %>');">
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          <% }) %>
         </div>
-        <div class="mb-3" >
-          <label for="city" class="form-label">City</label>
-          <input type="text" class="form-control" id="city" name="city" pattern="[A-Za-z0-9 ]+" title="City can only contain characters and numbers." required style=" width: 350px;">
-        </div>
-        <div class="mb-3">
-          <label for="state" class="form-label">State</label>
-          <input type="text" class="form-control" id="state" name="state" required style=" width: 350px;">
-        </div>
-        <div class="mb-3">
-          <label for="pincode" class="form-label">Pincode</label>
-          <input type="text" class="form-control" id="pincode" name="pincode" pattern="\d{6}" title="Pincode must be 6 digits." required style=" width: 350px;">
-        </div>
-        <div class="mb-3">
-          <label for="phone" class="form-label">Phone</label>
-          <input type="text" class="form-control" id="phone" name="phone" pattern="\d{10}" title="Phone number must be 10 digits." required style=" width: 350px;">
-        </div>
-        <div class="mb-3">
-          <label for="altphone" class="form-label">Alt Phone</label>
-          <input type="text" class="form-control" id="altphone" name="altphone" pattern="\d{10}" title="Alt phone number must be 10 digits." required style=" width: 350px;">
-        </div>
-        <button type="submit" class="btn btn-dark" style="background-color: #328ca5; border: none;">Add Address</button>
-      </form>
+      <% } else { %>
+        <p>No addresses found. Add a new one below!</p>
+      <% } %>
     </div>
-    </div>
-  
   </div>
 
+  <!-- Add Address Form -->
+  <div class="row">
+    <div class="col-md-8 mx-auto">
+      <div class="address-form">
+        <h4 class="text-center text-primary">Add New Address</h4>
+        <form action="/addAddress" method="POST" onsubmit="return validateForm()">
+          <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" name="name" pattern="[A-Za-z ]+" title="Name can only contain alphabets." required>
+          </div>
+          <div class="mb-3">
+            <label for="city" class="form-label">City</label>
+            <input type="text" class="form-control" id="city" name="city" pattern="[A-Za-z0-9 ]+" title="City can only contain characters and numbers." required>
+          </div>
+          <div class="mb-3">
+            <label for="state" class="form-label">State</label>
+            <input type="text" class="form-control" id="state" name="state" required>
+          </div>
+          <div class="mb-3">
+            <label for="pincode" class="form-label">Pincode</label>
+            <input type="text" class="form-control" id="pincode" name="pincode" pattern="\d{6}" title="Pincode must be 6 digits." required>
+          </div>
+          <div class="mb-3">
+            <label for="phone" class="form-label">Phone</label>
+            <input type="text" class="form-control" id="phone" name="phone" pattern="\d{10}" title="Phone number must be 10 digits." required>
+          </div>
+          <div class="mb-3">
+            <label for="altphone" class="form-label">Alt Phone</label>
+            <input type="text" class="form-control" id="altphone" name="altphone" pattern="\d{10}" title="Alt phone number must be 10 digits." required>
+          </div>
+          <button type="submit" class="btn btn-custom w-100">Add Address</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
+
 <%- include("../../views/partials/user/footer") %>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -123,7 +151,6 @@
     return true;
   }
 
-
   function confirmDelete(event, addressId) {
     event.preventDefault(); // Prevent form submission
 
@@ -145,3 +172,6 @@
     return false;
   }
 </script>
+
+</body>
+</html>

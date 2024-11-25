@@ -212,7 +212,7 @@ const getRevenueByPaymentMethod = async (timePeriod) => {
     },
   ]);
 
-  // Transform to a format usable in the frontend
+  
   const formattedData = revenueByPaymentMethod.reduce((acc, item) => {
     acc[item._id] = item.totalRevenue;
     return acc;
@@ -221,7 +221,76 @@ const getRevenueByPaymentMethod = async (timePeriod) => {
   return formattedData;
 };
 
+const getOrderCountByCategory = async(timePeriod)=>{
+  const now = moment();
+  let startDate;
 
+  switch (timePeriod) {
+    case 'daily':
+      startDate = now.subtract(1, 'days').startOf('day');
+      break;
+    case 'weekly':
+      startDate = now.subtract(1, 'weeks').startOf('week');
+      break;
+    case 'monthly':
+      startDate = now.subtract(1, 'months').startOf('month');
+      break;
+    case 'yearly':
+      startDate = now.subtract(1, 'years').startOf('year');
+      break;
+    default:
+      startDate = now.subtract(1, 'weeks').startOf('week');
+      break;
+  }
+
+
+  const categoryOrderCount = await Order.aggregate([
+    {
+      $match:{
+        createdAt:{$gte:startDate.toDate()},
+      },
+    },
+    {
+      $unwind:'$items',
+    },
+    {
+      $lookup:{
+        from:'products',
+        localField:'items.productId',
+        foreignField:'_id',
+        as:'productDetails'
+      },
+    },
+    {
+      $unwind:'$productDetails'
+    },
+    {
+      $lookup:{
+        from:'categories',
+        localField:"productDetails.category",
+        foreignField: "_id",
+        as: "categoryDetails",
+      },
+    },
+    {
+      $unwind: "$categoryDetails",
+    },
+    {
+      $group: {
+        _id: "$categoryDetails.name",
+        orderCount: { $sum: 1 }, 
+      },
+    },
+    {
+      $sort: { orderCount: -1 },
+    },
+  ])
+
+  return categoryOrderCount.reduce((acc, item) => {
+    acc[item._id] = item.orderCount;
+    return acc;
+  }, {});
+}
 
 const loadDashboard = async (req, res) => {
   if (req.session.admin) {
@@ -234,7 +303,7 @@ const loadDashboard = async (req, res) => {
       const bestsellerbrand = await getTopBrands(timePeriod);
       const bestsellercategory = await getTopCategorys(timePeriod)
       const revenueByPaymentMethod = await getRevenueByPaymentMethod(timePeriod);
-
+      const countcategoryOder= await getOrderCountByCategory(timePeriod)  
 
       res.render("dashboard", {
          bestsellproduct,
@@ -242,6 +311,8 @@ const loadDashboard = async (req, res) => {
          bestsellercategory,
          timePeriod, 
          revenueByPaymentMethod, 
+         countcategoryOder,
+         
         });
     } catch (error) {
       console.log(error);

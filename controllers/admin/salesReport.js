@@ -145,13 +145,35 @@ const getSalesReportPDF = async (req, res) => {
     const { dateRange, startDate, endDate } = req.query;
     const matchCondition = getMatchCondition(dateRange, startDate, endDate);
 
+    // Calculate sales summary
+    const totalOrderCount = await Order.countDocuments(matchCondition);
+    const totalSales = await Order.aggregate([
+      { $match: matchCondition },
+      { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
+    ]);
+    const totalRevenue = totalSales[0]?.totalRevenue || 0;
+
+    const netSalesResult = await Order.aggregate([
+      { $unwind: "$items" },
+      {
+        $match: {
+          "items.status": { $in: ["Paid", "Delivered"] },
+          ...matchCondition,
+        },
+      },
+      {
+        $group: { _id: null, netSales: { $sum: "$items.totalPrice" } },
+      },
+    ]);
+    const netSales = netSalesResult[0]?.netSales || 0;
+
     const salesData = await Order.aggregate([
       { $match: matchCondition },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
           total: { $sum: "$totalOrderPrice" },
-          orders: { $push: "$$ROOT" }, 
+          orders: { $push: "$$ROOT" },
         },
       },
       { $sort: { _id: 1 } },
@@ -166,51 +188,32 @@ const getSalesReportPDF = async (req, res) => {
     res.setHeader("Content-Disposition", 'attachment; filename="Sales_Report.pdf"');
     doc.pipe(res);
 
+    // Add sales report title
     doc.fontSize(20).text("Sales Report", { align: "center" });
     doc.moveDown(2);
 
+    // Add summary section
+    doc.fontSize(14).text("Summary", { underline: true });
+    doc.text(`Total Orders: ${totalOrderCount}`);
+    doc.text(`Total Revenue: ₹${totalRevenue.toFixed(2)}`);
+    doc.text(`Net Sales: ₹${netSales.toFixed(2)}`);
+    doc.moveDown(2);
+
+    // Add sales data
     salesData.forEach((data) => {
       doc.fontSize(14).text(`Date: ${data._id}`, { underline: true });
       doc.moveDown();
-
-      
-      const tableHeaders = ["Order ID", "User ID", "Total Amount (₹)", "Items"];
-      const columnWidths = [180, 180, 120, 200];
-      let x = doc.x;
-
-      tableHeaders.forEach((header, index) => {
-        doc.fontSize(12).text(header, x, doc.y, { continued: index < tableHeaders.length - 1 });
-        x += columnWidths[index];
-      });
-
-      doc.moveDown(0.5);
-
-      
-      doc.moveTo(doc.x, doc.y).lineTo(550, doc.y).stroke();
-      doc.moveDown(0.5);
-
-      
       data.orders.forEach((order) => {
-        x = doc.x; 
-        const items = order.items
-          .map((item) => `${item.productId} (${item.quantity} pcs)`)
-          .join(", ");
-
-        const rowData = [
-          order._id,
-          order.userId,
-          `₹${order.totalOrderPrice.toFixed(2)}`,
-          items,
-        ];
-
-        rowData.forEach((cell, index) => {
-          doc.text(cell, x, doc.y, { continued: index < rowData.length - 1, width: columnWidths[index] });
-          x += columnWidths[index];
-        });
-        doc.moveDown(0.5);
+        doc.fontSize(12).text(
+          `Order ID: ${order._id}, User ID: ${order.userId}, Total: ₹${order.totalOrderPrice.toFixed(2)}`
+        );
+        doc.text(
+          `Items: ${order.items
+            .map((item) => `${item.productId} (${item.quantity} pcs)`)
+            .join(", ")}`
+        );
+        doc.moveDown();
       });
-
-      doc.moveDown(2); 
     });
 
     doc.end();
@@ -220,70 +223,102 @@ const getSalesReportPDF = async (req, res) => {
   }
 };
 
+
+
+
 const getSalesReportExcel = async (req, res) => {
   try {
-      const { dateRange, startDate, endDate } = req.query;
-      const matchCondition = getMatchCondition(dateRange, startDate, endDate);
+    const { dateRange, startDate, endDate } = req.query;
+    const matchCondition = getMatchCondition(dateRange, startDate, endDate);
 
-      const salesData = await Order.aggregate([
-          { $match: matchCondition },
-          {
-              $group: {
-                  _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-                  total: { $sum: "$totalOrderPrice" },
-                  orders: { $push: "$$ROOT" }, 
-              },
-          },
-          { $sort: { _id: 1 } },
-      ]);
+    // Calculate sales summary
+    const totalOrderCount = await Order.countDocuments(matchCondition);
+    const totalSales = await Order.aggregate([
+      { $match: matchCondition },
+      { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
+    ]);
+    const totalRevenue = totalSales[0]?.totalRevenue || 0;
 
+    const netSalesResult = await Order.aggregate([
+      { $unwind: "$items" },
+      {
+        $match: {
+          "items.status": { $in: ["Paid", "Delivered"] },
+          ...matchCondition,
+        },
+      },
+      {
+        $group: { _id: null, netSales: { $sum: "$items.totalPrice" } },
+      },
+    ]);
+    const netSales = netSalesResult[0]?.netSales || 0;
 
-      if (salesData.length === 0) {
-          return res.status(404).send("No sales data available for the selected date range.");
-      }
+    const salesData = await Order.aggregate([
+      { $match: matchCondition },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          total: { $sum: "$totalOrderPrice" },
+          orders: { $push: "$$ROOT" },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Sales Report");
+    if (salesData.length === 0) {
+      return res.status(404).send("No sales data available for the selected date range.");
+    }
 
-      
-      worksheet.columns = [
-          { header: "Date", key: "date", width: 15 },
-          { header: "Order ID", key: "orderId", width: 20 },
-          { header: "User ID", key: "userId", width: 20 },
-          { header: "Total Amount (₹)", key: "total", width: 20 },
-          { header: "Items", key: "items", width: 50 },
-      ];
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Sales Report");
 
-      salesData.forEach((data) => {
-          data.orders.forEach((order) => {
-              const items = order.items
-                  .map((item) => `${item.productId} (${item.quantity} pcs)`)
-                  .join(", ");
+    // Add summary section at the top
+    worksheet.addRow(["Summary"]);
+    worksheet.addRow(["Total Orders", totalOrderCount]);
+    worksheet.addRow(["Total Revenue (₹)", totalRevenue]);
+    worksheet.addRow(["Net Sales (₹)", netSales]);
+    worksheet.addRow([]); // Add an empty row for separation
 
-              worksheet.addRow({
-                  date: data._id,
-                  orderId: order._id,
-                  userId: order.userId,
-                  total: order.totalOrderPrice,
-                  items,
-              });
-          });
+    // Add column headers
+    worksheet.columns = [
+      { header: "Date", key: "date", width: 15 },
+      { header: "Order ID", key: "orderId", width: 20 },
+      { header: "User ID", key: "userId", width: 20 },
+      { header: "Total Amount (₹)", key: "total", width: 20 },
+      { header: "Items", key: "items", width: 50 },
+    ];
+
+    // Add sales data
+    salesData.forEach((data) => {
+      data.orders.forEach((order) => {
+        const items = order.items
+          .map((item) => `${item.productId} (${item.quantity} pcs)`)
+          .join(", ");
+
+        worksheet.addRow({
+          date: data._id,
+          orderId: order._id,
+          userId: order.userId,
+          total: order.totalOrderPrice,
+          items,
+        });
       });
+    });
 
-      res.setHeader(
-          "Content-Type",
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      );
-      res.setHeader(
-          "Content-Disposition",
-          'attachment; filename="Sales_Report.xlsx"'
-      );
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="Sales_Report.xlsx"'
+    );
 
-      await workbook.xlsx.write(res);
-      res.end();
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (error) {
-      console.error(error);
-      res.status(500).send("Server Error");
+    console.error(error);
+    res.status(500).send("Server Error");
   }
 };
 

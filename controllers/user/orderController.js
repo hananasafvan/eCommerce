@@ -63,7 +63,8 @@ const getOrderDetails = async (req, res) => {
       .populate({
         path: "address",
         model: "Address",
-      });
+      })
+      .populate("coupon")
 
     if (!order) {
       return res.status(404).send("Order not found");
@@ -90,7 +91,6 @@ const getOrderHistory = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 5;
   const skip = (page - 1) * limit;
-
   try {
     const totalOrders = await Order.countDocuments({ userId });
 
@@ -104,6 +104,7 @@ const getOrderHistory = async (req, res) => {
         model: "Address",
       })
       .populate("items.productId")
+      .populate("coupon")
       .exec();
 
     const userData = await User.findById(userId);
@@ -335,7 +336,7 @@ const cancelItem = async (req, res) => {
       item.status =
         order.paymentMethod === "Online Payment" ||
         order.paymentMethod === "Wallet"
-          ? "Returned"
+          ? "Cancelled"
           : "Cancelled";
       await order.save();
 
@@ -377,7 +378,7 @@ const cancelItem = async (req, res) => {
         });
       }
 
-      return res.status(200).json({ message: "Item cancelled successfully" });
+      return res.status(200).json({ message: "Item cancelled successfully and stock updated" });
     } else {
       return res.status(400).json({ message: "Item cannot be cancelled" });
     }

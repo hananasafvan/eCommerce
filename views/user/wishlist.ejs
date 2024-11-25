@@ -11,11 +11,16 @@
       rel="stylesheet"
     />
     <%- include("../../views/partials/user/headerNew") %>
+    <style>
+      body{
+        background-color: f4f4f9;
+      }
+    </style>
   </head>
   <body>
     <div
       class="container mt-5"
-      style="background-color: #00131c; margin-bottom: 50px; margin-top: 150px"
+      style=" margin-bottom: 50px; margin-top: 150px"
     >
       <div class="row" style="align-items: center">
         <div class="col-lg-10 mx-auto">
@@ -33,11 +38,14 @@
                 <div class="card-body">
                   <div class="row align-items-center">
                     <div class="col-md-3 text-center">
-                      <img
-                        src="/uploads/product-imgs/<%= item.productId.productImage[0] %>"
-                        alt="<%= item.productId.productName %>"
-                        class="img-fluid rounded"
-                      />
+                      <% if (item.productId.productImage && item.productId.productImage.length > 0) { %>
+                        <a href="/product/<%= item.productId._id %>">
+                          <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>">
+                        </a>
+                      <% } else { %>
+                        <img src="/uploads/product-imgs/no-image.jpg" alt="No image available">
+                      <% } %>
+                      
                     </div>
 
                     <div class="col-md-6">
@@ -47,19 +55,7 @@
                       <p class="text-muted">
                         Price: &#8377;<%= item.productId.regularPrice %>
                       </p>
-                      <% if (item.productId.quantity > 0) { %>
-                      <a
-                        href="#"
-                        class="btn add-to-cart-wish"
-                        data-product-id="<%= item.productId ? item.productId._id : '' %>"
-                        style="margin-bottom: 10px"
-                      >
-                        <i class="fas fa-shopping-cart"></i>
-                      </a>
-
-                      <% } else { %>
-                      <p class="out-of-stock">Out of Stock</p>
-                      <% } %>
+                     
                     </div>
 
                     <div class="col-md-3 text-end">

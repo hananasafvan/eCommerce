@@ -9,75 +9,154 @@
   <%- include("../../views/partials/user/headerNew") %>
 
   <style>
-  body{
-    background-color:#9fc8d3;
-  }
-    .profile-card {
-      width: 300px;
-      margin-left: 250px;
-      margin-top: 10px;
-      border-radius: 5px;
-      text-align: center;
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .profile-container {
+      max-width: 600px;
+      margin: 60px auto;
       padding: 20px;
-      position: relative;
+      background-color: #ffffff;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
     }
-    .edit-profile-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 1.5rem;
-      background-color: transparent;
-      border: none;
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-header i {
+      font-size: 6rem;
+      color: #0d6efd;
+    }
+
+    .profile-header h3 {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .profile-header p {
+      color: #777;
+    }
+
+    .profile-details {
+      margin-top: 20px;
+      padding: 10px 20px;
+    }
+
+    .profile-details h5 {
+      font-size: 18px;
+      font-weight: bold;
+      color: #0d6efd;
+    }
+
+    .profile-details p {
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    .profile-details .info-item {
+      margin-bottom: 15px;
+    }
+
+    .edit-profile {
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .edit-profile a {
+      text-decoration: none;
+      font-weight: bold;
+      color: #0d6efd;
+    }
+
+    .edit-profile a:hover {
+      text-decoration: underline;
+    }
+
+    .referral-section {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #dcdcdc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      text-align: center;
+    }
+
+    .referral-section h6 {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .referral-section p {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .referral-code {
+      display: inline-block;
+      padding: 8px 15px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #0d6efd;
+      border: 1px solid #0d6efd;
+      border-radius: 5px;
       cursor: pointer;
-      color: #000;
-      transition: color 0.3s, transform 0.3s;
+      background-color: #f8f9fa;
     }
-    .edit-profile-btn:hover {
-      background-color: #50fc58;
-      transform: scale(1.1);
-       }
+
+    .referral-code:hover {
+      background-color: #e8f0fe;
+    }
   </style>
 </head>
 <body>
+  <%- include("../../views/partials/user/headerNew") %>
 
+  <div class="profile-container" style="margin-top: 150px;">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <i class="bi bi-person-circle"></i>
+      <h3><%= user.name %></h3>
+      <p><%= user.email %></p>
+    </div>
 
-<div class="container mt-5" style="margin-top: 20px;margin-bottom: 20px;">
-  <div class="row justify-content-center">
-    <!-- Main Content -->
-    <div class="col-md-9">
-      <!-- User Details -->
-      <div id="details" class="profile-card card mb-4">
-        
-
-        <!-- Profile Icon -->
-        <i class="bi bi-person-circle" style="font-size: 5rem; color: #070707"></i>
-        <button class="edit-profile-btn" title="Edit Profile"></button>
-          <a href="/user/editUser?id=<%=user._id%>" style="text-decoration: none; " class="pen">
-            <i class="bi bi-pencil-fill" style="color: #000;"></i>
-          </a>
-        </button>
-        <h5 class="card-title mt-3" style="text-decoration: none; font-weight: bold; color: #0a0a0a;">User Details</h5>
-        
-        <!-- User Information -->
-        <p style="color:#070707; font-weight: bold;"> <%= user.name %></p>
-        <p style="color:#0a0a0a; font-weight: bold;"> <%= user.email %></p>
-        <p style="color:#0a0a0a; font-weight: bold;"> <%= user.phone %></p>
-        <a href="/user/changePassword" style="color: #2fa7c5;">Change Password</a>
-<br>
-        <h5 style="font-family: unset; color:black;">share the link and get Rs.100 in your wallet </h5>
-        <p style="color:black;"><i class="fa fa-copy" style="color: #515352; margin-right: 10px;"></i><%=user.referralCode%></p>
-
+    <!-- Profile Details -->
+    <div class="profile-details">
+      <div class="info-item">
+        <h5>Phone</h5>
+        <p><%= user.phone %></p>
       </div>
-      
-      <div style=" text-align: center; height: 100px; padding-top: 30px;margin-bottom: 20px;">
-            </div>
+      <div class="info-item">
+        <h5>Password</h5>
+        <p><a href="/user/changePassword" class="text-primary">Change Password</a></p>
+      </div>
+    </div>
+
+    <!-- Edit Profile -->
+    <div class="edit-profile">
+      <a style="color: #0d6efd;" href="/user/editUser?id=<%= user._id %>" ><i class="bi bi-pencil-fill" style="color: #0d6efd;"></i> Edit Profile</a>
+    </div>
+
+    <!-- Referral Section -->
+    <div class="referral-section">
+      <h6>Share & Earn</h6>
+      <p>Share your referral link and earn ₹100 in your wallet!</p>
+      <div class="referral-code">
+        <i class="bi bi-clipboard"></i> <%= user.referralCode %>
+      </div>
     </div>
   </div>
-</div>
 
-<%- include("../../views/partials/user/footer") %>
+  <%- include("../../views/partials/user/footer") %>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

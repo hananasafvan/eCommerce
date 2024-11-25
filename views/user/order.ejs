@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,10 +8,10 @@
   <title>Confirm Your Order</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
-  
+  <%- include("../../views/partials/user/headerNew") %>
   <style>
     body {
-      background-color: #f0f2f5; /* Light background for the whole page */
+      background-color: #F5F5F5; /* Light background for the whole page */
     }
     
     h1 {
@@ -66,33 +67,43 @@
 </head>
 <body>
 
-<%- include("../../views/partials/user/headerNew") %>
-<div class="container mt-5" style="background-color: #00131c; margin-bottom: 50px; padding-bottom: 30px;">
-  <h3 class="text-center mb-5" style="color: white;">Confirm Your Order</h3>
+
+<div class="container mt-5" style=" margin-bottom: 50px; padding-bottom: 30px;">
+  
   <div class="row justify-content-center">
     <div class="col-lg-8">
+      
       <form id="orderForm" action="/order/place" method="POST" class="p-4 border rounded shadow">
-        <!-- Address Selection -->
-        <div class="mb-4">
-          <h4>Select Delivery Address</h4>
-          <select name="selectedAddress" class="form-select">
+        
+        <h3 class="text-center mb-5" style="color: #212121 ;">Confirm Your Order</h3>
+        <div class="mb-4" >
+          <div style="width: 100%; ">
+            <div style="float: left;  width: 50%; "><h4 style="color:  #616161 ;">Select Delivery Address</h4></div>
+          <div style="float: left; text-align: end;width: 50%;" ><a style="color: #1A73E8;" href="/order/orderAddress">add new address</a></div>
+          </div>
+          <select name="selectedAddress" style="color: #616161;" class="form-select">
+            <option value="" disabled selected>Select an address</option>
             <% addressData.forEach(address => { %>
               <option value="<%= address._id %>">
                 <%= address.name %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
               </option>
             <% }) %>
           </select>
+         
         </div>
-
+        
+       
         <!-- Payment Method Selection -->
         <div class="mb-4">
-          <h4>Select Payment Method</h4>
+          <h4 style="color: #616161;">Select Payment Method</h4>
           <label>
             <input type="radio" name="paymentMethod" value="Cash on Delivery"> Cash on Delivery
           </label>
+          <br>
           <label>
-            <input type="radio" name="paymentMethod" value="Online Payment"> Online Payment
+            <input type="radio" name="paymentMethod" value="Online Payment" checked> Online Payment
           </label>
+          <br>
           <label>
             <input type="radio" name="paymentMethod" value="Wallet"> Wallet
           </label>
@@ -104,7 +115,7 @@
 
         
         <div class="mb-4">
-          <h4>Select Coupon</h4>
+          <h4 style="color: #616161;">Select Coupon</h4>
           <select name="coupon" id="couponSelect" class="form-select">
             <option value="" data-discount="0">No Coupon</option>
             <% couponData.forEach(coupon => { %>
@@ -120,14 +131,24 @@
 
         <!-- Cart Items -->
         <div class="mb-4">
-          <h4>Your Cart Items</h4>
+          <h4 style="color: #616161;">Your Cart Items</h4>
           <ul class="list-group">
             <% cartItems.forEach(item => { %>
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
+                  <img
+                  src="/uploads/product-imgs/<%= item.productId.productImage[0] %>"
+                  alt="<%= item.productId.productName %>"
+                  class="img-fluid rounded"
+                  style="width: 80px; height: auto"
+                />
+                <br>
                   <strong><%= item.productId.productName %></strong>
                   <div>Quantity: <%= item.quantity %></div>
+                  
+                  <span>Size: <%= item.size %></span>
                 </div>
+                
                 <span>Total: &#8377; <%= item.totalPrice %></span>
               </li>
             <% }) %>
@@ -138,10 +159,10 @@
         </div>
 
         <div class="text-center">
-          <button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color: #d35400;">
+          <button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg px-5" style="border: none; background-color:#1A73E8 ;">
             Place Order
           </button>
-          <button type="button" class="btn btn-success btn-lg px-5" style="background-color: #d35400; border: none; height: 51px;">
+          <button type="button" class="btn btn-success btn-lg px-5" style="background-color: #FFA726; border: none; height: 51px;">
             <a href="/cart" style="color: white; text-decoration: none;">Back to cart</a>
           </button>
         </div>
@@ -150,6 +171,7 @@
   </div>
 </div>
 
+  
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -236,6 +258,26 @@ codRadiobtn.addEventListener('change',function(){
   document.getElementById('placeOrderBtn').addEventListener('click', async function (event) {
   event.preventDefault();
   
+  const addressSelect = document.querySelector('select[name="selectedAddress"]');
+  const selectedAddress = addressSelect.value;
+  const addressError = document.getElementById('addressError');
+
+  if (!selectedAddress) {
+    // Display error message if no address is selected
+    if (!addressError) {
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'addressError';
+      errorDiv.style.color = 'red';
+      errorDiv.innerText = 'Please select a delivery address or add new address';
+      addressSelect.parentNode.appendChild(errorDiv);
+    }
+    return; // Stop the form from submitting
+  } else if (addressError) {
+    // Remove the error message if an address is selected
+    addressError.remove();
+  }
+
+
   const totalOrderPrice = parseFloat('<%= totalOrderPrice.toFixed(2) %>');
   const selectedPaymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
   document.getElementById('orderForm').submit();

@@ -10,28 +10,36 @@
     />
     <link rel="stylesheet" href="/css/style.css" />
     <%- include("../../views/partials/user/headerNew") %>
+
+    <style>
+      body{
+        background-color: #f4f4f9;
+      }
+    </style>
   </head>
   <body>
     <div
       class="container mt-5"
       style="
-        background-color: #00131c;
+        width: 100%;
+        
         overflow: auto;
         margin-bottom: 50px;
         margin-top: 150px;
         min-height: 500px;
       "
     >
-      <h2 class="text-center mb-4" style="color: white">Your Shopping Cart</h2>
-      <div style="width: 100%; min-height: 400px">
+      <h2 class="text-center mb-4" style="color: rgb(4, 137, 170); margin-bottom: 20px;">Your Shopping Cart</h2>
+      <div style="width: 100%; min-height: 400px ;margin-top: 50px;">
         <div style="width: 60%; float: left; margin-right: 20px">
           <% if (cartItems.length > 0) { %>
           <!-- Cart Table -->
-          <table class="table table-bordered" style="background-color: white">
-            <thead>
+          <table class="table " style="background-color: white">
+            <thead style="background-color: black; color: white;">
               <tr>
                 <th>Product</th>
                 <th>Product Name</th>
+                <th>size</th>
                 <th>Original Price</th>
                 <th>Sale Price</th>
                 <th>Quantity</th>
@@ -39,7 +47,7 @@
                 <th>Remove</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody style="background-color:black;color: white;">
               <% 
                 let totalAmount = 0; 
                 let totalOriginalPrice = 0;
@@ -57,6 +65,7 @@
                 </td>
 
                 <td><%= item.productId.productName %></td>
+                <td><%= item.size %></td>
 
                 <td>&#8377;<%= item.productId.regularPrice %></td>
 
@@ -64,7 +73,7 @@
 
                 <td>
                   <form
-                    id="updateQuantityForm-<%= item.productId._id %>"
+                    id="updateQuantityForm-<%= item.productId._id %>-<%= item.size %>"
                     onsubmit="return false;"
                   >
                     <input
@@ -72,11 +81,16 @@
                       name="productId"
                       value="<%= item.productId._id %>"
                     />
+                    <input
+                    type="hidden"
+                   name="size"
+                   value="<%= item.size %>" 
+                 />
                     <div class="quantity-buttons d-flex justify-content-center">
                       <button
                         type="button"
                         class="btn btn-primary me-2"
-                        onclick="updateQuantity('<%= item.productId._id %>', -1)"
+                        onclick="updateQuantity('<%= item.productId._id %>','<%= item.size %>', -1)"
                       >
                         -
                       </button>
@@ -86,7 +100,7 @@
                       <button
                         type="button"
                         class="btn btn-primary ms-2"
-                        onclick="updateQuantity('<%= item.productId._id %>', 1)"
+                        onclick="updateQuantity('<%= item.productId._id %>','<%= item.size %>', 1)"
                       >
                         +
                       </button>
@@ -97,11 +111,13 @@
                 <td>&#8377;<%= item.totalPrice %></td>
 
                 <td class="text-center">
-                  <a
-                    href="/cart/remove/<%= item.productId._id %>"
-                    class="btn btn-outline-danger"
-                    ><i class="bi bi-trash"></i> Remove</a
-                  >
+                <a 
+  href="/cart/remove/<%= item.productId._id %>?size=<%= item.size %>"
+  class="btn btn-outline-danger"
+><i class="bi bi-trash"></i> Remove</a>
+
+
+                 
                 </td>
               </tr>
               <% 
@@ -117,21 +133,22 @@
           style="
             width: 35%;
             text-align: center;
-            background-color: rgb(43, 43, 44);
+            margin-left: 30px;
             border: solid 1px rgb(107, 105, 105);
             float: left;
+            background-color: rgb(170, 170, 172);
           "
         >
-          <h5 style="margin-top: 10px; color: white">PRICE DETAILS</h5>
-          <p style="color: rgb(190, 196, 202)">
+          <h5 style="margin-top: 10px; color: rgb(7, 47, 177)">PRICE DETAILS</h5>
+          <p style="color: black">
             Price (<%= cartItems.length %> items): &#8377;<%= totalOriginalPrice %>
           </p>
-          <p style="color: rgb(190, 196, 202)">
+          <p style="color: black">
             Discount: &#8377;<%= totalOriginalPrice - totalAmount %>
           </p>
-          <p style="color: rgb(190, 196, 202)">Platform Fee: &#8377;0.00</p>
+          <p style="color: black">Platform Fee: &#8377;0.00</p>
           <hr />
-          <h6 style="color: rgb(190, 196, 202)">
+          <h6 style="color:red">
             Total Amount: &#8377;<%= totalAmount %>
           </h6>
           <p class="text-success">
@@ -142,7 +159,7 @@
             href="/order/checkout"
             class="btn"
             style="
-              background-color: #d35400;
+              background-color: #14ac06;
               color: white;
               border: none;
               margin-bottom: 10px;
@@ -153,7 +170,7 @@
         </div>
 
         <% } else { %>
-        <div class="alert alert-warning text-center" role="alert">
+        <div class="alert alert-warning text-center" role="alert" style="margin-left: 450px;">
           Your cart is empty.
         </div>
         <% } %>
@@ -161,17 +178,21 @@
     </div>
 
     <%- include("../../views/partials/user/footer") %>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 
     <script>
-      function updateQuantity(productId, change) {
+      function updateQuantity(productId, size, change) {
         fetch("/cart/update-quantity", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ productId, change }),
+          body: JSON.stringify({ productId,size,change }),
         })
           .then((response) => response.json())
           .then((data) => {
@@ -191,33 +212,33 @@
       }
     </script>
 
-    <script>
-      $(document).ready(function () {
-        $(".btn-outline-danger").click(function (e) {
-          e.preventDefault();
-          const removeUrl = $(this).attr("href");
-          const productCard = $(this).closest(".card");
+<script>
+  $(document).ready(function () {
+    $(".btn-outline-danger").click(function (e) {
+      e.preventDefault();
+      const removeUrl = $(this).attr("href");
+      const productCard = $(this).closest(".card");
 
-          $.ajax({
-            url: removeUrl,
-            method: "GET",
-            success: function (response) {
-              Swal.fire("Removed!", response.message, "success").then(() => {
-                productCard.remove();
-                location.reload();
-                if ($(".cart-items .card").length === 0) {
-                  $(".cart-items").html(
-                    '<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>'
-                  );
-                }
-              });
-            },
-            error: function (error) {
-              Swal.fire("Oops!", "Something went wrong!", "error");
-            },
+      $.ajax({
+        url: removeUrl,
+        method: "GET",
+        success: function (response) {
+          Swal.fire("Removed!", response.message, "success").then(() => {
+            productCard.remove();
+            location.reload();
+            if ($(".cart-items .card").length === 0) {
+              $(".cart-items").html(
+                '<div class="alert alert-warning text-center" role="alert">Your cart is empty.</div>'
+              );
+            }
           });
-        });
+        },
+        error: function (error) {
+          Swal.fire("Oops!", "Something went wrong!", "error");
+        },
       });
-    </script>
+    });
+  });
+</script>
   </body>
 </html>

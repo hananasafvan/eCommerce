@@ -27,6 +27,7 @@ router.get('/wishlist/remove/:productId',cartController.removeFromWishlist);
 
 router.get("/address", userAuth, addressController.getAddress);
 router.post("/addAddress", userAuth, addressController.addAddress);
+router.post("/addNewAddress", userAuth, addressController.addNewAddress);
 router.post(
   "/address/edit/:addressId",
   userAuth,

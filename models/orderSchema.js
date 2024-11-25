@@ -15,6 +15,7 @@ const orderSchema = new mongoose.Schema({
         default: () => uuidv4().split("-")[0],
         required: true,
       },
+      deliveredAt: { type: Date },
     },
   ],
   address: {
@@ -44,6 +45,7 @@ const orderSchema = new mongoose.Schema({
       type: String,
     },
   },
+  
   paymentMethod: { type: String, required: true },
   orderStatus: { type: String, default: "Pending" },
   createdAt: { type: Date, default: Date.now },
