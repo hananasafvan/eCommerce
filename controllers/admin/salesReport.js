@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 const ejs = require("ejs");
 
@@ -65,7 +64,6 @@ const getMatchCondition = (dateRange, startDate, endDate) => {
   return matchCondition;
 };
 
-
 const getSalesReport = async (req, res) => {
   try {
     const { dateRange, startDate, endDate } = req.query;
@@ -77,23 +75,22 @@ const getSalesReport = async (req, res) => {
       { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
     ]);
     const netSalesResult = await Order.aggregate([
-      { $unwind: "$items" }, 
+      { $unwind: "$items" },
       {
         $match: {
           "items.status": { $in: ["Paid", "Delivered"] },
-          ...matchCondition, 
+          ...matchCondition,
         },
       },
       {
         $group: {
           _id: null,
-          netSales: { $sum: "$items.totalPrice" }, 
+          netSales: { $sum: "$items.totalPrice" },
         },
       },
     ]);
-    
-    const netSales = netSalesResult[0]?.netSales || 0; 
-    
+
+    const netSales = netSalesResult[0]?.netSales || 0;
 
     const orders = await Order.find({ ...matchCondition })
       .populate("userId", "name")
@@ -110,18 +107,17 @@ const getSalesReport = async (req, res) => {
       }))
     );
 
-
     const salesData = await Order.aggregate([
       { $match: matchCondition },
       {
-          $group: {
-              _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-              total: { $sum: "$totalOrderPrice" },
-              orders: { $push: "$$ROOT" },
-          },
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          total: { $sum: "$totalOrderPrice" },
+          orders: { $push: "$$ROOT" },
+        },
       },
       { $sort: { _id: 1 } },
-  ]);
+    ]);
 
     res.render("salesReport", {
       totalOrderCount,
@@ -138,7 +134,6 @@ const getSalesReport = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 
 const getSalesReportPDF = async (req, res) => {
   try {
@@ -180,33 +175,42 @@ const getSalesReportPDF = async (req, res) => {
     ]);
 
     if (salesData.length === 0) {
-      return res.status(404).send("No sales data available for the selected date range.");
+      return res
+        .status(404)
+        .send("No sales data available for the selected date range.");
     }
 
     const doc = new PDFDocument();
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="Sales_Report.pdf"');
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="Sales_Report.pdf"'
+    );
     doc.pipe(res);
 
-    // Add sales report title
+    // sales report title
     doc.fontSize(20).text("Sales Report", { align: "center" });
     doc.moveDown(2);
 
-    // Add summary section
+    // summary section
     doc.fontSize(14).text("Summary", { underline: true });
     doc.text(`Total Orders: ${totalOrderCount}`);
     doc.text(`Total Revenue: ₹${totalRevenue.toFixed(2)}`);
     doc.text(`Net Sales: ₹${netSales.toFixed(2)}`);
     doc.moveDown(2);
 
-    // Add sales data
+    // sales data
     salesData.forEach((data) => {
       doc.fontSize(14).text(`Date: ${data._id}`, { underline: true });
       doc.moveDown();
       data.orders.forEach((order) => {
-        doc.fontSize(12).text(
-          `Order ID: ${order._id}, User ID: ${order.userId}, Total: ₹${order.totalOrderPrice.toFixed(2)}`
-        );
+        doc
+          .fontSize(12)
+          .text(
+            `Order ID: ${order._id}, User ID: ${
+              order.userId
+            }, Total: ₹${order.totalOrderPrice.toFixed(2)}`
+          );
         doc.text(
           `Items: ${order.items
             .map((item) => `${item.productId} (${item.quantity} pcs)`)
@@ -223,15 +227,12 @@ const getSalesReportPDF = async (req, res) => {
   }
 };
 
-
-
-
 const getSalesReportExcel = async (req, res) => {
   try {
     const { dateRange, startDate, endDate } = req.query;
     const matchCondition = getMatchCondition(dateRange, startDate, endDate);
 
-    // Calculate sales summary
+    //  sales summary
     const totalOrderCount = await Order.countDocuments(matchCondition);
     const totalSales = await Order.aggregate([
       { $match: matchCondition },
@@ -266,20 +267,21 @@ const getSalesReportExcel = async (req, res) => {
     ]);
 
     if (salesData.length === 0) {
-      return res.status(404).send("No sales data available for the selected date range.");
+      return res
+        .status(404)
+        .send("No sales data available for the selected date range.");
     }
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
 
-    // Add summary section at the top
+    //  summary section
     worksheet.addRow(["Summary"]);
     worksheet.addRow(["Total Orders", totalOrderCount]);
     worksheet.addRow(["Total Revenue (₹)", totalRevenue]);
     worksheet.addRow(["Net Sales (₹)", netSales]);
     worksheet.addRow([]); // Add an empty row for separation
 
-    // Add column headers
     worksheet.columns = [
       { header: "Date", key: "date", width: 15 },
       { header: "Order ID", key: "orderId", width: 20 },
@@ -288,7 +290,6 @@ const getSalesReportExcel = async (req, res) => {
       { header: "Items", key: "items", width: 50 },
     ];
 
-    // Add sales data
     salesData.forEach((data) => {
       data.orders.forEach((order) => {
         const items = order.items
@@ -322,11 +323,9 @@ const getSalesReportExcel = async (req, res) => {
   }
 };
 
-
-
-module.exports={
+module.exports = {
   getMatchCondition,
   getSalesReport,
   getSalesReportPDF,
-  getSalesReportExcel
-}
+  getSalesReportExcel,
+};

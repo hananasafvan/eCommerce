@@ -72,14 +72,17 @@ const addProducts = async (req, res) => {
       }
 
       const stockSizes = [
-        { size: 'S', quantity: parseInt(req.body.s1, 10) },
-        { size: 'M', quantity: parseInt(req.body.s2, 10) },
-        { size: 'L', quantity: parseInt(req.body.s3, 10) },
-        { size: 'XL', quantity: parseInt(req.body.s4, 10) },
-        { size: 'XXL', quantity: parseInt(req.body.s5, 10) }
+        { size: "S", quantity: parseInt(req.body.s1, 10) },
+        { size: "M", quantity: parseInt(req.body.s2, 10) },
+        { size: "L", quantity: parseInt(req.body.s3, 10) },
+        { size: "XL", quantity: parseInt(req.body.s4, 10) },
+        { size: "XXL", quantity: parseInt(req.body.s5, 10) },
       ];
 
-      const totalQuantity = stockSizes.reduce((acc, size) => acc + size.quantity, 0);
+      const totalQuantity = stockSizes.reduce(
+        (acc, size) => acc + size.quantity,
+        0
+      );
 
       const newProduct = new Product({
         productName: products.productName,
@@ -94,8 +97,8 @@ const addProducts = async (req, res) => {
         color: products.color,
         productImage: images,
         status: products.quantity <= 0 ? "note available" : "Available",
-        intproductOffer:0,
-        stock:stockSizes,
+        intproductOffer: 0,
+        stock: stockSizes,
       });
 
       await newProduct.save();
@@ -114,7 +117,7 @@ const productInfo = async (req, res) => {
     const search = req.query.search || "";
 
     const page = req.query.page || 1;
-    const limit = 10;
+    const limit = 20;
 
     const productData = await Product.find({
       $or: [
@@ -185,7 +188,7 @@ const getEditProduct = async (req, res) => {
       return res.status(400).send("Invalid product ID");
     }
 
-    const product = await Product.findOne({ _id: id }).populate('stock')
+    const product = await Product.findOne({ _id: id }).populate("stock");
     const category = await Category.find({});
     const brand = await Brand.find({});
 
@@ -198,7 +201,6 @@ const getEditProduct = async (req, res) => {
       cat: category,
       brand: brand,
       selectedCategory: product.category.toString(),
-      
     });
     console.log("Selected Category ID:", product.category.toString());
   } catch (error) {
@@ -228,15 +230,17 @@ const editProduct = async (req, res) => {
     }
 
     const stockSizes = [
-      { size: 'S', quantity: parseInt(req.body.s1, 10) },
-      { size: 'M', quantity: parseInt(req.body.s2, 10) },
-      { size: 'L', quantity: parseInt(req.body.s3, 10) },
-      { size: 'XL', quantity: parseInt(req.body.s4, 10) },
-      { size: 'XXL', quantity: parseInt(req.body.s5, 10) }
+      { size: "S", quantity: parseInt(req.body.s1, 10) },
+      { size: "M", quantity: parseInt(req.body.s2, 10) },
+      { size: "L", quantity: parseInt(req.body.s3, 10) },
+      { size: "XL", quantity: parseInt(req.body.s4, 10) },
+      { size: "XXL", quantity: parseInt(req.body.s5, 10) },
     ];
 
-    const totalQuantity = stockSizes.reduce((acc, size) => acc + size.quantity, 0);
-    
+    const totalQuantity = stockSizes.reduce(
+      (acc, size) => acc + size.quantity,
+      0
+    );
 
     const updateFields = {
       productName: data.productName,
@@ -245,11 +249,10 @@ const editProduct = async (req, res) => {
       category: data.category,
       regularPrice: data.regularPrice,
       salePrice: data.salePrice,
-      quantity:totalQuantity,
+      quantity: totalQuantity,
       size: data.size,
       color: data.color,
-      stock:stockSizes,
-
+      stock: stockSizes,
     };
 
     const images = [];
@@ -300,45 +303,47 @@ const deletSingleImage = async (req, res) => {
   }
 };
 
-const addproductOffer = async (req,res)=>{
+const addproductOffer = async (req, res) => {
   try {
-    const {productId, percentage} = req.body
-    const findProduct = await Product.findOne({_id:productId})
-    const findCategory = await Category.findOne({_id:findProduct.category})
+    const { productId, percentage } = req.body;
+    const findProduct = await Product.findOne({ _id: productId });
+    const findCategory = await Category.findOne({ _id: findProduct.category });
 
-    if(findCategory.categoryOffer>percentage){
-      return res.json({status:false,message:"this prodect categry alredy has offer"})
-
+    if (findCategory.categoryOffer > percentage) {
+      return res.json({
+        status: false,
+        message: "this prodect categry alredy has offer",
+      });
     }
-    findProduct.salePrice= findProduct.salePrice-Math.floor(findProduct.regularPrice*(percentage/100))
-    findProduct.productOffer= parseInt(percentage)
-    await findProduct.save()
-    findCategory.categoryOffer = 0
-    await findCategory.save()
-    res.json({status:true})
+    findProduct.salePrice =
+      findProduct.salePrice -
+      Math.floor(findProduct.regularPrice * (percentage / 100));
+    findProduct.productOffer = parseInt(percentage);
+    await findProduct.save();
+    findCategory.categoryOffer = 0;
+    await findCategory.save();
+    res.json({ status: true });
   } catch (error) {
-    res.redirect("/pageerror")
-    res.status(500).json({status:false,message:'Internal server error'})
+    res.redirect("/pageerror");
+    res.status(500).json({ status: false, message: "Internal server error" });
   }
-}
+};
 
-
-
-
-
-const removeproductOffer = async (req,res)=>{
+const removeproductOffer = async (req, res) => {
   try {
-    const {productId} = req.body
-    const findProduct = await Product.findOne({_id:productId})
-    const percentage = findProduct.productOffer; 
-    findProduct.salePrice = findProduct.salePrice+Math.floor(findProduct.regularPrice*(percentage/100))
-    findProduct.productOffer=0
-    await findProduct.save()
-    res.json({status:true})
+    const { productId } = req.body;
+    const findProduct = await Product.findOne({ _id: productId });
+    const percentage = findProduct.productOffer;
+    findProduct.salePrice =
+      findProduct.salePrice +
+      Math.floor(findProduct.regularPrice * (percentage / 100));
+    findProduct.productOffer = 0;
+    await findProduct.save();
+    res.json({ status: true });
   } catch (error) {
-    res.redirect('/pageerror')
+    res.redirect("/pageerror");
   }
-}
+};
 
 module.exports = {
   addproductInfo,

@@ -2,7 +2,6 @@ const User = require("../../models/userSchema");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 
-
 const getProfile = async (req, res) => {
   try {
     const userId = req.session.user;
@@ -84,21 +83,21 @@ const postEditUser = async (req, res) => {
     });
   }
 };
-const getChangepassword = async (req,res)=>{
+const getChangepassword = async (req, res) => {
   try {
     const userId = req.session.user || req.user;
     if (!userId) {
       return res.status(401).send("User not logged in");
     }
 
-    const user = await User.findById(userId)
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
 
-const password = user.password;
-console.log('change password password',password);
-const userData = await User.findById(userId);
+    const password = user.password;
+    console.log("change password password", password);
+    const userData = await User.findById(userId);
     res.locals.user = userData;
 
     return res.render("changePassword", { userId: user._id });
@@ -106,9 +105,7 @@ const userData = await User.findById(userId);
     console.log(error);
     res.redirect("/pageNotFound");
   }
-}
-
-
+};
 
 const postChangePassword = async (req, res) => {
   try {
@@ -124,7 +121,7 @@ const postChangePassword = async (req, res) => {
       return res.status(404).send("User not found");
     }
 
-    // Check if the old password is correct
+    // Check old password is correct
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).send("Old password is incorrect");
@@ -142,12 +139,10 @@ const postChangePassword = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   getProfile,
   getEditUser,
   postEditUser,
   getChangepassword,
-  postChangePassword
+  postChangePassword,
 };

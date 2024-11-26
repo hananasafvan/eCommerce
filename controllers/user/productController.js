@@ -62,7 +62,7 @@ const getProducts = async (req, res, next) => {
     const brand = req.query.brand || "";
 
     const page = parseInt(req.query.page) || 1;
-    const limit = 12;
+    const limit = 24;
     const skip = (page - 1) * limit;
 
     let searchCondition = { isBlocked: false };

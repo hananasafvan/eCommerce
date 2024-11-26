@@ -4,9 +4,6 @@ const Product = require("../../models/productShema");
 const User = require("../../models/userSchema");
 const Wishlist = require("../../models/wishlistSchema");
 
-
-
-
 const addToCart = async (req, res) => {
   try {
     const userId = req.session.user || req.user;
@@ -15,12 +12,14 @@ const addToCart = async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const { productId, size } = req.body; 
-    console.log('addto cart size..........',size);
-    
+    const { productId, size } = req.body;
+    console.log("addto cart size..........", size);
+
     if (!productId || !size) {
       console.log("Product ID or size missing:", { productId, size });
-      return res.status(400).json({ message: "Product ID and size are required" });
+      return res
+        .status(400)
+        .json({ message: "Product ID and size are required" });
     }
 
     const product = await Product.findById(productId);
@@ -29,7 +28,9 @@ const addToCart = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    const sizeStock = product.stock.find(stockItem => stockItem.size === size);
+    const sizeStock = product.stock.find(
+      (stockItem) => stockItem.size === size
+    );
     if (!sizeStock || sizeStock.quantity <= 0) {
       console.log("Size out of stock or not found:", size, sizeStock);
       return res.status(400).json({ message: "Selected size is out of stock" });
@@ -43,8 +44,7 @@ const addToCart = async (req, res) => {
     const itemIndex = cart.items.findIndex(
       (item) => item.productId.toString() === productId && item.size === size
     );
-    console.log('itemIndex',itemIndex);
-    
+    console.log("itemIndex", itemIndex);
 
     if (itemIndex > -1) {
       cart.items[itemIndex].quantity += 1;
@@ -70,7 +70,6 @@ const addToCart = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 const addToCartWish = async (req, res) => {
   try {
@@ -140,7 +139,6 @@ const getCart = async (req, res) => {
 
     const userData = await User.findById(userId);
     res.locals.user = userData;
-  
 
     if (!cart || cart.items.length === 0) {
       return res.render("cart.ejs", { user: userData, cartItems: [] });
@@ -157,11 +155,11 @@ const getCart = async (req, res) => {
 };
 
 const removeFromCart = async (req, res) => {
-  console.log('Enter to remove from cart');
+  console.log("Enter to remove from cart");
 
   const userId = req.session.user;
   const productId = req.params.productId;
-  const productSize = req.query.size; // Pass size in the query parameters
+  const productSize = req.query.size;
 
   try {
     const cart = await Cart.findOne({ userId });
@@ -170,7 +168,6 @@ const removeFromCart = async (req, res) => {
       return res.status(404).json({ message: "Cart not found" });
     }
 
-    // Find the item index based on both productId and size
     const itemIndex = cart.items.findIndex(
       (item) => item.productId == productId && item.size == productSize
     );
@@ -178,20 +175,17 @@ const removeFromCart = async (req, res) => {
     if (itemIndex > -1) {
       const productQuantityInCart = cart.items[itemIndex].quantity;
 
-      console.log('Product size from cart:', productSize);
+      console.log("Product size from cart:", productSize);
 
-      // Remove the item from the cart
       cart.items.splice(itemIndex, 1);
       await cart.save();
 
-      // Update the product stock
       const updatedProduct = await Product.findOneAndUpdate(
         { _id: productId, "stock.size": productSize },
         { $inc: { "stock.$.quantity": productQuantityInCart } },
         { new: true }
       );
 
-      // Update the status of the product if needed
       if (
         updatedProduct &&
         updatedProduct.quantity > 0 &&
@@ -217,11 +211,10 @@ const removeFromCart = async (req, res) => {
   }
 };
 
-
 const MAX_QUANTITY_PER_PRODUCT = 5;
 
 const updateQuantity = async (req, res, next) => {
-  const { productId, size, change } = req.body; // Include size in the request
+  const { productId, size, change } = req.body;
   const userId = req.session.user || req.user;
 
   try {
@@ -233,7 +226,7 @@ const updateQuantity = async (req, res, next) => {
 
     const item = cart.items.find(
       (item) =>
-        item.productId._id.toString() === productId && item.size === size // Match by productId and size
+        item.productId._id.toString() === productId && item.size === size
     );
 
     if (!item) {
@@ -244,7 +237,7 @@ const updateQuantity = async (req, res, next) => {
       return res.status(400).json({ error: "Product is blocked" });
     }
 
-    const productSize = item.size; // Retrieve the selected size
+    const productSize = item.size;
     let newQuantity = item.quantity + change;
 
     if (newQuantity < 1) {
@@ -270,14 +263,12 @@ const updateQuantity = async (req, res, next) => {
       });
     }
 
-    // Update the specific size stock quantity
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: productId, "stock.size": productSize },
       { $inc: { "stock.$.quantity": -change } },
       { new: true }
     );
 
-    // Check and update the product availability status
     if (updatedProduct.stock.every((stock) => stock.quantity === 0)) {
       updatedProduct.status = "out of stock";
     } else {
@@ -286,12 +277,10 @@ const updateQuantity = async (req, res, next) => {
 
     await updatedProduct.save();
 
-    // Update the cart item quantity and total price
     item.quantity = newQuantity;
     item.totalPrice = item.price * newQuantity;
     await cart.save();
 
-    // Update the user data in locals
     const user = await User.findById(userId);
     res.locals.user = user;
 
@@ -305,8 +294,6 @@ const updateQuantity = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 const addToWishlist = async (req, res) => {
   const userId = req.session.user || req.user;

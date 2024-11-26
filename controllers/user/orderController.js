@@ -64,7 +64,7 @@ const getOrderDetails = async (req, res) => {
         path: "address",
         model: "Address",
       })
-      .populate("coupon")
+      .populate("coupon");
 
     if (!order) {
       return res.status(404).send("Order not found");
@@ -187,8 +187,7 @@ const placeOrder = async (req, res) => {
           console.log("`Price per Unit: ", price);
           const discountForItem = coupenPerUnit * quantity;
           item.totalPrice = totalprice - discountForItem;
-          console.log('item.totalprice',item.totalPrice);
-          
+          console.log("item.totalprice", item.totalPrice);
         });
 
         totalOrderPrice = cart.items.reduce(
@@ -226,17 +225,18 @@ const placeOrder = async (req, res) => {
     await Cart.findByIdAndDelete(cart._id);
 
     if (paymentMethod === "Cash on Delivery") {
-      
-        if(totalOrderPrice<1000){
-          newOrder.items.forEach((item) => (item.status = "Processing"));
-          newOrder.orderStatus = "Processing";
-          await newOrder.save();
-          return res.render("confirm-cod");
-    
-        }else{
-          return res.status(400).send('Cash on Delivery is not available for orders exceeding ₹1000. Please select a different payment method.');
-        }
-
+      if (totalOrderPrice < 1000) {
+        newOrder.items.forEach((item) => (item.status = "Processing"));
+        newOrder.orderStatus = "Processing";
+        await newOrder.save();
+        return res.render("confirm-cod");
+      } else {
+        return res
+          .status(400)
+          .send(
+            "Cash on Delivery is not available for orders exceeding ₹1000. Please select a different payment method."
+          );
+      }
     } else if (paymentMethod === "Wallet") {
       const user = await User.findById(userId);
       if (totalOrderPrice <= user.walletBalance) {
@@ -255,8 +255,6 @@ const placeOrder = async (req, res) => {
       } else {
         return res.status(400).send("Insufficient Wallet Balance.");
       }
-
-
     } else if (paymentMethod === "Online Payment") {
       const items = cart.items.map((item) => ({
         name: item.productId.productName,
@@ -309,7 +307,6 @@ const placeOrder = async (req, res) => {
   }
 };
 
-
 const cancelItem = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -345,17 +342,16 @@ const cancelItem = async (req, res) => {
         return res.status(404).json({ message: "Product not found" });
       }
 
-    
-      const stockItem = product.stock.find(stock => stock.size === item.size);
+      const stockItem = product.stock.find((stock) => stock.size === item.size);
       if (stockItem) {
-  
         stockItem.quantity += item.quantity;
         await product.save();
       } else {
-        return res.status(400).json({ message: "Size not found in product stock" });
+        return res
+          .status(400)
+          .json({ message: "Size not found in product stock" });
       }
 
-      
       if (
         order.paymentMethod === "Online Payment" ||
         order.paymentMethod === "Wallet"
@@ -378,7 +374,9 @@ const cancelItem = async (req, res) => {
         });
       }
 
-      return res.status(200).json({ message: "Item cancelled successfully and stock updated" });
+      return res
+        .status(200)
+        .json({ message: "Item cancelled successfully and stock updated" });
     } else {
       return res.status(400).json({ message: "Item cannot be cancelled" });
     }
@@ -387,7 +385,6 @@ const cancelItem = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 const returnItem = async (req, res) => {
   try {
@@ -440,8 +437,6 @@ const returnItem = async (req, res) => {
   }
 };
 
-
-
 const repayItem = async (req, res) => {
   try {
     const userId = req.session.user || req.user;
@@ -452,21 +447,25 @@ const repayItem = async (req, res) => {
       return res.status(404).send("Order not found.");
     }
 
-    if (order.orderStatus !== 'Pending') {
-      return res.status(400).send("Only pending online payments can be repaid.");
+    if (order.orderStatus !== "Pending") {
+      return res
+        .status(400)
+        .send("Only pending online payments can be repaid.");
     }
 
-    
-    const itemsToRepay = order.items.filter((item) => item.status === "Pending");
+    const itemsToRepay = order.items.filter(
+      (item) => item.status === "Pending"
+    );
     if (!itemsToRepay.length) {
-      return res.status(400).send("All items have already been processed or paid.");
+      return res
+        .status(400)
+        .send("All items have already been processed or paid.");
     }
 
-    
     const items = itemsToRepay.map((item) => ({
       name: item.productId.productName,
       sku: item.productId._id,
-      price: (item.totalPrice / 84.1).toFixed(2), 
+      price: (item.totalPrice / 84.1).toFixed(2),
       currency: "USD",
       quantity: item.quantity,
     }));
@@ -500,7 +499,9 @@ const repayItem = async (req, res) => {
         console.error("PayPal Payment Error:", error);
         return res.status(500).send("Payment processing error.");
       } else {
-        const approvalUrl = payment.links.find(link => link.rel === "approval_url");
+        const approvalUrl = payment.links.find(
+          (link) => link.rel === "approval_url"
+        );
         if (approvalUrl) {
           return res.redirect(approvalUrl.href);
         }
@@ -513,18 +514,17 @@ const repayItem = async (req, res) => {
   }
 };
 
-
 async function Invoice(order, res, item) {
   const doc = new PDFDocument();
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment;filename=invoice-${order._id}-${item._id}.pdf`);
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment;filename=invoice-${order._id}-${item._id}.pdf`
+  );
 
   doc.pipe(res);
 
-  doc
-    .fontSize(20)
-    .text("INVOICE", { align: "center" })
-    .moveDown(1);
+  doc.fontSize(20).text("INVOICE", { align: "center" }).moveDown(1);
 
   doc
     .fontSize(12)
@@ -532,11 +532,7 @@ async function Invoice(order, res, item) {
     .text(`Order Date: ${order.createdAt.toDateString()}`)
     .moveDown(1);
 
-  // Customer Details
-  doc
-    .fontSize(14)
-    .text("Customer Details:", { underline: true })
-    .moveDown(0.5);
+  doc.fontSize(14).text("Customer Details:", { underline: true }).moveDown(0.5);
 
   doc
     .fontSize(12)
@@ -548,11 +544,7 @@ async function Invoice(order, res, item) {
     .text(`Alt Phone: ${order.address.altphone || "N/A"}`)
     .moveDown(1);
 
-  // Order Item Details (Focus on single item)
-  doc
-    .fontSize(14)
-    .text("Order Item:", { underline: true })
-    .moveDown(0.5);
+  doc.fontSize(14).text("Order Item:", { underline: true }).moveDown(0.5);
 
   const product = item.productId;
 
@@ -561,61 +553,50 @@ async function Invoice(order, res, item) {
     .text(`Product: ${product.productName}`)
     .text(`Brand: ${product.brand}`)
     .text(`Sale Price: ₹${product.salePrice.toFixed(2)}`)
-    .text(`Offer: ${product.productOffer || 'None'}`)
+    .text(`Offer: ${product.productOffer || "None"}`)
     .text(`Quantity: ${item.quantity}`)
     .text(`Total: ₹${item.totalPrice.toFixed(2)}`)
     .moveDown(1);
 
-  // Pricing Summary
-  doc
-    .fontSize(14)
-    .text("Pricing Summary:", { underline: true })
-    .moveDown(0.5);
+  doc.fontSize(14).text("Pricing Summary:", { underline: true }).moveDown(0.5);
 
   doc
     .fontSize(12)
     .text(`Item Total: ₹${item.totalPrice.toFixed(2)}`)
     .moveDown(1);
 
-  // Payment Method
-  doc
-    .fontSize(12)
-    .text(`Payment Method: ${order.paymentMethod}`)
-    .moveDown(1);
+  doc.fontSize(12).text(`Payment Method: ${order.paymentMethod}`).moveDown(1);
 
   doc
     .fontSize(10)
     .text("Thank you for your purchase!", { align: "center" })
-    .text("For support, contact us at mailfashon@example.com", { align: "center" });
+    .text("For support, contact us at mailfashon@example.com", {
+      align: "center",
+    });
 
   doc.end();
 }
 
-
-const getInvoice =async(req,res)=>{
+const getInvoice = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
-    
-    // Fetch the order by orderId and populate product details for the specific item
+
     const order = await Order.findById(orderId)
       .populate("items.productId")
       .populate("coupon");
 
-    // Find the item in the order by itemId
-    const item = order.items.find(i => i._id.toString() === itemId);
-    
+    const item = order.items.find((i) => i._id.toString() === itemId);
+
     if (!item) {
       return res.status(404).send("Item not found.");
     }
 
-    // Generate invoice for the specific item
     Invoice(order, res, item);
-
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred while generating the invoice.");
   }
-}
+};
 
 module.exports = {
   getOrderPage,

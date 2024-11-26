@@ -11,7 +11,7 @@
     background-color: #f4f4f9;
     margin: 0;
     padding: 0;
-    overflow-x: hidden; /* This removes the horizontal scrollbar */
+    overflow-x: hidden;
 }
 
 .product-container {
@@ -287,7 +287,7 @@
 
   <% if (product) { %>
     <div class="product-container" style="width: 100%;">
-      <!-- Product Images with Click-to-Zoom -->
+    
       <div class="product-images">
         <div class="large-image-container">
           <img id="largeImage" src="/uploads/product-imgs/<%= product.productImage[1] %>" alt="<%= product.productName %>" class="zoomable-image large-image">
@@ -302,10 +302,10 @@
       
 
       <!-- Product Details -->
-      <div class="product-details" style="margin-left: 100px;">
-        <h4 style="color: rgb(133, 51, 3); font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-style: italic;"><%= product.productName %></h4>
+      <div class="product-details" style="margin-left: 100px; background-color: #e4dbd4 ; text-align: center;">
+        <h4 style="color:#130f13 ; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-style: italic;"><%= product.productName %></h4>
         <br>
-        <h4 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"> <%= product.description %></h4>
+        <h4 style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;color:#98735c;;"> <%= product.description %></h4>
         <br>
   
         <% if (product.salePrice < product.regularPrice) { %>
@@ -314,13 +314,13 @@
       <% } else { %>
           <p>&#8377; <%= product.regularPrice %></p>
       <% } %>
-        <h4 style="color: rgb(7, 7, 7);">inclusive of all taxes</h4>
+        <hp style="color: rgb(7, 7, 7);">inclusive of all taxes</p>
  
-        <br>
-       
         
-        <label > Size</label>
-        <select  id="sizeSelect" name="size" style="height: 40px; width: 150px; align-items: center;">
+        
+        <label >Select Size</label>
+        <br>
+        <select  id="sizeSelect" name="size" style="height: 30px; width: 100px; align-items: center;">
           <% product.stock.forEach(stockItem=>{ %>
             <%if(stockItem.quantity>0){ %>
            <option value="<%= stockItem.size %>"><%= stockItem.size %></option>
@@ -331,7 +331,7 @@
                
         <br>
         <% if (product.quantity > 0) { %>
-        <button style="width: 200px;height: 40px; background-color: rgb(12, 136, 12); color: white;align-items: center;">
+        <button style="width: 170px;height: 40px; background-color: rgb(12, 136, 12); color: white;align-items: center; border-radius:15px;">
           <a  href="#" class="btn  add-to-cart" data-product-id="<%= product._id %>" style="color: #fff;margin-top: -9px;">
               ADD TO BAG 
           </a>
@@ -339,9 +339,9 @@
       <% } else { %>
           <p class="out-of-stock" style="color: rgb(180, 17, 17);">Out of Stock</p>
       <% } %>
-
+<br>
         <a href="" class="wishlist-btn" data-product-id="<%= product._id %>" ></a>
-      <i class="fas fa-heart fa-lg" style="color: rgb(233, 38, 38); margin-left: 10px;" ></i>
+      <i class="fas fa-heart fa-lg" style="color: rgb(233, 38, 38); margin-top: 20px;" ></i>
   </a> 
 
         
@@ -506,13 +506,13 @@
         const newImageSrc = this.getAttribute("data-image");
         largeImage.src = newImageSrc;
 
-        // Update the active thumbnail
+        
         thumbnails.forEach(thumb => thumb.classList.remove("active-thumbnail"));
         this.classList.add("active-thumbnail");
       });
     });
   
-    // Zoom functionality for the large image
+  
     let isZoomed = false;
 
     largeImage.addEventListener("click", () => {

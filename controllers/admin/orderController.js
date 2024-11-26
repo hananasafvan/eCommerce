@@ -1,6 +1,6 @@
 const Order = require("../../models/orderSchema");
 const Product = require("../../models/productShema");
-const User = require('../../models/userSchema')
+const User = require("../../models/userSchema");
 
 const getOrderList = async (req, res) => {
   try {
@@ -27,7 +27,6 @@ const getOrderList = async (req, res) => {
   }
 };
 
-
 const cancelOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -39,18 +38,18 @@ const cancelOrder = async (req, res) => {
       return res.status(404).send("Order not found");
     }
 
-    // Update order status to 'Cancelled'
     order.status = "Cancelled";
     await order.save();
 
-    // Loop through each item in the order and update stock for the specific size
     for (const item of order.items) {
       const product = await Product.findById(item.productId);
       if (product) {
-        const stockItem = product.stock.find(stock => stock.size === item.size);
-        
+        const stockItem = product.stock.find(
+          (stock) => stock.size === item.size
+        );
+
         if (stockItem) {
-          stockItem.quantity += item.quantity; // Increment stock for specific size
+          stockItem.quantity += item.quantity;
           await product.save();
         } else {
           console.log(`Size ${item.size} not found in product stock`);
@@ -67,8 +66,6 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-
-
 const updateOrderStatus = async (req, res) => {
   try {
     const { orderId, itemId } = req.params;
@@ -84,7 +81,6 @@ const updateOrderStatus = async (req, res) => {
       return res.status(404).send("Item not found");
     }
 
-    // Update item status
     item.status = status;
 
     if (status === "Returned") {
@@ -95,10 +91,9 @@ const updateOrderStatus = async (req, res) => {
 
       const refundAmount = item.totalPrice;
 
-      // Increase stock for the returned quantity in the specific size
-      const stockItem = product.stock.find(stock => stock.size === item.size);
-      console.log('update order stock item,',stockItem);
-      
+      const stockItem = product.stock.find((stock) => stock.size === item.size);
+      console.log("update order stock item,", stockItem);
+
       if (stockItem) {
         stockItem.quantity += item.quantity;
       } else {
@@ -106,13 +101,13 @@ const updateOrderStatus = async (req, res) => {
       }
       await product.save();
 
-      // Update user wallet with the refund amount
+      //  wallet  refund amount
       const user = await User.findById(order.userId);
       if (!user) {
         return res.status(404).send("User not found");
       }
 
-      console.log('Refund amount for returned item:', refundAmount);
+      console.log("Refund amount for returned item:", refundAmount);
 
       user.walletBalance = (user.walletBalance || 0) + refundAmount;
       user.walletTransactions.push({
@@ -123,7 +118,7 @@ const updateOrderStatus = async (req, res) => {
     }
 
     if (status === "Delivered") {
-      item.deliveredAt = new Date(); 
+      item.deliveredAt = new Date();
     }
 
     await order.save();
@@ -133,8 +128,6 @@ const updateOrderStatus = async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 };
-
-
 
 const viewOrder = async (req, res) => {
   try {

@@ -4,11 +4,11 @@
     <form method="GET" action="/admin/dashboard">
       <p style="color: black;">Select Date Range:</p>
       <select name="timePeriod" onchange="this.form.submit()" style="width: 150px; height: 40px; padding-left: 20px;background-color:#328ca5;color: white;border-radius: 5px;border: none;">
-        <!-- <option value="daily" <%= timePeriod === 'daily' ? 'selected' : '' %>>Daily</option> -->
+        <option value="daily" <%= timePeriod === 'daily' ? 'selected' : '' %>>Daily</option>
         <option value="weekly" <%= timePeriod === 'weekly' ? 'selected' : '' %>>Weekly</option>
         <option value="monthly" <%= timePeriod === 'monthly' ? 'selected' : '' %>>Monthly</option>
         <option value="yearly" <%= timePeriod === 'yearly' ? 'selected' : '' %>>Yearly</option>
-        <!-- <option value="custom" <%= timePeriod === 'custom' ? 'selected' : '' %>>Custom</option> -->
+    
       </select>
       
        
@@ -133,12 +133,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const ctx = document.getElementById('myChart');
     const revenueByPaymentMethod = <%- JSON.stringify(revenueByPaymentMethod) %>; 
    
-    // Prepare chart data
-    const labels = Object.keys(revenueByPaymentMethod); // Payment method labels
-    const data = Object.values(revenueByPaymentMethod); // Revenue values
+  
+    const labels = Object.keys(revenueByPaymentMethod); 
+    const data = Object.values(revenueByPaymentMethod); 
 
     new Chart(ctx, {
-      type: 'bar', // You can use 'pie', 'doughnut', or 'bar'
+      type: 'bar',
       data: {
         labels: labels,
         datasets: [
@@ -146,11 +146,11 @@ document.addEventListener('DOMContentLoaded', function () {
             label: 'Revenue by Payment Method',
             data: data,
             backgroundColor: [
-    // Color for slice 1
+    
     'rgba(255, 99, 132, 0.2)',
-     // Color for slice 2
+    
   'rgba(75, 192, 192, 0.2)',  
-  'rgba(255, 206, 86, 1)', // Color for slice 3
+  'rgba(255, 206, 86, 1)', 
 ],
             borderColor: [
               'rgba(75, 192, 192, 1)',
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const data = Object.values(countcategoryOder); 
 
     new Chart(ctx2, {
-      type: 'doughnut', // You can use 'pie', 'doughnut', or 'bar'
+      type: 'doughnut', 
       data: {
         labels: labels,
         datasets: [

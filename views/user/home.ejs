@@ -206,6 +206,9 @@
                 <div class="product-cart-wrap mb-30">
                     <div class="product-img-action-wrap">
                         <div class="product-img product-img-zoom">
+                            <a href="" class="wishlist-btn" >
+                                <i class="fas fa-heart" style="font-size: x-large;margin-right: -200px;"></i>
+                            </a>
                             <a href="/product/<%= products._id %>">
                                 <img class="default-img" src="/uploads/product-imgs/<%= products[i].productImage[0] %>" alt="<%= products[i].productName %>">
                             </a>
@@ -219,16 +222,14 @@
                         <p><%= products[i].regularPrice %>$</p> 
                         <!-- Display product price -->
     
-                        <% if (products[i].quantity > 0) { %>
+                        <!-- <% if (products[i].quantity > 0) { %>
                             <a href="#" class="btn btn-primary add-to-cart" data-product-id="<%= products[i]._id %>" style="margin-bottom: 10px;">
                                 <i class="fas fa-shopping-cart"></i> 
                             </a>
                         <% } else { %>
                             <p class="out-of-stock">Out of Stock</p>
-                        <% } %>
-                        <a href="" class="wishlist-btn" >
-                            <i class="fas fa-heart" ></i>
-                        </a>
+                        <% } %> -->
+                        
 
                     </div>
                 </div>
