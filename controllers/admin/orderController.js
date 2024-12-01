@@ -23,7 +23,7 @@ const getOrderList = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    res.status(500).send("Internal Server Error");
+    res.redirect("/pageerror");
   }
 };
 
@@ -62,6 +62,7 @@ const cancelOrder = async (req, res) => {
     res.redirect("/admin/orderList");
   } catch (error) {
     console.error("Error cancelling order:", error);
+
     res.status(500).send("Internal Server Error");
   }
 };
@@ -125,6 +126,7 @@ const updateOrderStatus = async (req, res) => {
     res.redirect("/admin/orderList");
   } catch (error) {
     console.error("Error updating order status:", error);
+
     res.status(500).send("Internal Server Error");
   }
 };
@@ -153,7 +155,7 @@ const viewOrder = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Internal server error", error);
+    res.redirect("/pageerror");
   }
 };
 

@@ -3,7 +3,7 @@ const Brand = require("../../models/brandSchema");
 const brandInfo = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 4;
+    const limit = 10;
     const skip = (page - 1) * limit;
 
     const brandData = await Brand.find({})
@@ -31,8 +31,10 @@ const addBrand = async (req, res) => {
   try {
     console.log("Adding brand:", req.body);
 
-    // Check if the brand already exists
-    const existingBrand = await Brand.findOne({ name });
+    // Check if the brand already exists (case-insensitive)
+    const existingBrand = await Brand.findOne({
+      name: { $regex: `^${name}$`, $options: "i" },
+    });
     if (existingBrand) {
       return res.status(400).json({ error: "Brand already exists" });
     }
@@ -40,9 +42,10 @@ const addBrand = async (req, res) => {
     // Create a new brand
     const newBrand = new Brand({ name });
     await newBrand.save();
-    return res.json({ message: "Brand added succsesfully" });
+    return res.json({ message: "Brand added successfully" });
   } catch (error) {
-    console.error("Error adding category:", error);
+    console.error("Error adding brand:", error);
+
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -93,6 +96,7 @@ const editBrand = async (req, res) => {
     }
   } catch (error) {
     console.error("Error updating brand:", error);
+
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -109,6 +113,7 @@ const deleteBrand = async (req, res) => {
     }
   } catch (error) {
     console.error("Error deleting brand:", error);
+
     res.status(500).json({ error: "Internal server error" });
   }
 };

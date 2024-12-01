@@ -2,28 +2,83 @@
 <div class="container">
   <div class="row justify-content-center">
     <div class="col-md-6 mt-60">
-      <form method="post" action="/admin/editCategory/<%=category._id%>">
+      <form id="editCategoryForm" onsubmit="return handleFormSubmit(event)">
         <div class="d-grid text-end mt-30 col-md-5">
           <button class="btn btn-primary" type="submit">Update category</button>
         </div>
         <div class="mb-4 mt-30">
-          <label for="product_name" class="form-label">Name</label>
+          <label for="category_name" class="form-label">Name</label>
           <input
             type="text"
+            id="category_name"
             name="categoryname"
-            value="<%=category.name%>"
+            value="<%= category.name %>"
             class="form-control border"
           />
         </div>
-
         <div class="mb-4">
-          <label class="form-label">Description</label>
-          <textarea name="description" class="form-control border">
-<%=category.description%></textarea
-          >
+          <label for="description" class="form-label">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            class="form-control border"
+          ><%= category.description %></textarea>
         </div>
       </form>
     </div>
   </div>
 </div>
+
 <%- include("../../views/partials/admin/footer") %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+  async function handleFormSubmit(event) {
+    event.preventDefault();
+
+    // Retrieve form values
+    const categoryname = document.getElementById("category_name").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const categoryId = "<%= category._id %>"; // Inject category ID from EJS
+
+    // Validation checks
+    if (!categoryname) {
+      return Swal.fire("Error", "Category name cannot be empty!", "error");
+    }
+    if (!/^[a-zA-Z\s]+$/.test(categoryname)) {
+      return Swal.fire(
+        "Error",
+        "Category name should only contain alphabets.",
+        "error"
+      );
+    }
+    if (!description) {
+      return Swal.fire("Error", "Description cannot be empty!", "error");
+    }
+
+    try {
+      // Send AJAX request to update the category
+      const response = await fetch(`/admin/editCategory/${categoryId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ categoryname, description }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Swal.fire("Success", "Category updated successfully!", "success").then(
+          () => {
+            window.location.href = "/admin/category";
+          }
+        );
+      } else {
+        Swal.fire("Error", result.error || "Failed to update category!", "error");
+      }
+    } catch (error) {
+      console.error("Error during update:", error);
+      Swal.fire("Error", "An error occurred while updating the category.", "error");
+    }
+  }
+</script>

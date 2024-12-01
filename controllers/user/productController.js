@@ -6,6 +6,7 @@ const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
 const env = require("dotenv").config();
 const session = require("express-session");
+const Wishlist= require('../../models/wishlistSchema')
 
 function generateOtp() {
   const digits = "1234567890";
@@ -136,6 +137,16 @@ const getProducts = async (req, res, next) => {
 
     const categories = await Category.find({ isListed: true });
     const brands = await Brand.find({ isListed: true });
+     
+    const wishlistData = userId
+      ? await Wishlist.findOne({ userId }).populate('products.productId')
+      : null;
+
+    const wishlist = wishlistData
+      ? wishlistData.products.map((item) => item.productId._id.toString())
+      : [];
+
+console.log('whisjlidt',wishlist);
 
     res.locals.user = userData;
 
@@ -151,10 +162,11 @@ const getProducts = async (req, res, next) => {
       currentPage: page,
       totalPages,
       totalProducts,
+      wishlist,
     });
   } catch (error) {
     console.log("shop page not found:", error);
-    next(error);
+    res.redirect('/pageNotFound')
   }
 };
 
@@ -165,8 +177,12 @@ const getProductDetails = async (req, res) => {
     let userData = userId ? await User.findById(userId) : null;
     res.locals.user = userData;
     const productId = req.params.id;
-    const product = await Product.findById(productId);
 
+    const product = await Product.findById(productId);
+    const quantity = product.stock.reduce((total, stockItem) => total + stockItem.quantity, 0);
+
+    console.log('product details quantity',quantity);
+    
     if (!product) {
       return res.status(404).send("Product not found");
     }
@@ -192,6 +208,8 @@ const getProductDetails = async (req, res) => {
         product,
         user: userData,
         relatedProducts,
+        quantity:quantity
+      
       });
     }
   } catch (error) {
@@ -205,6 +223,8 @@ const getForgotpassword = async (req, res) => {
   try {
     res.render("forgotPassword");
   } catch (error) {
+    console.error('error in product details',error);
+    
     res.redirect("/pageNotFound");
   }
 };

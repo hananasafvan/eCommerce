@@ -309,7 +309,7 @@ const loadDashboard = async (req, res) => {
     } catch (error) {
       console.log(error);
 
-      res.redirect("/pageNotFound");
+      res.redirect("/pageerror");
     }
   }
 };

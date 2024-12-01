@@ -76,13 +76,13 @@
                                    </div>
                                    <div id="salePrice-error" class="error-message"></div>
                                </div>
-                               <div class="col-lg-4">
+                               <!-- <div class="col-lg-4">
                                    <div class="mb-4">
                                        <label class="form-label">Quantity</label>
                                        <input placeholder="" name="quantity" type="text" class="form-control border">
                                        <div id="quantity-error" class="error-message"></div>
                                    </div>
-                               </div>
+                               </div> -->
                            </div>
 
                            <div class="form-group ">
@@ -321,7 +321,7 @@ function validateForm() {
     const brand = document.getElementsByName('brand')[0].value;
     const price = document.getElementsByName('regularPrice')[0].value;
     const salePrice = document.getElementsByName("salePrice")[0].value
-    const quantity = document.getElementsByName('quantity')[0].value;
+   // const quantity = document.getElementsByName('quantity')[0].value;
     const category = document.getElementsByName('category')[0].value;
     const color = document.getElementsByName('color')[0].value;
     const images = document.getElementById('input1').files; 
@@ -356,10 +356,10 @@ function validateForm() {
     
 
     
-    if (!/^\d+$/.test(quantity) || parseInt(quantity) < 0) {
-        displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
-        isValid = false;
-    }
+    // if (!/^\d+$/.test(quantity) || parseInt(quantity) < 0) {
+    //     displayErrorMessage('quantity-error', 'Please enter a valid non-negative quantity.');
+    //     isValid = false;
+    // }
 
     
     if (color === "") {
@@ -398,7 +398,7 @@ function clearErrorMessages() {
     document.getElementById('productName-error').innerHTML = '';
     document.getElementById('description-error').innerHTML = '';
     document.getElementById('regularPrice-error').innerHTML = '';
-    document.getElementById('quantity-error').innerHTML = '';
+    //document.getElementById('quantity-error').innerHTML = '';
     document.getElementById('color-error').innerHTML = '';
     document.getElementById('category-error').innerHTML = '';
     document.getElementById('images-error').innerHTML = '';

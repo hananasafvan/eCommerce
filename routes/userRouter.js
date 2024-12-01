@@ -5,7 +5,7 @@ const profileController = require("../controllers/user/profileController");
 const passport = require("passport");
 const { userAuth } = require("../middleweares/auth");
 
-router.get("/pageNotFound", userController.pageNotFound);
+
 router.get("/signup", userController.loadSignup);
 router.get("/pageNotFound", userController.pageNotFound); //for error handil
 router.get("/", userController.loadHomepage);

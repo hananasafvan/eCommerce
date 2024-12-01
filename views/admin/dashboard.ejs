@@ -58,7 +58,7 @@
               <td><%= index + 1 %></td>
               <td><%= product.productDetails ? product.productDetails.productName : "Unknown Product" %></td>
               <td><%= product.orderCount %></td>
-              <td><%= product.productDetails.salePrice %></td>
+              <td><%= product.productDetails ? product.productDetails.salePrice : "Unknown Product" %></td>
             </tr>
           <% }) %>
         </tbody>

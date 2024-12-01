@@ -80,25 +80,34 @@
               <% order.items.forEach(item => { %>
                 <tr>
                   <td>
-                    <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" 
-                         alt="<%= item.productId.productName %>" 
-                         class="img-thumbnail" 
-                         style="width: 100px; height: 100px;">
+                    <% if (item.productId && item.productId.productImage && item.productId.productImage.length > 0) { %>
+                      <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" 
+                           alt="<%= item.productId.productName %>" 
+                           class="img-thumbnail" 
+                           style="width: 100px; height: 100px;">
+                    <% } else { %>
+                      <img src="/path/to/default-image.jpg" 
+                           alt="No image available" 
+                           class="img-thumbnail" 
+                           style="width: 100px; height: 100px;">
+                    <% } %>
                   </td>
-                  <td><strong style="color: #0e0d0d;"><%= item.productId.productName %></strong></td>
+                  <td><strong style="color: #0e0d0d;"><%= item.productId ? item.productId.productName : "Unknown Product" %></strong></td>
                   <td><%= item.quantity %></td>
                   <td><%= item.size %></td>
                   <td><%= item.status %></td>
                   <td>&#8377; <%= item.totalPrice %></td>
                   <td>
-                    <% if(item.status === 'Delivered') {%>
-                    <button style="border-radius: 5px; background-color: red; width: 200px; height: 50px;border: none;"><a style="color: white;" href="/order/invoice/<%= order._id %>/<%= item._id %>">Download Invoice</a></button>
-                 <%}%>
+                    <% if (item.status === 'Delivered') { %>
+                      <button style="border-radius: 5px; background-color: red; width: 200px; height: 50px; border: none;">
+                        <a style="color: white;" href="/order/invoice/<%= order._id %>/<%= item._id %>">Download Invoice</a>
+                      </button>
+                    <% } %>
                   </td>
                 </tr>
-                
               <% }) %>
             </tbody>
+            
           </table>
            <div class="total-price text-end mt-4">
             <strong style="color: #d35400;">Total Order Price: &#8377;<%= order.totalOrderPrice %></strong>

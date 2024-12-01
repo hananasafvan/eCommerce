@@ -43,56 +43,55 @@
         </td>
         <td>
           <ul class="list-unstyled">
-            <% order.items.forEach(item => { %>
-            <li>
-              <strong><%= item.productId.productName %></strong> (Qty: <%=
-              item.quantity %>)<br />
-              Status:
-              <span
-                class="badge <%= item.status === 'Pending' ? 'bg-warning' : 'bg-success' %>"
-                ><%= item.status %></span
-              >
-              <% const deliveredDate = new Date(item.deliveredAt ||
-              item.updatedAt); // Use the deliveredAt date if available,
-              fallback to updatedAt const currentDate = new Date(); const
-              daysSinceDelivery = Math.floor((currentDate - deliveredDate) /
-              (1000 * 60 * 60 * 24)); %> <% if (item.status === 'Cancelled') {
-              %>
-              <button type="button" class="btn btn-danger btn-sm" disabled>
-                Cancelled
-              </button>
-              <% } else if (item.status === 'Delivered' && daysSinceDelivery <=
-              7) { %>
-              <button
-                type="button"
-                class="btn btn-primary btn-sm"
-                onclick="returnItem('<%= order._id %>', '<%= item._id %>', this)"
-              >
-                Return
-              </button>
-              <% } else if (item.status === 'Delivered' && daysSinceDelivery >
-              7) { %>
-              <button type="button" class="btn btn-secondary btn-sm" disabled>
-                Can't Return
-              </button>
-              <% } else if (item.status === 'Processing' || item.status ===
-              'Paid') { %>
-              <button
-                type="button"
-                class="btn btn-danger btn-sm"
-                onclick="cancelItem('<%= order._id %>', '<%= item._id %>', this)"
-              >
-                Cancel
-              </button>
-              <% } else if (item.status === 'Pending') { %>
-              <a
-                class="btn btn-dark btn-sm"
-                href="/order/repay/<%= order._id %>/<%= item._id %>"
-                >Repay</a
-              >
-              <% } %>
-            </li>
-            <% }) %>
+            <% 
+  order.items.forEach(item => { 
+    const deliveredDate = new Date(item.deliveredAt || item.updatedAt); 
+    const currentDate = new Date();
+    const daysSinceDelivery = Math.floor((currentDate - deliveredDate) / (1000 * 60 * 60 * 24)); 
+%>
+<li>
+  <strong><%=item.productId? item.productId.productName : "Unknown Product"   %></strong> (Qty: <%= item.quantity %>)<br />
+  
+  Status:
+  <span class="badge <%= item.status === 'Pending' ? 'bg-warning' : 'bg-success' %>">
+    <%= item.status %>
+  </span>
+  
+  <% if (item.status === 'Cancelled') { %>
+    <button type="button" class="btn btn-danger btn-sm" disabled>
+      Cancelled
+    </button>
+  <% } else if (item.status === 'Delivered' && daysSinceDelivery <= 7) { %>
+    <button
+      type="button"
+      class="btn btn-primary btn-sm"
+      onclick="returnItem('<%= order._id %>', '<%= item._id %>', this)"
+    >
+      Return
+    </button>
+  <% } else if (item.status === 'Delivered' && daysSinceDelivery > 7) { %>
+    <button type="button" class="btn btn-secondary btn-sm" disabled>
+      Can't Return
+    </button>
+  <% } else if (item.status === 'Processing' || item.status === 'Paid') { %>
+    <button
+      type="button"
+      class="btn btn-danger btn-sm"
+      onclick="cancelItem('<%= order._id %>', '<%= item._id %>', this)"
+    >
+      Cancel
+    </button>
+  <% } else if (item.status === 'Pending') { %>
+    <a
+      class="btn btn-dark btn-sm"
+      href="/order/repay/<%= order._id %>/<%= item._id %>"
+    >
+      Repay
+    </a>
+  <% } %>
+</li>
+<% }); %>
+
           </ul>
         </td>
         <td>

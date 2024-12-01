@@ -32,7 +32,7 @@ const addproductInfo = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.redirect("/pageerror");
+    res.render("/pageerror");
   }
 };
 
@@ -107,8 +107,8 @@ const addProducts = async (req, res) => {
       return res.status(400).json("product alredy exist");
     }
   } catch (error) {
-    console.error("error saving problem", error);
-    res.redirect("/admin/pageerror");
+    console.error("error product saving problem", error);
+    res.redirect("/pageerror");
   }
 };
 
@@ -176,7 +176,9 @@ const unblockProduct = async (req, res) => {
     await Product.updateOne({ _id: id }, { $set: { isBlocked: false } });
     res.redirect("/admin/products");
   } catch (error) {
-    res.redirect("/pageerror");
+    console.log(error);
+    
+    res.render("/pageerror");
   }
 };
 
@@ -241,6 +243,7 @@ const editProduct = async (req, res) => {
       (acc, size) => acc + size.quantity,
       0
     );
+    
 
     const updateFields = {
       productName: data.productName,
@@ -324,7 +327,7 @@ const addproductOffer = async (req, res) => {
     await findCategory.save();
     res.json({ status: true });
   } catch (error) {
-    res.redirect("/pageerror");
+    
     res.status(500).json({ status: false, message: "Internal server error" });
   }
 };

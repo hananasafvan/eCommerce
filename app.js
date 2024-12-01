@@ -51,7 +51,14 @@ app.use("/", productRouter);
 app.use("/", profile);
 app.use("/order", orderRouter);
 app.use("/admin", adminOrderRouter);
-
+app.use("/admin", (err, req, res, next) => {
+  console.error(err.message);
+  res.redirect("/admin/pageerror");
+});
+app.use("/", (err, req, res, next) => {
+  console.error(err.message);
+  res.redirect("/pageNotFound");
+});
 
 
 
@@ -88,3 +95,6 @@ app.listen(PORT, () => {
 
 // user usd email sb-c3wsi33648146@personal.example.com
 //user usd password vQyjc^I8
+
+//  mongodb+srv://nid-han-72:eflNgKHGvf5QWLfu@cluster0.wxmdc.mongodb.net/
+//  MONGODB_URI = mongodb://localhost:27017/ecommerce

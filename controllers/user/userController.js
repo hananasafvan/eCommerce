@@ -7,9 +7,9 @@ const env = require("dotenv").config();
 const { v4: uuidv4 } = require("uuid");
 
 const pageNotFound = async (req, res) => {
-  try {
+  
     res.render("page-404");
-  } catch (error) {}
+  
 };
 
 function generateOtp() {

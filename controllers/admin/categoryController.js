@@ -4,7 +4,7 @@ const Product = require("../../models/productShema");
 const categoryInfo = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 4;
+    const limit = 10;
     const skip = (page - 1) * limit;
 
     const categoryData = await Category.find({})
@@ -33,11 +33,9 @@ const addCategory = async (req, res) => {
     console.log("Adding category:", req.body);
 
     if (!/^[a-zA-Z\s]+$/.test(name)) {
-      return res
-        .status(400)
-        .json({
-          error: "Please enter a valid category name (alphabets only).",
-        });
+      return res.status(400).json({
+        error: "Please enter a valid category name (alphabets only).",
+      });
     }
 
     if (!/^[a-zA-Z\s]+$/.test(description)) {
@@ -58,6 +56,7 @@ const addCategory = async (req, res) => {
     return res.json({ message: "Category added successfully." });
   } catch (error) {
     console.error("Error adding category:", error);
+
     return res.status(500).json({ error: "Internal server error." });
   }
 };
@@ -81,45 +80,38 @@ const getEditCategory = async (req, res) => {
 const editCategory = async (req, res) => {
   try {
     const id = req.params.id;
-    console.log("Updating category:", req.body);
-
     const { categoryname, description } = req.body;
+
     if (!/^[a-zA-Z\s]+$/.test(categoryname)) {
-      return res
-        .status(400)
-        .json({
-          error: "Please enter a valid category name (alphabets only).",
-        });
+      return res.status(400).json({
+        error: "Please enter a valid category name (alphabets only).",
+      });
     }
 
     const existingCategory = await Category.findOne({
       name: new RegExp(`^${categoryname}$`, "i"),
     });
     if (existingCategory && existingCategory._id.toString() !== id) {
-      return res
-        .status(400)
-        .json({ error: "Category already exists, please choose another name" });
+      return res.status(400).json({ error: "Category already exists." });
     }
 
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
-      {
-        $set: { name: categoryname, description: description },
-      },
+      { $set: { name: categoryname, description: description } },
       { new: true }
     );
-    console.log(categoryname);
-
-    console.log(description);
 
     if (updatedCategory) {
-      res.redirect("/admin/category");
+      return res
+        .status(200)
+        .json({ message: "Category updated successfully." });
     } else {
-      res.status(404).json({ error: "Category not found" });
+      return res.status(404).json({ error: "Category not found." });
     }
   } catch (error) {
     console.error("Error updating category:", error);
-    res.status(500).json({ error: "Internal server error" });
+
+    return res.status(500).json({ error: "Internal server error." });
   }
 };
 
@@ -202,6 +194,7 @@ const addCategoryOffer = async (req, res) => {
     return res.json({ status: true });
   } catch (error) {
     console.error("Error in addCategoryOffer:", error);
+
     return res
       .status(500)
       .json({ status: false, message: "Internal server error" });
@@ -235,6 +228,7 @@ const removeCategoryOffer = async (req, res) => {
     return res.json({ status: true });
   } catch (error) {
     console.error("Error in removeCategoryOffer:", error);
+
     return res
       .status(500)
       .json({ status: false, message: "Internal server error" });

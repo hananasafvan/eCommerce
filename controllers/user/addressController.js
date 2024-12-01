@@ -1,6 +1,8 @@
 const Address = require("../../models/addressSchema");
 const User = require("../../models/userSchema");
 
+
+
 const getAddress = async (req, res) => {
   try {
     const userId = req.session.user || req.user;
@@ -23,7 +25,7 @@ const getAddress = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server Error");
+    res.redirect('/pageNotFound')
   }
 };
 
@@ -126,7 +128,7 @@ const getEditAddress = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send("Server Error");
+    res.redirect('/pageNotFound')
   }
 };
 
@@ -182,7 +184,7 @@ const newAddress = async(req,res)=>{
     res.render('newAddress')
   } catch (error) {
     console.log(error);
-    
+    res.redirect('/pageNotFound')
   }
 }
 

@@ -48,7 +48,7 @@ const getOrderPage = async (req, res) => {
     });
   } catch (error) {
     console.error("Error rendering order page:", error);
-    res.status(500).send("Internal server error");
+    res.redirect('/pageNotFound')
   }
 };
 
@@ -77,7 +77,7 @@ const getOrderDetails = async (req, res) => {
     res.render("orderdetails", { order, user: userData });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Server error");
+    res.redirect('/pageNotFound')
   }
 };
 
@@ -118,7 +118,7 @@ const getOrderHistory = async (req, res) => {
     });
   } catch (error) {
     console.error("Error retrieving order history:", error);
-    res.status(500).send("Internal server error");
+    res.redirect('/pageNotFound')
   }
 };
 

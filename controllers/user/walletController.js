@@ -25,7 +25,7 @@ const showWallet = async (req, res) => {
     console.log("wallet transactions", walletTransactions);
   } catch (error) {
     console.error("Error displaying wallet:", error);
-    res.status(500).send("Internal Server Error");
+    res.redirect('/pageNotFound')
   }
 };
 

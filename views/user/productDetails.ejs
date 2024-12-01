@@ -330,7 +330,7 @@
         </select>
                
         <br>
-        <% if (product.quantity > 0) { %>
+        <% if (quantity > 0) { %>
         <button style="width: 170px;height: 40px; background-color: rgb(12, 136, 12); color: white;align-items: center; border-radius:15px;">
           <a  href="#" class="btn  add-to-cart" data-product-id="<%= product._id %>" style="color: #fff;margin-top: -9px;">
               ADD TO BAG 
@@ -346,7 +346,7 @@
 
         
         <p style="margin-top: 20px;">
-          <% if (product.quantity > 0) { %>
+          <% if (quantity > 0) { %>
             <span style="color: rgb(15, 15, 15);">Available</span>
           <% } else { %>
             <span style="color: rgb(233, 54, 63);">Sorry, This product is unavailable now</span>

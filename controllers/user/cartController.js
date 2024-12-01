@@ -150,7 +150,7 @@ const getCart = async (req, res) => {
     });
   } catch (error) {
     console.error("Error retrieving cart:", error.stack);
-    res.status(500).send("Internal server error");
+    res.redirect('/pageNotFound')
   }
 };
 
@@ -291,7 +291,9 @@ const updateQuantity = async (req, res, next) => {
       remainingStock: stockSizeItem.quantity - change,
     });
   } catch (error) {
-    next(error);
+    console.error(error);
+    return res.status(500).send('internal server error')
+    
   }
 };
 

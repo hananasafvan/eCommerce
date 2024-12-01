@@ -74,7 +74,7 @@
   <section class="content-main">
     <div class="content-header">
       <div>
-        <h2 class="content-title card-title">Brand</h2>
+        <h2 class="content-title card-title" style="margin-left: 440px;">Brand</h2>
       </div>
     </div>
     <header class="card-header text-center mb-20">
@@ -95,8 +95,8 @@
     </header>
     <div class="card">
       <div class="card-body">
-        <div class="row">
-          <div class="col-md-3">
+        <div class="row" >
+          <div class="col-md-3" style="border: none;">
             <form
               method="post"
               action="/admin/addBrand"
@@ -123,12 +123,13 @@
           <div class="col-md-8 ml-10">
             <div class="table-responsive">
               <table class="table table-hover">
-                <thead>
+                <thead style="color: rgba(6, 83, 119, 0.842); font-size: 15px;">
                   <tr>
-                    <th class="text-center"></th>
+                  
                     <th>Name</th>
 
                     <th class="text-start">Edit</th>
+                    <th class="text-start">Delet</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,12 +138,13 @@
                   <tr>
                     <td class="text-start"><%=brand.name%></td>
 
-                    <td></td>
+                    
 
                     <td class="text-start">
                       <a
                         href="/admin/editbrand?id=<%=brand._id%>"
                         class="btn btn-info text-white"
+                        style="background: #4f7eb1;"
                         >Edit</a
                       >
                     </td>
@@ -150,8 +152,9 @@
                       <!-- <a href="/admin/deletebrand/<%= brand._id %>" class="btn btn-info text-white">Delete</a> -->
                       <a
                         href="javascript:void(0);"
-                        class="btn btn-info text-white"
+                        class="btn  text-white"
                         onclick="confirmDelete('<%= brand._id %>')"
+                        style="background-color:   #da4848;"
                         >Delete</a
                       >
                     </td>
@@ -227,35 +230,35 @@
     }
 
     function validateForm() {
-      clearErrorMessage();
-      const name = document.getElementsByName("name")[0].value.trim();
+  clearErrorMessage();
+  const name = document.getElementsByName("name")[0].value.trim();
 
-      isValid = true;
+  let isValid = true;
 
-      if (name === "") {
-        displayErrorMessage("name-error", "pleace enter a name");
-        isValid = false;
-      } else if (!/^[a-zA-Z\s]+$/.test(name)) {
-        displayErrorMessage("name-error", "Category name suld in alphabet");
-        isValid = false;
-      }
+  if (name === "") {
+    displayErrorMessage("name-error", "Please enter a name");
+    isValid = false;
+  } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+    displayErrorMessage("name-error", "Brand name should only contain alphabets");
+    isValid = false;
+  }
 
-      return (isValid = true);
-    }
+  return isValid;
+}
 
-    function displayErrorMessage(elementId, message) {
-      var errorElement = document.getElementById("elementId");
-      errorElement.innerText = message;
-      errorElement.style.display = "block";
-    }
+function displayErrorMessage(elementId, message) {
+  const errorElement = document.getElementById(elementId); // Corrected variable name
+  errorElement.innerText = message;
+  errorElement.style.display = "block";
+}
 
-    function clearErrorMessage() {
-      const errorElements = document.getElementsByClassName("error-messge");
-      Array.from(errorElements).forEach((element) => {
-        element.innerText = "";
-        element.style.display = "none";
-      });
-    }
+function clearErrorMessage() {
+  const errorElements = document.querySelectorAll(".error-message");
+  errorElements.forEach((element) => {
+    element.innerText = "";
+    element.style.display = "none";
+  });
+}
 
     function confirmDelete(brandId) {
       Swal.fire({

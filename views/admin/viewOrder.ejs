@@ -28,50 +28,52 @@
             </thead>
             <tbody>
                 <% order.items.forEach(item => { %>
-                    <tr>
-                        <td> <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>" class="img-thumbnail" style="width: 100px; height: auto; margin-right: 15px;">
-                        </td>
-                        <td><%= item.productId.productName %></td>
-                        <td><%= item.quantity %></td>
-                         <td>&#8377;<%= item.productId.regularPrice %></td>
-                        <td>&#8377;<%= item.totalPrice %></td>
-                        
-                                                    <td >
-                                                        <% if (item.status !== 'Cancelled' && item.status !== 'Request to return' && item.status !== 'Request Accept' && item.status !== 'Request Reject' && item.status !== 'Returned' ) { %>   
-                                                            <form action="/admin/order/update/<%= order._id %>/<%= item.itemId %>" method="POST" class="d-inline" >
-                                                                <select name="status" class="form-select form-select-sm" aria-label="Order Status" style=" width: 50%;" >
-                                                                    <option value="Pending" <%= item.status === 'Pending' ? 'selected' : '' %>>Pending</option>
-                                                                    <option value="Processing" <%= item.status === 'Processing' ? 'selected' : '' %>>Processing</option>
-                                                                    <option value="Shipped" <%= item.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
-                                                                    <option value="Delivered" <%= item.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
-                                                                    <option value="Cancelled" <%= item.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                                                                </select>
-                                                                <button type="submit" class="btn btn-success btn-sm mt-1">Update</button>
-                                                            </form>
-                                                        <% } else if (item.status === 'Request to return' || item.status === 'Request Accept' ) { %>
-                                                            <form action="/admin/order/update/<%= order._id %>/<%= item.itemId %>" method="POST" class="d-inline">
-                                                                <select name="status" class="form-select form-select-sm" aria-label="Order Status" style=" width: 50%;">
-                                                                    <option value="Request to return" <%= item.status === 'Request to return' ? 'selected' : '' %>>Request to return</option>
-                                                                    <option value="Request Accept" <%= item.status === 'Request Accept' ? 'selected' : '' %>>Request Accept</option>
-                                                                    <option value="Request Reject" <%= item.status === 'Request Reject' ? 'selected' : '' %>>Request Reject</option>
-                                                                    <option value="Returned" <%= item.status === 'Returned' ? 'selected' : '' %>>Returned</option>
-                                                                </select>
-                                                                <button type="submit" class="btn btn-success btn-sm mt-1">Update</button>
-                                                            </form>
-                                                        <% } else if (item.status === 'Cancelled') { %>
-                                                            <option value="Cancelled" <%= item.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
-                                                        <% }else if(item.status === 'Request Reject') {%>
-                                                            <option value="Request Reject" <%= item.status === 'Request Reject' ? 'selected' : '' %>>Rejected</option>
-                                                    <%}else if(item.status === 'Returned') {%>
-                                                        <option value="Returned" <%= item.status === 'Returned' ? 'selected' : '' %>>Returned</option>
-                                                        <%}%>
-                                                    </td>
-                                                    
-                    </tr>
-                    
-                          
+                  <tr>
+                    <td>
+                      <% if (item.productId && item.productId.productImage && item.productId.productImage.length > 0) { %>
+                        <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName || 'Unknown product' %>" class="img-thumbnail" style="width: 100px; height: auto; margin-right: 15px;">
+                      <% } else { %>
+                        <span>No image available</span>
+                      <% } %>
+                    </td>
+                    <td><%= item.productId ? item.productId.productName : 'Unknown product' %></td>
+                    <td><%= item.quantity %></td>
+                    <td>
+                      &#8377;<%= item.productId && item.productId.regularPrice ? item.productId.regularPrice : 'N/A' %>
+                    </td>
+                    <td>
+                      &#8377;<%= item.totalPrice ? item.totalPrice.toFixed(2) : 'N/A' %>
+                    </td>
+                    <td>
+                      <% if (item.status !== 'Cancelled' && item.status !== 'Request to return' && item.status !== 'Request Accept' && item.status !== 'Request Reject' && item.status !== 'Returned') { %>
+                        <form action="/admin/order/update/<%= order._id %>/<%= item.itemId %>" method="POST" class="d-inline">
+                          <select name="status" class="form-select form-select-sm" aria-label="Order Status" style="width: 50%;">
+                            <option value="Pending" <%= item.status === 'Pending' ? 'selected' : '' %>>Pending</option>
+                            <option value="Processing" <%= item.status === 'Processing' ? 'selected' : '' %>>Processing</option>
+                            <option value="Shipped" <%= item.status === 'Shipped' ? 'selected' : '' %>>Shipped</option>
+                            <option value="Delivered" <%= item.status === 'Delivered' ? 'selected' : '' %>>Delivered</option>
+                            <option value="Cancelled" <%= item.status === 'Cancelled' ? 'selected' : '' %>>Cancelled</option>
+                          </select>
+                          <button type="submit" class="btn btn-success btn-sm mt-1">Update</button>
+                        </form>
+                      <% } else if (item.status === 'Request to return' || item.status === 'Request Accept') { %>
+                        <form action="/admin/order/update/<%= order._id %>/<%= item.itemId %>" method="POST" class="d-inline">
+                          <select name="status" class="form-select form-select-sm" aria-label="Order Status" style="width: 50%;">
+                            <option value="Request to return" <%= item.status === 'Request to return' ? 'selected' : '' %>>Request to return</option>
+                            <option value="Request Accept" <%= item.status === 'Request Accept' ? 'selected' : '' %>>Request Accept</option>
+                            <option value="Request Reject" <%= item.status === 'Request Reject' ? 'selected' : '' %>>Request Reject</option>
+                            <option value="Returned" <%= item.status === 'Returned' ? 'selected' : '' %>>Returned</option>
+                          </select>
+                          <button type="submit" class="btn btn-success btn-sm mt-1">Update</button>
+                        </form>
+                      <% } else { %>
+                        <span><%= item.status === 'Cancelled' ? 'Cancelled' : item.status === 'Request Reject' ? 'Rejected' : item.status === 'Returned' ? 'Returned' : 'N/A' %></span>
+                      <% } %>
+                    </td>
+                  </tr>
                 <% }) %>
-            </tbody>
+              </tbody>
+              
         </table>
 
         

@@ -320,45 +320,53 @@
     
 </div>
 
-        <div class="products-list" >
+<div class="products-list">
+    <% products.forEach(product => { %>
+        <div class="product-item" style="border:solid #1f2d3d 1px;">
             
-            <% products.forEach(product => { %>
-                <div class="product-item" style="border:solid #1f2d3d 1px;" >
-                    
+            <!-- Wishlist Button -->
+            <a href="#" class="wishlist-btn" data-product-id="<%= product._id %>" style="margin-right: 20px;">
+                <% if (wishlist && wishlist.includes(product._id.toString())) { %>
+                    <!-- Filled Heart -->
+                    <i class="fas fa-heart" style="margin-right: -200px; color: rgb(221, 16, 26); font-size: x-large; "></i>
+                <% } else { %>
+                    <!-- Outlined Heart -->
+                    <i class="far fa-heart" style="margin-right: -200px; color: rgb(221, 16, 26); font-size: x-large;"></i>
+                <% } %>
+            </a>
 
-                    <a href="#" class="wishlist-btn" data-product-id="<%= product._id %>" style="margin-right: 20px;">
-                        <i class="fas fa-heart " style="margin-right: -200px;color: rgb(221, 16, 26);font-size: x-large;"></i>
-                    </a>
-            
-                    <% if (product.productImage && product.productImage.length > 0) { %>
-                    <a href="/product/<%= product._id %>">
-                        <img src="/uploads/product-imgs/<%= product.productImage[0] %>" alt="<%= product.productName %>">
-                    </a>
-                        <% } else { %>
-                        <img src="/uploads/product-imgs/no-image.jpg" alt="No image available">
-                    <% } %>
-                    <h3 style="color: #1e316f;"><%= product.productName %></h3>
-                     
-                    <% if (product.salePrice < product.regularPrice) { %>
-                        <p style="text-decoration: line-through; margin-bottom: 0.1px;color: #626a75;">&#8377; <%= product.regularPrice %> </p>
-                        <p style="color: #07922a; margin-top: 1px;">&#8377; <%= product.salePrice %></p>
-                    <% } else { %>
-                        <p>&#8377; <%= product.regularPrice %></p>
-                    <% } %>
-                    
-                    <div class="star-rating">
-                        <span class="star" data-value="1">&#9733;</span>
-                        <span class="star" data-value="2">&#9733;</span>
-                        <span class="star" data-value="3">&#9733;</span>
-                        <span class="star" data-value="4">&#9733;</span>
-                        <span class="star" data-value="5">&#9733;</span>
-                        
-                    </div>
+            <!-- Product Image -->
+            <% if (product.productImage && product.productImage.length > 0) { %>
+                <a href="/product/<%= product._id %>">
+                    <img src="/uploads/product-imgs/<%= product.productImage[0] %>" alt="<%= product.productName %>">
+                </a>
+            <% } else { %>
+                <img src="/uploads/product-imgs/no-image.jpg" alt="No image available">
+            <% } %>
 
-                  
-                </div>
-            <% }) %>
+            <!-- Product Name -->
+            <h3 style="color: #1e316f;"><%= product.productName %></h3>
+
+            <!-- Price Display -->
+            <% if (product.salePrice < product.regularPrice) { %>
+                <p style="text-decoration: line-through; margin-bottom: 0.1px; color: #626a75;">&#8377; <%= product.regularPrice %></p>
+                <p style="color: #07922a; margin-top: 1px;">&#8377; <%= product.salePrice %></p>
+            <% } else { %>
+                <p>&#8377; <%= product.regularPrice %></p>
+            <% } %>
+
+            <!-- Star Rating -->
+            <div class="star-rating">
+                <span class="star" data-value="1">&#9733;</span>
+                <span class="star" data-value="2">&#9733;</span>
+                <span class="star" data-value="3">&#9733;</span>
+                <span class="star" data-value="4">&#9733;</span>
+                <span class="star" data-value="5">&#9733;</span>
+            </div>
         </div>
+    <% }) %>
+</div>
+
 
         
     <!-- </div> -->

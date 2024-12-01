@@ -1,7 +1,7 @@
 <%- include("../../views/partials/admin/header") %>
 <div class="content-header row">
-    <div class="d-flex justify-content-between align-items-center">
-        <h2 class="content-title card-title">Customers</h2>
+    <div class="d-flex justify-content-between align-items-center" >
+        <h2 class="content-title card-title" style="margin-left: 450px; margin-top: 50px; color: rgba(6, 83, 119, 0.842);">Customers</h2>
        
     </div>
 </div>         
@@ -17,7 +17,7 @@
             </header>
             <div class="right mt-5">
                 <table class="table table-striped">
-                    <thead>
+                    <thead style="color: rgba(6, 83, 119, 0.842);font-size: 20px;">
                       <tr>
                         <th scope="col"><b>Name</b></th>
                         <th scope="col"><b>Email</b></th>
@@ -33,11 +33,11 @@
                                 <td><%=data[i].phone%></td>
                                 <td> 
                                     <%if (data[i].isBlocked===false){%>
-                                        <button class="btn btn-danger" style="width: 80px;">
+                                        <button class="btn " style="width: 80px;background-color: rgb(214, 71, 71);">
                                             <a href="/admin/blockCustomer?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Block</a>
                                         </button>
                                         <%}else{%>
-                                        <button class="btn btn-success" style="width: 80px;">
+                                        <button class="btn " style="width: 80px; background-color: rgb(70, 150, 70);">
                                             <a href="/admin/unblockCustomer?id=<%=data[i]._id%>" class="text-white" style="text-decoration: none;">Unblock</a>
                                         </button> <%}%>
                                 </td>

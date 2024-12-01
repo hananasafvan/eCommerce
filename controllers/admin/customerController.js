@@ -12,7 +12,7 @@ const customerInfo = async (req, res) => {
       page = req.query.page;
     }
 
-    const limit = 3;
+    const limit = 10;
     const userData = await User.find({
       isAdmin: false,
       $or: [
@@ -36,11 +36,10 @@ const customerInfo = async (req, res) => {
       data: userData,
       totalPages: Math.ceil(count / limit),
       currentPage: parseInt(page),
-    
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Server Error");
+    res.redirect("/pageerror");
   }
 };
 const customerBlocked = async (req, res) => {

@@ -70,29 +70,21 @@ const getSalesReport = async (req, res) => {
     const matchCondition = getMatchCondition(dateRange, startDate, endDate);
 
     const totalOrderCount = await Order.countDocuments(matchCondition);
+
     const totalSales = await Order.aggregate([
       { $match: matchCondition },
       { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
     ]);
+
     const netSalesResult = await Order.aggregate([
       { $unwind: "$items" },
-      {
-        $match: {
-          "items.status": { $in: ["Paid", "Delivered"] },
-          ...matchCondition,
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          netSales: { $sum: "$items.totalPrice" },
-        },
-      },
+      { $match: { ...matchCondition, "items.status": { $in: ["Paid", "Delivered"] } } },
+      { $group: { _id: null, netSales: { $sum: "$items.totalPrice" } } },
     ]);
 
     const netSales = netSalesResult[0]?.netSales || 0;
 
-    const orders = await Order.find({ ...matchCondition })
+    const orders = await Order.find(matchCondition)
       .populate("userId", "name")
       .populate("items.productId", "productName")
       .select("orderStatus paymentMethod items createdAt");
@@ -100,78 +92,86 @@ const getSalesReport = async (req, res) => {
     const result = orders.flatMap((order) =>
       order.items.map((item) => ({
         orderId: order._id,
-        username: order.userId ? order.userId.name : "Unknown User",
+        username: order.userId?.name || "Unknown User",
         status: item.status,
-        productName: item.productId.productName,
+        productName: item.productId?.productName || "Unknown Product",
         paymentMethod: order.paymentMethod,
       }))
     );
 
-    const salesData = await Order.aggregate([
-      { $match: matchCondition },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          total: { $sum: "$totalOrderPrice" },
-          orders: { $push: "$$ROOT" },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
-
     res.render("salesReport", {
       totalOrderCount,
       totalRevenue: totalSales[0]?.totalRevenue || 0,
-      result,
       netSales,
-      salesData,
+      result,
       dateRange: dateRange || "custom",
       startDate: startDate || "",
       endDate: endDate || "",
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Server Error");
+    console.error("Error in getSalesReport:", error);
+    res.redirect("/pageerror");
+    
   }
 };
+
+
+
 
 const getSalesReportPDF = async (req, res) => {
   try {
     const { dateRange, startDate, endDate } = req.query;
     const matchCondition = getMatchCondition(dateRange, startDate, endDate);
 
-    // Calculate sales summary
-    const totalOrderCount = await Order.countDocuments(matchCondition);
-    const totalSales = await Order.aggregate([
-      { $match: matchCondition },
-      { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
-    ]);
-    const totalRevenue = totalSales[0]?.totalRevenue || 0;
-
-    const netSalesResult = await Order.aggregate([
-      { $unwind: "$items" },
-      {
-        $match: {
-          "items.status": { $in: ["Paid", "Delivered"] },
-          ...matchCondition,
-        },
-      },
-      {
-        $group: { _id: null, netSales: { $sum: "$items.totalPrice" } },
-      },
-    ]);
-    const netSales = netSalesResult[0]?.netSales || 0;
-
+    
     const salesData = await Order.aggregate([
       { $match: matchCondition },
       {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-          total: { $sum: "$totalOrderPrice" },
-          orders: { $push: "$$ROOT" },
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
         },
       },
-      { $sort: { _id: 1 } },
+      {
+        $lookup: {
+          from: "products",
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      {
+        $unwind: "$userDetails",
+      },
+      {
+        $project: {
+          _id: 1,
+          createdAt: 1,
+          userName: "$userDetails.name",
+          items: {
+            $map: {
+              input: "$items",
+              as: "item",
+              in: {
+                productName: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$productDetails",
+                        cond: { $eq: ["$$this._id", "$$item.productId"] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+                quantity: "$$item.quantity",
+              },
+            },
+          },
+        },
+      },
     ]);
 
     if (salesData.length === 0) {
@@ -180,7 +180,26 @@ const getSalesReportPDF = async (req, res) => {
         .send("No sales data available for the selected date range.");
     }
 
-    const doc = new PDFDocument();
+    // Calculate summary data
+    const totalOrderCount = salesData.length;
+    
+    const totalSales = await Order.aggregate([
+      { $match: matchCondition },
+      { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
+    ]);
+    
+    const netSalesResult = await Order.aggregate([
+      { $unwind: "$items" },
+      { $match: { ...matchCondition, "items.status": { $in: ["Paid", "Delivered"] } } },
+      { $group: { _id: null, netSales: { $sum: "$items.totalPrice" } } },
+    ]);
+    
+    const totalRevenue = totalSales[0]?.totalRevenue || 0;
+    const netSales = netSalesResult[0]?.netSales || 0;
+    
+    console.log("Total Revenue:", totalRevenue, "Net Sales:", netSales);
+    
+    const doc = new PDFDocument({ margin: 50 });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
@@ -188,74 +207,136 @@ const getSalesReportPDF = async (req, res) => {
     );
     doc.pipe(res);
 
-    // sales report title
+    
     doc.fontSize(20).text("Sales Report", { align: "center" });
     doc.moveDown(2);
 
-    // summary section
-    doc.fontSize(14).text("Summary", { underline: true });
-    doc.text(`Total Orders: ${totalOrderCount}`);
-    doc.text(`Total Revenue: ₹${totalRevenue.toFixed(2)}`);
-    doc.text(`Net Sales: ₹${netSales.toFixed(2)}`);
-    doc.moveDown(2);
+  
+    const tableHeaders = ["Sl No", "Date", "Order ID", "User", "Items"];
+    const columnWidths = [50, 80, 150, 100, 320]; 
+    const startX = 60;
+    let y = doc.y;
 
-    // sales data
-    salesData.forEach((data) => {
-      doc.fontSize(14).text(`Date: ${data._id}`, { underline: true });
-      doc.moveDown();
-      data.orders.forEach((order) => {
-        doc
-          .fontSize(12)
-          .text(
-            `Order ID: ${order._id}, User ID: ${
-              order.userId
-            }, Total: ₹${order.totalOrderPrice.toFixed(2)}`
-          );
-        doc.text(
-          `Items: ${order.items
-            .map((item) => `${item.productId} (${item.quantity} pcs)`)
-            .join(", ")}`
-        );
-        doc.moveDown();
+    const drawRow = (y) => {
+      doc.moveTo(startX, y)
+        .lineTo(550, y)
+        .stroke();
+    };
+
+    const drawTableHeaders = () => {
+      tableHeaders.forEach((header, index) => {
+        doc.fontSize(12).text(header, startX + columnWidths.slice(0, index).reduce((a, b) => a + b, 0), y + 5, {
+          width: columnWidths[index],
+          align: "left",
+        });
       });
+      drawRow(y + 20);
+      y += 25; 
+    };
+
+    const drawTableRow = (slNo, date, orderId, userName, items, y) => {
+      const rowHeight = Math.max(
+        doc.heightOfString(items, { width: columnWidths[4] }) + 5,
+        20
+      ); 
+      doc.fontSize(10).text(slNo, startX, y + 5, { width: columnWidths[0], align: "center" });
+      doc.text(date, startX + columnWidths[0], y + 5, { width: columnWidths[1], align: "left" });
+      doc.text(orderId, startX + columnWidths[0] + columnWidths[1], y + 5, { width: columnWidths[2], align: "left" });
+      doc.text(userName, startX + columnWidths[0] + columnWidths[1] + columnWidths[2], y + 5, {
+        width: columnWidths[3],
+        align: "left",
+      });
+      doc.text(items, startX + columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3], y + 5, {
+        width: columnWidths[4],
+        align: "left",
+        lineBreak: true,
+      });
+      drawRow(y + rowHeight);
+      return rowHeight; 
+    };
+
+    drawTableHeaders();
+
+  
+    salesData.forEach((order, index) => {
+      const items = order.items
+        .map((item) => `${item.productName?.productName || "Unknown"} (${item.quantity} pcs)`)
+        .join(", ");
+      const rowHeight = drawTableRow(
+        index + 1,
+        new Date(order.createdAt).toISOString().split("T")[0],
+        order._id,
+        order.userName,
+        items,
+        y
+      );
+      y += rowHeight; 
+
+      
+      if (y > doc.page.height - 100) {
+        doc.addPage();
+        y = 50;
+        drawTableHeaders(); 
+      }
     });
 
+    doc.addPage(); 
+    doc.fontSize(14).text("Summary", { underline: true, align: "left" });
+    doc.moveDown();
+    doc.fontSize(12).text(`Total Orders: ${totalOrderCount}`);
+    doc.text(`Total Revenue: ₹${totalRevenue.toFixed(2)}`);
+    doc.text(`Net Sales: ₹${netSales.toFixed(2)}`);
     doc.end();
   } catch (error) {
     console.error(error);
+    
     res.status(500).send("Server Error");
   }
 };
-
 const getSalesReportExcel = async (req, res) => {
   try {
     const { dateRange, startDate, endDate } = req.query;
     const matchCondition = getMatchCondition(dateRange, startDate, endDate);
 
-    //  sales summary
+    
     const totalOrderCount = await Order.countDocuments(matchCondition);
     const totalSales = await Order.aggregate([
       { $match: matchCondition },
       { $group: { _id: null, totalRevenue: { $sum: "$totalOrderPrice" } } },
     ]);
-    const totalRevenue = totalSales[0]?.totalRevenue || 0;
-
+    
     const netSalesResult = await Order.aggregate([
       { $unwind: "$items" },
+      { $match: { ...matchCondition, "items.status": { $in: ["Paid", "Delivered"] } } },
+      { $group: { _id: null, netSales: { $sum: "$items.totalPrice" } } },
+    ]);
+    
+    const totalRevenue = totalSales[0]?.totalRevenue || 0;
+    const netSales = netSalesResult[0]?.netSales || 0;
+    
+    console.log("Total Revenue:", totalRevenue, "Net Sales:", netSales);
+    
+    const salesData = await Order.aggregate([
+      { $match: matchCondition },
       {
-        $match: {
-          "items.status": { $in: ["Paid", "Delivered"] },
-          ...matchCondition,
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
         },
       },
       {
-        $group: { _id: null, netSales: { $sum: "$items.totalPrice" } },
+        $lookup: {
+          from: "products",
+          localField: "items.productId",
+          foreignField: "_id",
+          as: "productDetails",
+        },
       },
-    ]);
-    const netSales = netSalesResult[0]?.netSales || 0;
-
-    const salesData = await Order.aggregate([
-      { $match: matchCondition },
+      {
+        $unwind: "$userDetails",
+      },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
@@ -275,36 +356,51 @@ const getSalesReportExcel = async (req, res) => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Sales Report");
 
-    //  summary section
-    worksheet.addRow(["Summary"]);
-    worksheet.addRow(["Total Orders", totalOrderCount]);
-    worksheet.addRow(["Total Revenue (₹)", totalRevenue]);
-    worksheet.addRow(["Net Sales (₹)", netSales]);
-    worksheet.addRow([]); // Add an empty row for separation
 
     worksheet.columns = [
       { header: "Date", key: "date", width: 15 },
       { header: "Order ID", key: "orderId", width: 20 },
-      { header: "User ID", key: "userId", width: 20 },
+      { header: "User Name", key: "userName", width: 20 }, 
       { header: "Total Amount (₹)", key: "total", width: 20 },
-      { header: "Items", key: "items", width: 50 },
+      { header: "Product Names", key: "products", width: 50 },
     ];
 
+    
     salesData.forEach((data) => {
       data.orders.forEach((order) => {
-        const items = order.items
-          .map((item) => `${item.productId} (${item.quantity} pcs)`)
+        const productNames = order.items
+          .map((item) => {
+            const product = order.productDetails.find(
+              (prod) => String(prod._id) === String(item.productId)
+            );
+            return product ? `${product.productName} (${item.quantity} pcs)` : "Unknown Product";
+          })
           .join(", ");
 
         worksheet.addRow({
           date: data._id,
           orderId: order._id,
-          userId: order.userId,
+          userName: order.userDetails.name, 
           total: order.totalOrderPrice,
-          items,
+          products: productNames, 
         });
       });
     });
+
+    
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+
+    
+    worksheet.addRow(["Summary"]);
+    worksheet.addRow(["Total Orders", totalOrderCount]);
+    worksheet.addRow(["Total Revenue (₹)", totalRevenue]);
+    worksheet.addRow(["Net Sales (₹)", netSales]);
+
+    
+    const summaryStartRow = worksheet.lastRow.number - 3;
+    worksheet.mergeCells(`A${summaryStartRow}:B${summaryStartRow}`);
+    worksheet.getRow(summaryStartRow).font = { bold: true };
 
     res.setHeader(
       "Content-Type",
@@ -318,7 +414,8 @@ const getSalesReportExcel = async (req, res) => {
     await workbook.xlsx.write(res);
     res.end();
   } catch (error) {
-    console.error(error);
+    console.error(error); 
+
     res.status(500).send("Server Error");
   }
 };

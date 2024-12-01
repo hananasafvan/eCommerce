@@ -27,7 +27,7 @@
               <ul class="list-unstyled mb-0">
                 <% order.items.forEach(item => { %>
                 <li>
-                  Product ID: <%= item.productId.toString().slice(-7) %>,
+                  Product ID: <%=item.productId ? item.productId.toString().slice(-7): 'Unknown product' %>,
                   Quantity: <%= item.quantity %>, Status:
                   <span
                     class="badge <%= item.status === 'Cancelled' ? 'bg-danger' : 'bg-primary' %>"

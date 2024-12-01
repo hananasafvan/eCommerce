@@ -101,6 +101,7 @@ const postAddCoupon = async (req, res) => {
     res.json({ message: "Coupon added successfully." });
   } catch (error) {
     console.error("Error adding coupon:", error);
+
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -221,6 +222,7 @@ const editCoupon = async (req, res) => {
     }
   } catch (error) {
     console.error("Error updating category:", error);
+
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -242,7 +244,7 @@ const deleteCoupon = async (req, res) => {
     }
   } catch (error) {
     console.error("Error deleting coupon:", error);
-
+    
     return res
       .status(500)
       .json({ success: false, error: "Internal server error" });
