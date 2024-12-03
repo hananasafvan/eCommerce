@@ -273,8 +273,8 @@ const placeOrder = async (req, res) => {
         intent: "sale",
         payer: { payment_method: "paypal" },
         redirect_urls: {
-          return_url: `http://nidha.live/order/success?orderId=${newOrder._id}`,
-          cancel_url: "http://nidha.live/order/cancel",
+          return_url: `https://nidha.live/order/success?orderId=${newOrder._id}`,
+          cancel_url: "https://nidha.live/order/cancel",
         },
         transactions: [
           {
@@ -479,8 +479,8 @@ const repayItem = async (req, res) => {
       intent: "sale",
       payer: { payment_method: "paypal" },
       redirect_urls: {
-        return_url: `http://nidha.live/order/success?orderId=${order._id}`,
-        cancel_url: "http://nidha.live/order/cancel",
+        return_url: `https://nidha.live/order/success?orderId=${order._id}`,
+        cancel_url: "https://nidha.live/order/cancel",
       },
       transactions: [
         {
