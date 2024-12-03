@@ -263,7 +263,7 @@ codRadiobtn.addEventListener('change',function(){
   const addressError = document.getElementById('addressError');
 
   if (!selectedAddress) {
-    // Display error message if no address is selected
+    
     if (!addressError) {
       const errorDiv = document.createElement('div');
       errorDiv.id = 'addressError';
@@ -271,9 +271,9 @@ codRadiobtn.addEventListener('change',function(){
       errorDiv.innerText = 'Please select a delivery address or add new address';
       addressSelect.parentNode.appendChild(errorDiv);
     }
-    return; // Stop the form from submitting
+    return; 
   } else if (addressError) {
-    // Remove the error message if an address is selected
+    
     addressError.remove();
   }
 

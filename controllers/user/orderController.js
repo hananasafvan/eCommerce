@@ -273,8 +273,8 @@ const placeOrder = async (req, res) => {
         intent: "sale",
         payer: { payment_method: "paypal" },
         redirect_urls: {
-          return_url: `http://localhost:3000/order/success?orderId=${newOrder._id}`,
-          cancel_url: "http://localhost:3000/order/cancel",
+          return_url: `http://nidha.live/order/success?orderId=${newOrder._id}`,
+          cancel_url: "http://nidha.live/order/cancel",
         },
         transactions: [
           {
