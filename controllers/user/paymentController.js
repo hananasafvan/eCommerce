@@ -18,8 +18,8 @@ const payproduct = async (req, res) => {
         payment_method: "paypal",
       },
       redirect_urls: {
-        return_url: "https://nidha.live/success",
-        cancel_url: "https://nidha.live/cancel",
+        return_url: "nidha.live/success",
+        cancel_url: "nidha.live/cancel",
       },
       transactions: [
         {
