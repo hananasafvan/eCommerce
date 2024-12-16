@@ -204,11 +204,20 @@ const getProductDetails = async (req, res) => {
         _id: { $ne: productId },
         isBlocked: false,
       }).limit(4);
+
+      const wishlistData = userId
+      ? await Wishlist.findOne({ userId }).populate('products.productId')
+      : null;
+
+    const wishlist = wishlistData
+      ? wishlistData.products.map((item) => item.productId._id.toString())
+      : [];
       res.render("productDetails", {
         product,
         user: userData,
         relatedProducts,
-        quantity:quantity
+        quantity:quantity,
+        wishlist
       
       });
     }

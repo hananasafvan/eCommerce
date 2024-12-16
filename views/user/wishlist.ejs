@@ -39,9 +39,9 @@
                   <div class="row align-items-center">
                     <div class="col-md-3 text-center">
                       <% if (item.productId && item.productId.productImage && item.productId.productImage.length > 0) { %>
-                        <a href="/product/<%= item.productId._id %>">
+                        <!-- <a href="/product/<%= item.productId._id %>"> -->
                           <img src="/uploads/product-imgs/<%= item.productId.productImage[0] %>" alt="<%= item.productId.productName %>">
-                        </a>
+                        <!-- </a> -->
                       <% } else { %>
                         <img src="/uploads/product-imgs/no-image.jpg" alt="No image available">
                       <% } %>
@@ -60,24 +60,29 @@
                     </div>
                     <div class="col-md-3 text-end">
                       <% if (item.productId) { %>
-                        <a
-                          href="/product/<%= item.productId._id %>"
-                          class="btn btn-primary mb-2"
-                          style="background-color: #d35400; border: none"
-                        >
-                          <i class="bi bi-eye"></i> View
-                        </a>
-                        <a
-                          href="#"
-                          class="btn btn-outline-danger"
-                          data-product-id="<%= item.productId._id %>"
-                        >
-                          <i class="bi bi-trash"></i> Remove
-                        </a>
+                        <% if (item.productId.isBlocked) { %>
+                          <p class="text-danger">Product not available now</p>
+                        <% } else { %>
+                          <a
+                            href="/product/<%= item.productId._id %>"
+                            class="btn btn-primary mb-2"
+                            style="background-color: #d35400; border: none"
+                          >
+                            <i class="bi bi-eye"></i> View
+                          </a>
+                          <a
+                            href="#"
+                            class="btn btn-outline-danger"
+                            data-product-id="<%= item.productId._id %>"
+                          >
+                            <i class="bi bi-trash"></i> Remove
+                          </a>
+                        <% } %>
                       <% } else { %>
                         <p class="text-danger">Product no longer available</p>
                       <% } %>
                     </div>
+                    
                     
                   </div>
                 </div>
